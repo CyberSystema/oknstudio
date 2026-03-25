@@ -3,9 +3,13 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     paths:
-      - 'site/**'
-      - 'functions/**'
       - 'assets/**'
+      - 'functions/**'
+      - 'site/**'
+    paths-ignore:
+      - 'analytics-pipeline/**'
+      - 'site/analytics/full_results.json'
+      - 'site/analytics/report.html'
 
   workflow_run:
     workflows: ["Analytics Pipeline"]
@@ -25,10 +29,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: 🚀 Deploy
-    # Only deploy if triggered manually, by push, or if analytics succeeded
+    # Deploy on push + manual + successful Analytics Pipeline completion
     if: >
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     timeout-minutes: 5
 
     env:
