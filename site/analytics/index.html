@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OKN Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#f8f6f0;color:#2c2c2c;min-height:100vh;display:flex;flex-direction:column}
+.studio-nav{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#0f2137;font-size:13px}
+.studio-nav a{color:rgba(255,255,255,0.6);text-decoration:none}.studio-nav a:hover{color:#c4953a}
+.sn-home{font-weight:600;color:rgba(255,255,255,0.85) !important}
+.sn-sep{color:rgba(255,255,255,0.2)}
+.sn-current{color:rgba(255,255,255,0.4)}
+.main{flex:1;display:flex;align-items:center;justify-content:center}
+.wrap{text-align:center;padding:40px 32px;max-width:420px;width:100%}
+.logo-wrap{display:inline-block;padding:5px;border-radius:50%;background:linear-gradient(135deg,rgba(196,149,58,0.5),rgba(255,255,255,0.2));margin-bottom:24px}
+.logo{width:110px;height:110px;border-radius:50%;display:block;object-fit:cover;border:3px solid rgba(26,58,92,0.15)}
+h1{font-family:'Cormorant Garamond',serif;font-size:28px;color:#1a3a5c;margin-bottom:4px;font-weight:700}
+.sub{color:#888;font-size:14px;margin-bottom:32px}
+.buttons{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 24px;border-radius:12px;text-decoration:none;font-size:16px;font-weight:600;transition:all 0.2s;border:2px solid transparent}
+.btn-report{background:#1a3a5c;color:white}
+.btn-report:hover{background:#254d73;transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,58,92,0.25)}
+.btn-upload{background:white;color:#1a3a5c;border-color:#e0dcd4}
+.btn-upload:hover{border-color:#1a3a5c;background:#f5f8fb;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.btn .icon{font-size:20px}
+.btn .label{display:flex;flex-direction:column;align-items:flex-start;line-height:1.3}
+.btn .label small{font-size:11px;font-weight:400;opacity:0.7}
+.foot{font-size:11px;color:#aaa}
+.foot a{color:#999;text-decoration:none}.foot a:hover{text-decoration:underline}
+@media(max-width:480px){.wrap{padding:32px 20px}h1{font-size:24px}.logo{width:90px;height:90px}.btn{padding:14px 20px;font-size:15px}}
+</style>
+</head>
+<body>
+<nav class="studio-nav" id="studioNav">
+  <a href="/" class="sn-home">☦️ OKN Studio</a>
+  <span class="sn-sep">›</span>
+  <span class="sn-current">Analytics</span>
+</nav>
+<script>if(new URLSearchParams(window.location.search).has('embed'))document.getElementById('studioNav').style.display='none';</script>
+<div class="main">
+  <div class="wrap">
+    <div class="logo-wrap"><img src="/assets/okn_logo.png" alt="OKN" class="logo"></div>
+    <h1>OKN Analytics</h1>
+    <div class="sub">Social media intelligence for the Orthodox Korea Network</div>
+    <div class="buttons">
+      <a href="/analytics/report" class="btn btn-report">
+        <span class="icon">📊</span>
+        <span class="label">View Report<small>Latest analytics &amp; insights</small></span>
+      </a>
+      <a href="/analytics/upload" class="btn btn-upload">
+        <span class="icon">📤</span>
+        <span class="label">Upload Data<small>Add new CSV exports</small></span>
+      </a>
+    </div>
+    <div class="foot">
+      Powered by <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

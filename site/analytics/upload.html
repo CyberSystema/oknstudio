@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OKN Analytics — Upload Data</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{overflow-x:hidden}
+body{font-family:'Segoe UI','Noto Sans KR',sans-serif;background:#f8f6f0;color:#2c2c2c;line-height:1.6;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:560px;width:100%;margin:24px;padding:0}
+
+/* Header */
+.hdr{background:linear-gradient(160deg,#1a3a5c 0%,#1e4a6e 35%,#2a3a5c 60%,#8b1a1a 100%);color:white;padding:36px 32px 28px;border-radius:16px 16px 0 0;text-align:center;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(196,149,58,0.08) 0%,transparent 50%);pointer-events:none}
+.hdr h1{font-size:22px;margin-bottom:4px;letter-spacing:0.5px;font-weight:700}
+.hdr p{opacity:0.75;font-size:13px}
+
+/* Card */
+.card{background:white;border-radius:0 0 16px 16px;padding:28px 32px 32px;border:1px solid #e8e4dc;border-top:none}
+
+/* Auth */
+.auth-section{text-align:center}
+.auth-section p{color:#888;font-size:14px;margin-bottom:20px}
+.input-wrap{position:relative;margin-bottom:16px}
+.input-wrap input{width:100%;padding:14px 18px;border:2px solid #e0dcd4;border-radius:10px;font-size:15px;outline:none;transition:border 0.2s}
+.input-wrap input:focus{border-color:#1a3a5c}
+
+/* Upload area */
+.upload-section{display:none}
+
+/* Platform tabs */
+.platform-tabs{display:flex;gap:8px;margin-bottom:20px}
+.ptab{flex:1;padding:12px;border:2px solid #e0dcd4;border-radius:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;background:white}
+.ptab:hover{border-color:#1a3a5c;background:#f5f8fb}
+.ptab.active{border-color:#1a3a5c;background:#1a3a5c;color:white}
+.ptab .icon{font-size:24px;display:block;margin-bottom:4px}
+.ptab-badge{position:absolute;top:-6px;right:-6px;background:#c4953a;color:white;font-size:10px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white}
+.ptab{position:relative}
+
+/* Dropzone */
+.dropzone{border:2px dashed #c4953a;border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:16px;background:#fdfcfa}
+.dropzone:hover,.dropzone.dragover{background:#faf6ee;border-color:#1a3a5c}
+.dropzone .dz-icon{font-size:36px;margin-bottom:8px}
+.dropzone p{color:#888;font-size:14px}
+.dropzone .dz-hint{font-size:11px;color:#aaa;margin-top:8px}
+
+/* Steps */
+.step-bar{display:flex;gap:4px;margin-bottom:20px}
+.step{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#bbb;background:#f5f5f5;transition:all 0.3s}
+.step.active{color:#1a3a5c;background:#e8f0f8}
+.step.done{color:#38a169;background:#f0faf0}
+
+/* File list */
+.file-list{margin-bottom:16px}
+.file-item{display:flex;align-items:center;padding:12px 14px;background:#fafbfc;border:1px solid #eee;border-radius:10px;margin-bottom:8px;font-size:13px;gap:10px;transition:border 0.2s}
+.file-item.ok{border-color:#c6f6d5}
+.file-item.warn{border-color:#fefcbf;background:#fffdf5}
+.file-item.err{border-color:#fed7d7;background:#fff8f8}
+.fi-icon{font-size:20px;flex-shrink:0}
+.fi-body{flex:1;min-width:0}
+.fi-orig{font-size:12px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-detected{font-weight:600;color:#1a3a5c}
+.fi-arrow{color:#c4953a;font-size:11px;margin:0 2px}
+.fi-size{color:#888;font-size:11px}
+.fi-badge{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;flex-shrink:0}
+.badge-ok{background:#f0faf0;color:#38a169}
+.badge-warn{background:#fffbf0;color:#d69e2e}
+.badge-err{background:#fff5f5;color:#e53e3e}
+.fi-remove{color:#ccc;cursor:pointer;font-size:16px;flex-shrink:0;padding:0 4px;transition:color 0.2s}
+.fi-remove:hover{color:#e53e3e}
+
+/* Warning message */
+.fi-warn-msg{font-size:11px;color:#d69e2e;margin-top:4px}
+.fi-warn-msg button{font-size:11px;color:#1a3a5c;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;padding:0;margin-left:4px}
+
+/* Buttons */
+.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-primary{background:#1a3a5c;color:white}.btn-primary:hover{background:#254d73}
+.btn-primary:disabled{background:#bbb;cursor:not-allowed}
+.btn-secondary{background:#f5f5f5;color:#666;margin-top:8px;font-size:13px;padding:10px}.btn-secondary:hover{background:#eee;color:#333}
+.btn-back{background:transparent;color:#888;font-size:13px;margin-top:12px;padding:8px}.btn-back:hover{color:#1a3a5c}
+.btn-row{display:flex;gap:8px;margin-top:12px}.btn-row .btn{flex:1}
+
+/* Status */
+.status{padding:14px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;display:none;line-height:1.5}
+.status.info{display:block;background:#e8f4f8;color:#1a5276;border:1px solid #bee3f8}
+.status.ok{display:block;background:#f0faf0;color:#276749;border:1px solid #c6f6d5}
+.status.err{display:block;background:#fff5f5;color:#c53030;border:1px solid #fed7d7}
+.status.uploading{display:block;background:#fffbf0;color:#975a16;border:1px solid #fefcbf}
+
+/* Progress */
+.progress-wrap{display:none;margin-bottom:16px}
+.progress-bar{height:6px;background:#e0dcd4;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#1a3a5c,#c4953a);border-radius:3px;transition:width 0.3s;width:0%}
+.progress-text{font-size:12px;color:#888;margin-top:6px;text-align:center}
+
+/* Confirm overlay */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.confirm-overlay.show{display:flex}
+.confirm-box{background:white;border-radius:16px;padding:0;max-width:460px;width:100%;max-height:80vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.confirm-header{background:linear-gradient(135deg,#1a3a5c,#2a5a8c);padding:20px 24px;color:white}
+.confirm-header h3{font-size:18px;font-weight:700;margin-bottom:2px}
+.confirm-header .cb-sub{color:rgba(255,255,255,0.75);font-size:13px}
+.confirm-body{padding:20px 24px;overflow-y:auto;max-height:calc(80vh - 180px)}
+.confirm-plat{font-weight:600;color:#1a3a5c;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;padding:12px 0 6px;border-bottom:1px solid #eee;margin-bottom:8px}
+.confirm-plat:first-child{padding-top:0}
+.confirm-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8f9fb;border-radius:10px;margin-bottom:6px;font-size:13px;border:1px solid #eef0f4;transition:background 0.15s}
+.confirm-item:hover{background:#eef2f8}
+.ci-icon{font-size:18px;flex-shrink:0}
+.ci-body{flex:1;min-width:0}
+.ci-name{font-weight:600;color:#1a3a5c;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-dest{font-size:11px;color:#888;display:block;margin-top:1px}
+.confirm-note{display:flex;align-items:flex-start;gap:8px;padding:12px 14px;background:#f0f7ff;border-radius:10px;border:1px solid #d0e3f7;font-size:12px;color:#1a5276;line-height:1.5;margin-top:12px}
+.confirm-note-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.confirm-footer{padding:16px 24px;background:#fafbfc;border-top:1px solid #eee;display:flex;gap:10px}
+.confirm-footer .btn{flex:1}
+
+/* Footer */
+.foot{text-align:center;margin-top:16px;font-size:11px;color:#aaa}
+.foot a{color:#999}
+
+/* Responsive */
+@media(max-width:560px){
+  body{align-items:flex-start}
+  .wrap{margin:12px}
+  .hdr{padding:28px 20px 22px;border-radius:12px 12px 0 0}.hdr h1{font-size:18px}
+  .card{padding:20px}
+  .dropzone{padding:24px 16px}
+  .platform-tabs{gap:6px}.ptab{padding:10px 8px;font-size:13px}.ptab .icon{font-size:20px}
+  .file-item{flex-wrap:wrap;gap:6px}
+  .confirm-box{border-radius:12px}
+  .confirm-header{padding:16px 20px}
+  .confirm-body{padding:16px 20px}
+  .confirm-footer{padding:14px 20px}
+}
+</style>
+</head>
+<body>
+<nav class="studio-nav" id="studioNav">
+<a href="/" class="sn-home">☦️ OKN Studio</a>
+<span class="sn-sep">›</span>
+<a href="/analytics/">Analytics</a>
+<span class="sn-sep">›</span>
+<span class="sn-current">Upload</span>
+</nav>
+<style>
+.studio-nav{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#0f2137;font-family:'Segoe UI',sans-serif;font-size:13px}
+.studio-nav a{color:rgba(255,255,255,0.6);text-decoration:none}.studio-nav a:hover{color:#c4953a}
+.sn-home{font-weight:600;color:rgba(255,255,255,0.85) !important}
+.sn-sep{color:rgba(255,255,255,0.2)}
+.sn-current{color:rgba(255,255,255,0.4)}
+</style>
+<script>if(new URLSearchParams(window.location.search).has('embed'))document.getElementById('studioNav').style.display='none';</script>
+<div class="wrap">
+  <div class="hdr">
+    <h1>📤 Upload Analytics Data</h1>
+    <p>Upload your weekly CSV exports — files are auto-detected and renamed</p>
+  </div>
+  <div class="card">
+
+    <!-- AUTH -->
+    <div class="auth-section" id="authSection">
+      <p>Enter the team password to access the upload area</p>
+      <div class="input-wrap">
+        <input type="password" id="passInput" placeholder="Team password" autocomplete="off">
+      </div>
+      <div class="status" id="authStatus"></div>
+      <button class="btn btn-primary" id="authBtn" onclick="authenticate()">Sign In</button>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-section" id="uploadSection">
+
+      <!-- Step indicator -->
+      <div class="step-bar">
+        <div class="step active" id="step1">1. Add Files</div>
+        <div class="step" id="step2">2. Review</div>
+        <div class="step" id="step3">3. Upload</div>
+      </div>
+
+      <!-- Platform tabs -->
+      <div class="platform-tabs">
+        <div class="ptab active" data-platform="instagram" onclick="selectPlatform('instagram',this)">
+          <span class="icon">📸</span>Instagram
+        </div>
+        <div class="ptab" data-platform="tiktok" onclick="selectPlatform('tiktok',this)">
+          <span class="icon">🎵</span>TikTok
+        </div>
+      </div>
+
+      <!-- Dropzone -->
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div class="dz-icon">📁</div>
+        <p>Drop your <strong id="dzPlatformName">Instagram</strong> CSV files here</p>
+        <div class="dz-hint">Files are auto-detected by their content — no renaming needed</div>
+      </div>
+      <input type="file" id="fileInput" multiple accept=".csv" style="display:none" onchange="handleFiles(this.files)">
+
+      <!-- Detected files -->
+      <div class="file-list" id="fileList"></div>
+
+      <div class="status" id="uploadStatus"></div>
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText"></div>
+      </div>
+
+      <button class="btn btn-primary" id="uploadBtn" onclick="showConfirm()" disabled>Review &amp; Upload</button>
+      <button class="btn btn-back" onclick="logout()">← Sign out</button>
+    </div>
+  </div>
+  <div class="foot">
+    <a href="/analytics/report">← Back to Report</a> &nbsp;•&nbsp;
+    OKN Analytics Pipeline &nbsp;•&nbsp; <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
+  </div>
+</div>
+
+<!-- Confirm overlay -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-header">
+      <h3>📤 Confirm Upload</h3>
+      <div class="cb-sub">The following files will be uploaded to <strong id="confirmPlatform"></strong></div>
+    </div>
+    <div class="confirm-body">
+      <div id="confirmList"></div>
+      <div class="confirm-note">
+        <span class="confirm-note-icon">ℹ️</span>
+        <span>All files will be uploaded in a single commit. The analytics pipeline will run automatically and the report will update in approximately 5 minutes.</span>
+      </div>
+    </div>
+    <div class="confirm-footer">
+      <button class="btn btn-secondary" onclick="hideConfirm()">Cancel</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="doUpload()">Upload Now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   FILE DETECTION RULES — SCORE-BASED
+   ═══════════════════════════════════════
+
+   Every rule defines scoring functions that return a confidence number.
+   For each file, ALL rules are evaluated. Highest total score wins.
+   No order dependency. No first-match fragility.
+
+   Scoring guideline:
+     Unique header (only this file has it):  20
+     Specific header combination:            10
+     Generic header (e.g. "date"):            2
+     Row content keyword:                     5
+     Exact filename match:                   15
+     Filename contains keyword:               8
+     Filename contains partial keyword:       4
+*/
+
+const DETECT_RULES = [
+  // ── INSTAGRAM ──
+  {
+    targetName: 'content.csv',
+    platform: 'instagram',
+    label: 'Content Export',
+    scoreHeaders: (h) => (has(h,'post id') ? 20 : 0) + (has(h,'publish time') ? 20 : 0),
+    scoreFilename: (f) => /^\w{3}-\d{1,2}-\d{4}_\w{3}-\d{1,2}-\d{4}_\d+\.csv$/i.test(f) ? 15 : (eq(f,'content.csv') ? 12 : 0),
+  },
+  {
+    targetName: 'Follows.csv',
+    platform: 'instagram',
+    label: 'Follows',
+    scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (rowHas(rows,'follows') && !rowHas(rows,'follower') ? 10 : 0),
+    scoreFilename: (f) => eq(f,'follows.csv') ? 15 : (inc(f,'follow') && !inc(f,'follower') ? 8 : 0),
+  },
+  {
+    targetName: 'Interactions.csv',
+    platform: 'instagram',
+    label: 'Interactions',
+    scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (rowHas(rows,'interaction') ? 10 : 0),
+    scoreFilename: (f) => eq(f,'interactions.csv') ? 15 : (inc(f,'interaction') ? 8 : 0),
+  },
+  {
+    targetName: 'Link clicks.csv',
+    platform: 'instagram',
+    label: 'Link Clicks',
+    scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (rowHas(rows,'link click') ? 10 : (rowHas(rows,'link') ? 5 : 0)),
+    scoreFilename: (f) => eq(f,'link clicks.csv') ? 15 : (inc(f,'link') && inc(f,'click') ? 10 : (inc(f,'link_click') || inc(f,'linkclick') ? 8 : 0)),
+  },
+  {
+    targetName: 'Reach.csv',
+    platform: 'instagram',
+    label: 'Reach',
+    scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (has(h,'reach') ? 15 : (rowHas(rows,'reach') ? 8 : 0)),
+    scoreFilename: (f) => eq(f,'reach.csv') ? 15 : (inc(f,'reach') ? 8 : 0),
+  },
+  {
+    targetName: 'Views.csv',
+    platform: 'instagram',
+    label: 'Views',
+    scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (has(h,'views') && !has(h,'video views') ? 12 : (rowHas(rows,'views') && !rowHas(rows,'video view') ? 5 : 0)),
+    scoreFilename: (f) => eq(f,'views.csv') ? 15 : 0,
+  },
+  {
+    targetName: 'Visits.csv',
+    platform: 'instagram',
+    label: 'Visits',
+    scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (has(h,'visits') ? 15 : (rowHas(rows,'visit') ? 8 : 0)),
+    scoreFilename: (f) => eq(f,'visits.csv') ? 15 : (inc(f,'visit') ? 8 : 0),
+  },
+  {
+    targetName: 'Audience.csv',
+    platform: 'instagram',
+    label: 'Audience',
+    scoreHeaders: (h) => (has(h,'country') ? 20 : 0) + (has(h,'age') ? 15 : 0) + (has(h,'city') ? 10 : 0),
+    scoreFilename: (f) => eq(f,'audience.csv') ? 15 : (inc(f,'audience') ? 8 : 0),
+  },
+
+  // ── TIKTOK ──
+  {
+    targetName: 'Content.csv',
+    platform: 'tiktok',
+    label: 'Content',
+    scoreHeaders: (h) => (has(h,'video title') ? 20 : 0) + (has(h,'total views') ? 15 : 0) + (has(h,'total likes') ? 10 : 0) + (has(h,'video link') ? 10 : 0) + (has(h,'post time') ? 10 : 0),
+    scoreFilename: (f) => eq(f,'content.csv') ? 10 : 0,
+  },
+  {
+    targetName: 'Overview.csv',
+    platform: 'tiktok',
+    label: 'Overview',
+    scoreHeaders: (h) => (has(h,'date') ? 2 : 0) + (has(h,'video views') ? 20 : 0) + (has(h,'profile views') ? 15 : 0) + (has(h,'likes') ? 5 : 0),
+    scoreFilename: (f) => eq(f,'overview.csv') ? 15 : (inc(f,'overview') ? 8 : 0),
+  },
+  {
+    targetName: 'Viewers.csv',
+    platform: 'tiktok',
+    label: 'Viewers',
+    scoreHeaders: (h) => (has(h,'date') ? 2 : 0) + (has(h,'viewer') ? 20 : 0) + (!has(h,'video views') && !has(h,'profile views') ? 3 : 0),
+    scoreFilename: (f) => eq(f,'viewers.csv') ? 15 : (inc(f,'viewer') ? 8 : 0),
+  },
+  {
+    targetName: 'FollowerActivity.csv',
+    platform: 'tiktok',
+    label: 'Follower Activity',
+    scoreHeaders: (h) => (has(h,'hour') ? 25 : 0),
+    scoreFilename: (f) => eq(f,'followeractivity.csv') ? 15 : (inc(f,'activity') ? 8 : (inc(f,'followeractivity') ? 12 : 0)),
+  },
+  {
+    targetName: 'FollowerHistory.csv',
+    platform: 'tiktok',
+    label: 'Follower History',
+    scoreHeaders: (h) => (has(h,'date') ? 2 : 0) + (has(h,'total followers') ? 25 : (has(h,'followers') && !has(h,'hour') && !has(h,'gender') ? 12 : 0)),
+    scoreFilename: (f) => eq(f,'followerhistory.csv') ? 15 : (inc(f,'followerhistory') ? 12 : (inc(f,'follower') && inc(f,'history') ? 8 : 0)),
+  },
+  {
+    targetName: 'FollowerGender.csv',
+    platform: 'tiktok',
+    label: 'Follower Gender',
+    scoreHeaders: (h) => (has(h,'gender') ? 25 : 0),
+    scoreFilename: (f) => eq(f,'followergender.csv') ? 15 : (inc(f,'gender') ? 8 : 0),
+  },
+  {
+    targetName: 'FollowerTopTerritories.csv',
+    platform: 'tiktok',
+    label: 'Top Territories',
+    scoreHeaders: (h) => (has(h,'territory') ? 25 : 0) + (has(h,'territories') ? 20 : 0) + (has(h,'region') ? 10 : 0),
+    scoreFilename: (f) => eq(f,'followertopterritories.csv') ? 15 : (inc(f,'territor') ? 8 : 0),
+  },
+];
+
+// Scoring helpers
+function has(headers, text) { return headers.some(h => h.includes(text)); }
+function rowHas(rows, text) { return rows.toLowerCase().includes(text); }
+function inc(filename, text) { return filename.toLowerCase().includes(text.toLowerCase()); }
+function eq(filename, text) { return filename.toLowerCase().trim() === text.toLowerCase().trim(); }
+
+// Minimum score to accept a match
+const MIN_SCORE = 10;
+
+/**
+ * Score-based file detection.
+ * Evaluates ALL rules, picks the highest-scoring match.
+ * Returns { rule, score, platform } or null.
+ */
+function detectFile(filename, headers, firstRows) {
+  const scores = DETECT_RULES.map(rule => {
+    const headerScore = rule.scoreHeaders(headers, firstRows);
+    const filenameScore = rule.scoreFilename(filename);
+    return { rule, score: headerScore + filenameScore, headerScore, filenameScore };
+  });
+
+  // Sort by score descending
+  scores.sort((a, b) => b.score - a.score);
+
+  const best = scores[0];
+  const runnerUp = scores[1];
+
+  if (!best || best.score < MIN_SCORE) return null;
+
+  return {
+    rule: best.rule,
+    score: best.score,
+    // Flag if the top two scores are very close (ambiguous)
+    ambiguous: runnerUp && runnerUp.score >= MIN_SCORE && (best.score - runnerUp.score) < 5,
+    runnerUp: runnerUp && runnerUp.score >= MIN_SCORE ? runnerUp.rule : null,
+  };
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+let currentPlatform = 'instagram';
+let allFiles = { instagram: [], tiktok: [] }; // per-platform file lists
+let authToken = '';
+
+/* ═══════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════ */
+
+document.getElementById('passInput').addEventListener('keydown', e => { if(e.key==='Enter') authenticate(); });
+
+async function authenticate() {
+  const pass = document.getElementById('passInput').value.trim();
+  if (!pass) return showAuthStatus('Please enter the password', 'err');
+  const btn = document.getElementById('authBtn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const res = await fetch('/api/analytics/upload', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'auth', password: pass})
+    });
+    // Check if we got HTML back (= function not deployed, 404 page)
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('json')) {
+      showAuthStatus('Upload API not available (HTTP ' + res.status + '). This usually means the Cloudflare Function is not deployed. Check: 1) functions/api/analytics/upload.js exists in reports/ 2) Cloudflare env vars are set 3) Redeploy the site.', 'err');
+      btn.disabled = false; btn.textContent = 'Sign In';
+      return;
+    }
+    const data = await res.json();
+    if (data.ok) {
+      authToken = data.token;
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('uploadSection').style.display = 'block';
+    } else {
+      showAuthStatus(data.error || 'Wrong password', 'err');
+    }
+  } catch(e) {
+    showAuthStatus('Cannot connect to /api/analytics/upload — Error: ' + e.message, 'err');
+  }
+  btn.disabled = false; btn.textContent = 'Sign In';
+}
+
+function logout() {
+  authToken = '';
+  allFiles = { instagram: [], tiktok: [] };
+  document.getElementById('authSection').style.display = 'block';
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('passInput').value = '';
+  renderFiles();
+  showUploadStatus('', '');
+  updateSteps(1);
+}
+
+function showAuthStatus(msg, type) {
+  const el = document.getElementById('authStatus');
+  el.textContent = msg; el.className = 'status ' + type;
+}
+
+/* ═══════════════════════════════════════
+   PLATFORM SELECTION
+   ═══════════════════════════════════════ */
+
+function selectPlatform(platform, tab) {
+  currentPlatform = platform;
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('dzPlatformName').textContent = platform === 'instagram' ? 'Instagram' : 'TikTok';
+  renderFiles();
+  showUploadStatus('', '');
+  updateStepState();
+}
+
+function updateTabBadges() {
+  document.querySelectorAll('.ptab').forEach(tab => {
+    const p = tab.dataset.platform;
+    const count = allFiles[p].filter(f => f.status === 'ok').length;
+    let badge = tab.querySelector('.ptab-badge');
+    if (count > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'ptab-badge';
+        tab.appendChild(badge);
+      }
+      badge.textContent = count;
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}
+
+/* ═══════════════════════════════════════
+   FILE HANDLING & AUTO-DETECTION
+   ═══════════════════════════════════════ */
+
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+async function readFileHead(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target.result;
+      const lines = text.split('\n');
+      const headerLine = (lines[0] || '').replace(/"/g, '').replace(/\ufeff/g, '').trim();
+      const headers = headerLine.split(',').map(h => h.trim().toLowerCase());
+      const firstRows = lines.slice(0, 5).join('\n');
+      resolve({headers, firstRows});
+    };
+    reader.onerror = () => resolve({headers: [], firstRows: ''});
+    reader.readAsText(file.slice(0, 4096));
+  });
+}
+
+async function handleFiles(files) {
+  const list = allFiles[currentPlatform];
+
+  for (const file of files) {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      list.push({file, rule: null, status: 'err', errMsg: 'Not a CSV file'});
+      continue;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      list.push({file, rule: null, status: 'err', errMsg: 'File too large (max 5MB)'});
+      continue;
+    }
+
+    const {headers, firstRows} = await readFileHead(file);
+    const match = detectFile(file.name, headers, firstRows);
+
+    let found;
+
+    if (!match) {
+      // No rule scored above threshold
+      found = {file, rule: null, status: 'err', errMsg: 'Could not identify this file. Make sure it\'s a valid analytics export.'};
+    } else if (match.rule.platform !== currentPlatform) {
+      // Best match belongs to the other platform
+      const otherName = match.rule.platform === 'instagram' ? 'Instagram' : 'TikTok';
+      found = {file, rule: match.rule, status: 'warn', warnMsg: `This looks like a ${otherName} file (${match.rule.label}). Switch to the ${otherName} tab to upload it.`};
+    } else {
+      // Good match on current platform
+      found = {file, rule: match.rule, status: 'ok'};
+    }
+
+    // Check duplicate within this platform
+    if (found.status === 'ok') {
+      const dup = list.find(d => d.rule && d.rule.targetName === found.rule.targetName && d.status === 'ok');
+      if (dup) {
+        found = {file, rule: found.rule, status: 'err', errMsg: `"${found.rule.label}" already added`};
+      }
+    }
+
+    list.push(found);
+  }
+
+  document.getElementById('fileInput').value = '';
+  renderFiles();
+  updateStepState();
+};
+
+/* ═══════════════════════════════════════
+   RENDER FILE LIST
+   ═══════════════════════════════════════ */
+
+function renderFiles() {
+  const list = document.getElementById('fileList');
+  list.innerHTML = '';
+  const files = allFiles[currentPlatform];
+
+  files.forEach((d, i) => {
+    const div = document.createElement('div');
+    div.className = 'file-item ' + d.status;
+
+    let icon = d.status === 'ok' ? '✅' : d.status === 'warn' ? '⚠️' : '❌';
+    let badge = '', body = '';
+    const sizeStr = d.file.size ? (d.file.size < 1024*1024 ? (d.file.size/1024).toFixed(1)+' KB' : (d.file.size/1024/1024).toFixed(1)+' MB') : '';
+
+    if (d.status === 'ok') {
+      badge = '<span class="fi-badge badge-ok">Detected</span>';
+      body = `<div class="fi-detected">${d.rule.label}</div>
+              <div class="fi-orig">${d.file.name} <span class="fi-arrow">→</span> ${d.rule.targetName} <span class="fi-size">${sizeStr}</span></div>`;
+    } else if (d.status === 'warn') {
+      badge = '<span class="fi-badge badge-warn">Wrong platform?</span>';
+      body = `<div class="fi-detected">${d.file.name}</div>
+              <div class="fi-warn-msg">${d.warnMsg}</div>`;
+    } else {
+      badge = '<span class="fi-badge badge-err">Error</span>';
+      body = `<div class="fi-detected">${d.file.name}</div>
+              <div class="fi-orig" style="color:#c53030">${d.errMsg}</div>`;
+    }
+
+    div.innerHTML = `<span class="fi-icon">${icon}</span><div class="fi-body">${body}</div>${badge}<span class="fi-remove" onclick="removeFile('${currentPlatform}',${i})">✕</span>`;
+    list.appendChild(div);
+  });
+
+  updateTabBadges();
+  const totalOk = allFiles.instagram.filter(f => f.status === 'ok').length + allFiles.tiktok.filter(f => f.status === 'ok').length;
+  document.getElementById('uploadBtn').disabled = totalOk === 0;
+}
+
+function removeFile(platform, index) {
+  allFiles[platform].splice(index, 1);
+  renderFiles();
+  updateStepState();
+}
+
+function getTotalOkCount() {
+  return allFiles.instagram.filter(f => f.status === 'ok').length + allFiles.tiktok.filter(f => f.status === 'ok').length;
+}
+
+function updateStepState() {
+  const total = getTotalOkCount();
+  updateSteps(total > 0 ? 2 : 1);
+  document.getElementById('uploadBtn').disabled = total === 0;
+}
+
+/* ═══════════════════════════════════════
+   STEP BAR
+   ═══════════════════════════════════════ */
+
+function updateSteps(active) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('step' + i);
+    el.className = 'step' + (i < active ? ' done' : i === active ? ' active' : '');
+  }
+}
+
+/* ═══════════════════════════════════════
+   CONFIRM & UPLOAD
+   ═══════════════════════════════════════ */
+
+function showConfirm() {
+  if (getTotalOkCount() === 0) return;
+
+  const list = document.getElementById('confirmList');
+  let html = '';
+  let totalFiles = 0;
+
+  for (const platform of ['instagram', 'tiktok']) {
+    const okFiles = allFiles[platform].filter(f => f.status === 'ok');
+    if (okFiles.length === 0) continue;
+    const pName = platform === 'instagram' ? '📸 Instagram' : '🎵 TikTok';
+    html += `<div class="confirm-plat">${pName} — ${okFiles.length} file(s)</div>`;
+    html += okFiles.map(d =>
+      `<div class="confirm-item">
+        <span class="ci-icon">📄</span>
+        <div class="ci-body">
+          <span class="ci-name">${d.rule.label}</span>
+          <span class="ci-dest">${d.file.name} → data/${platform}/${d.rule.targetName}</span>
+        </div>
+      </div>`
+    ).join('');
+    totalFiles += okFiles.length;
+  }
+
+  document.getElementById('confirmPlatform').textContent =
+    (allFiles.instagram.some(f => f.status === 'ok') && allFiles.tiktok.some(f => f.status === 'ok'))
+      ? 'Instagram & TikTok'
+      : allFiles.instagram.some(f => f.status === 'ok') ? 'Instagram' : 'TikTok';
+
+  list.innerHTML = html;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function hideConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+async function doUpload() {
+  hideConfirm();
+
+  // Collect all ok files with their platform
+  const toUpload = [];
+  for (const platform of ['instagram', 'tiktok']) {
+    for (const d of allFiles[platform].filter(f => f.status === 'ok')) {
+      toUpload.push({...d, platform});
+    }
+  }
+  if (toUpload.length === 0) return;
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  showUploadStatus('Preparing files...', 'uploading');
+  showProgress(true);
+  updateSteps(3);
+
+  // Read all files to base64 first
+  const files = [];
+  for (let i = 0; i < toUpload.length; i++) {
+    const d = toUpload[i];
+    updateProgress(i, toUpload.length + 1, `Reading ${d.rule.label}...`);
+    try {
+      const content = await readFileBase64(d.file);
+      files.push({ platform: d.platform, filename: d.rule.targetName, content });
+    } catch(e) {
+      showUploadStatus(`❌ Failed to read ${d.rule.label}: ${e.message}`, 'err');
+      btn.disabled = false;
+      setTimeout(() => showProgress(false), 1000);
+      return;
+    }
+  }
+
+  // Send all files in one request → one commit
+  updateProgress(toUpload.length, toUpload.length + 1, `Uploading ${files.length} files as one commit...`);
+  try {
+    const res = await fetch('/api/analytics/upload', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'upload_batch',
+        token: authToken,
+        files,
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      updateProgress(1, 1, 'Done!');
+      showUploadStatus(`✅ ${files.length} file(s) uploaded in a single commit! The analytics pipeline will run automatically and the report will update in ~5 minutes.`, 'ok');
+      allFiles = { instagram: [], tiktok: [] };
+      renderFiles();
+      updateSteps(1);
+    } else {
+      showUploadStatus(`❌ Upload failed: ${data.error}`, 'err');
+    }
+  } catch(e) {
+    showUploadStatus(`❌ Upload failed: ${e.message}`, 'err');
+  }
+
+  btn.disabled = false;
+  setTimeout(() => showProgress(false), 2000);
+}
+
+function readFileBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function showUploadStatus(msg, type) {
+  const el = document.getElementById('uploadStatus');
+  el.innerHTML = msg; el.className = 'status ' + (type || '');
+}
+function showProgress(show) { document.getElementById('progressWrap').style.display = show ? 'block' : 'none'; }
+function updateProgress(current, total, text) {
+  document.getElementById('progressFill').style.width = Math.round((current/total)*100) + '%';
+  document.getElementById('progressText').textContent = text;
+}
+</script>
+</body>
+</html>

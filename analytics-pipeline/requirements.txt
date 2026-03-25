@@ -1,0 +1,27 @@
+# OKN Analytics Pipeline - Dependencies
+# ======================================
+
+# Data processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Machine Learning & Forecasting
+scikit-learn>=1.3.0
+prophet>=1.1.4
+stopwordsiso>=0.6.1    # Multi-language stop words (EN, EL, KO)
+sentence-transformers>=2.2.0  # Multilingual semantic embeddings (EN/EL/KO)
+
+# Visualization & Reporting
+matplotlib>=3.8.0
+plotly>=5.18.0
+seaborn>=0.13.0
+jinja2>=3.1.0
+
+# Data handling
+pyarrow>=14.0.0        # Parquet support for history storage
+openpyxl>=3.1.0       # Excel file support
+python-dateutil>=2.8.0
+
+# Utilities
+rich>=13.0.0           # Pretty console output
+click>=8.1.0           # CLI interface
