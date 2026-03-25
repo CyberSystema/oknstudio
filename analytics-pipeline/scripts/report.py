@@ -454,6 +454,7 @@ class ReportGenerator:
         return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{BRANDING['report_title']}</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}html{{overflow-x:hidden}}body{{font-family:{BRANDING['font_family']};background:{BRANDING['bg_color']};color:{BRANDING['text_color']};line-height:1.6;overflow-x:hidden;width:100%}}.container{{max-width:1100px;margin:0 auto;padding:24px;width:100%}}
 .header{{background:linear-gradient(160deg,{BRANDING['primary_color']} 0%,#1e4a6e 35%,#2a3a5c 60%,{BRANDING['accent_color']} 100%);color:white;padding:48px 40px 36px;border-radius:20px;margin-bottom:32px;text-align:center;position:relative;overflow:hidden}}
@@ -525,7 +526,7 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
 }}
 </style></head><body>
 <nav class="studio-nav" id="studioNav">
-<a href="/" class="sn-home">OKN Studio</a>
+<a href="/" class="sn-home"><i class="material-icons">home</i>OKN Studio</a>
 <span class="sn-sep">›</span>
 <a href="/analytics/">Analytics</a>
 <span class="sn-sep">›</span>
@@ -534,7 +535,8 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
 <style>
 .studio-nav{{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#0f2137;font-family:'Segoe UI',sans-serif;font-size:13px;position:sticky;top:0;z-index:999}}
 .studio-nav a{{color:rgba(255,255,255,0.6);text-decoration:none}}.studio-nav a:hover{{color:#c4953a}}
-.sn-home{{font-weight:600;color:rgba(255,255,255,0.85) !important}}
+.sn-home{{font-weight:600;color:rgba(255,255,255,0.85) !important;display:flex;align-items:center;gap:4px}}
+.sn-home .material-icons{{font-size:18px;font-weight:500}}
 .sn-sep{{color:rgba(255,255,255,0.2)}}
 .sn-current{{color:rgba(255,255,255,0.4)}}
 </style>
