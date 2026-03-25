@@ -1,0 +1,55 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    paths:
+      - 'site/**'
+      - 'functions/**'
+      - 'assets/**'
+
+  workflow_run:
+    workflows: ["Analytics Pipeline"]
+    types: [completed]
+    branches: [main]
+
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy
+    # Only deploy if triggered manually, by push, or if analytics succeeded
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    timeout-minutes: 5
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 📁 Copy assets to deploy directory
+        run: |
+          mkdir -p site/assets
+          cp -r assets/* site/assets/ 2>/dev/null || echo "No assets to copy"
+          echo "✅ Assets copied to site/assets/"
+          ls -la site/assets/ 2>/dev/null || true
+
+      - name: 🚀 Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site/ --project-name=oknstudio --commit-dirty=true

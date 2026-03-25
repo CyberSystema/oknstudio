@@ -1,0 +1,171 @@
+name: Analytics Pipeline
+
+on:
+  push:
+    paths:
+      - 'analytics-pipeline/data/**'
+      - 'analytics-pipeline/scripts/**'
+      - 'analytics-pipeline/models/**'
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Pipeline mode'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - ingest-only
+          - report-only
+      reset_history:
+        description: 'Delete history and rebuild from scratch'
+        required: false
+        default: false
+        type: boolean
+
+  schedule:
+    # Every Monday 09:00 KST = 00:00 UTC
+    - cron: '0 0 * * 1'
+
+concurrency:
+  group: analytics-pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    name: 📊 Run Analytics Pipeline
+    timeout-minutes: 15
+
+    env:
+      PYTHON_VERSION: '3.11'
+      HF_HOME: /home/runner/.cache/huggingface
+      SENTENCE_TRANSFORMERS_HOME: /home/runner/.cache/huggingface/hub
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: analytics-pipeline/requirements.txt
+
+      - name: 🧠 Cache HuggingFace model
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.cache/huggingface/hub
+          key: hf-multilingual-minilm-v3-${{ runner.os }}
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip --quiet
+          pip install -r analytics-pipeline/requirements.txt --quiet
+
+      - name: 🧠 Verify ML model
+        run: |
+          python -c "
+          from sentence_transformers import SentenceTransformer
+          model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+          result = model.encode(['test'])
+          print(f'✅ Model loaded — {result.shape[1]}d embeddings')
+          "
+
+      - name: 🗑️ Reset history
+        if: github.event.inputs.reset_history == 'true'
+        run: |
+          rm -f analytics-pipeline/history/unified_history.parquet
+          rm -f analytics-pipeline/history/unified_history.csv
+          rm -f analytics-pipeline/history/account_daily_*.csv
+          rm -f analytics-pipeline/history/demographics_history_*.jsonl
+          echo "🗑️ History cleared"
+
+      - name: 🔬 Run analytics pipeline
+        run: |
+          MODE="${{ github.event.inputs.mode || 'full' }}"
+          case "$MODE" in
+            ingest-only)  python analytics-pipeline/scripts/main.py --ingest-only ;;
+            report-only)  python analytics-pipeline/scripts/main.py --report-only ;;
+            *)            python analytics-pipeline/scripts/main.py ;;
+          esac
+
+      - name: 📤 Commit results
+        run: |
+          git config user.name "OKN Analytics Bot"
+          git config user.email "analytics@orthodoxkorea.org"
+          git add site/analytics/ analytics-pipeline/history/ || true
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            POST_COUNT=$(python -c "
+          import pandas as pd
+          try:
+              df = pd.read_parquet('analytics-pipeline/history/unified_history.parquet')
+              print(len(df))
+          except:
+              try:
+                  df = pd.read_csv('analytics-pipeline/history/unified_history.csv')
+                  print(len(df))
+              except:
+                  print('?')
+          " 2>/dev/null || echo "?")
+
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            git commit -m "📊 Analytics report — ${TIMESTAMP} (${POST_COUNT} posts)"
+            git push
+            echo "✅ Committed and pushed"
+          fi
+
+      - name: 📋 Pipeline summary
+        if: always()
+        run: |
+          echo "## 📊 OKN Analytics Pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "site/analytics/full_results.json" ]; then
+            python << 'PYEOF' >> $GITHUB_STEP_SUMMARY
+          import json, sys
+          try:
+              with open('site/analytics/full_results.json') as f:
+                  data = json.load(f)
+          except Exception:
+              print("Could not read results file")
+              sys.exit(0)
+
+          meta = data.get('meta', {})
+          health = data.get('health', {})
+          recs = data.get('recommendations', [])
+
+          posts = meta.get('total_posts', '?')
+          platforms = ', '.join(meta.get('platforms', []))
+          status = health.get('status', 'unknown').replace('_', ' ').title()
+          emoji = health.get('emoji', '📊')
+
+          print(f'| Metric | Value |')
+          print(f'|--------|-------|')
+          print(f'| Posts | **{posts}** |')
+          print(f'| Platforms | {platforms} |')
+          print(f'| Health | {emoji} {status} |')
+          print()
+
+          if recs:
+              print('### 💡 Top Recommendations')
+              print()
+              icons = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}
+              for r in recs[:5]:
+                  icon = icons.get(r.get('priority', ''), '⚪')
+                  print(f'- {icon} {r["message"]}')
+          PYEOF
+          else
+            echo "⚠️ No results file — check pipeline logs" >> $GITHUB_STEP_SUMMARY
+          fi
