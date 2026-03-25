@@ -123,8 +123,9 @@ body{font-family:'Segoe UI','Noto Sans KR',sans-serif;background:#f8f6f0;color:#
 .confirm-footer .btn{flex:1}
 
 /* Footer */
-.foot{text-align:center;margin-top:16px;font-size:11px;color:#aaa}
+.foot{display:flex;justify-content:center;align-items:center;gap:0.3rem;margin-top:16px;font-size:11px;color:#aaa}
 .foot a{color:#999}
+.foot .separator{color:#aaa;padding:0 0.2rem}
 
 /* Responsive */
 @media(max-width:560px){
@@ -210,8 +211,13 @@ body{font-family:'Segoe UI','Noto Sans KR',sans-serif;background:#f8f6f0;color:#
     </div>
   </div>
   <div class="foot">
-    <a href="/analytics/report">← Back to Report</a> &nbsp;•&nbsp;
-    OKN Analytics Pipeline &nbsp;•&nbsp; <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
+    <span id="backReportLink" style="display:none;">
+      <a href="/analytics/report">← Back to Report</a>
+      <span class="separator">•</span>
+    </span>
+    <span>OKN Analytics Pipeline</span>
+    <span class="separator">•</span>
+    <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
   </div>
 </div>
 
@@ -756,6 +762,18 @@ function updateProgress(current, total, text) {
   document.getElementById('progressFill').style.width = Math.round((current/total)*100) + '%';
   document.getElementById('progressText').textContent = text;
 }
+
+// Show back-to-report only if report.html exists on the server.
+async function ensureBackLink() {
+  try {
+    const res = await fetch('/analytics/report.html', { method: 'HEAD' });
+    if (res.ok) document.getElementById('backReportLink').style.display = 'inline';
+  } catch (err) {
+    // keep hidden when unavailable
+  }
+}
+
+ensureBackLink();
 </script>
 </body>
 </html>
