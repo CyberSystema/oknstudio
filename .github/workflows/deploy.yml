@@ -2,10 +2,6 @@ name: Deploy to Cloudflare Pages
 
 on:
   push:
-    paths:
-      - 'assets/**'
-      - 'functions/**'
-      - 'site/**'
     paths-ignore:
       - 'analytics-pipeline/**'
       - 'site/analytics/full_results.json'
