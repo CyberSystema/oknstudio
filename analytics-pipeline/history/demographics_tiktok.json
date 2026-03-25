@@ -1,0 +1,115 @@
+{
+  "snapshot_date": "2026-03-25T00:17:42.369582",
+  "platform": "tiktok",
+  "gender": [
+    {
+      "gender": "Female",
+      "percentage": 56.0
+    },
+    {
+      "gender": "Male",
+      "percentage": 44.0
+    },
+    {
+      "gender": "Other",
+      "percentage": 0.0
+    }
+  ],
+  "countries": [
+    {
+      "country": "Greece",
+      "code": "GR",
+      "percentage": 38.1
+    },
+    {
+      "country": "Romania",
+      "code": "RO",
+      "percentage": 14.1
+    },
+    {
+      "country": "Cyprus",
+      "code": "CY",
+      "percentage": 3.6
+    },
+    {
+      "country": "Germany",
+      "code": "DE",
+      "percentage": 3.4
+    },
+    {
+      "country": "United States",
+      "code": "US",
+      "percentage": 2.6
+    },
+    {
+      "country": "Ethiopia",
+      "code": "ET",
+      "percentage": 1.9
+    },
+    {
+      "country": "Australia",
+      "code": "AU",
+      "percentage": 1.8
+    },
+    {
+      "country": "South Korea",
+      "code": "KR",
+      "percentage": 1.7
+    },
+    {
+      "country": "Serbia",
+      "code": "RS",
+      "percentage": 1.7
+    },
+    {
+      "country": "United Kingdom",
+      "code": "GB",
+      "percentage": 1.6
+    },
+    {
+      "country": "Others",
+      "code": "Others",
+      "percentage": 29.5
+    }
+  ],
+  "active_hours": {
+    "0": 824,
+    "1": 570,
+    "2": 364,
+    "3": 282,
+    "4": 253,
+    "5": 289,
+    "6": 398,
+    "7": 569,
+    "8": 658,
+    "9": 685,
+    "10": 708,
+    "11": 752,
+    "12": 813,
+    "13": 862,
+    "14": 918,
+    "15": 931,
+    "16": 935,
+    "17": 942,
+    "18": 946,
+    "19": 956,
+    "20": 988,
+    "21": 1055,
+    "22": 1020,
+    "23": 932
+  },
+  "peak_hours": [
+    {
+      "hour": 21,
+      "avg_active": 1055
+    },
+    {
+      "hour": 22,
+      "avg_active": 1020
+    },
+    {
+      "hour": 20,
+      "avg_active": 988
+    }
+  ]
+}
