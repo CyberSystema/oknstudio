@@ -1,14 +1,14 @@
 {
-  "snapshot_date": "2026-04-06T01:10:22.126215",
+  "snapshot_date": "2026-04-10T12:22:16.927568",
   "platform": "tiktok",
   "gender": [
     {
       "gender": "Female",
-      "percentage": 56.0
+      "percentage": 54.0
     },
     {
       "gender": "Male",
-      "percentage": 44.0
+      "percentage": 46.0
     },
     {
       "gender": "Other",
@@ -19,42 +19,42 @@
     {
       "country": "Greece",
       "code": "GR",
-      "percentage": 38.1
+      "percentage": 37.3
     },
     {
       "country": "Romania",
       "code": "RO",
-      "percentage": 14.1
-    },
-    {
-      "country": "Cyprus",
-      "code": "CY",
-      "percentage": 3.6
+      "percentage": 13.5
     },
     {
       "country": "Germany",
       "code": "DE",
-      "percentage": 3.4
+      "percentage": 3.6
+    },
+    {
+      "country": "Cyprus",
+      "code": "CY",
+      "percentage": 3.5
     },
     {
       "country": "United States",
       "code": "US",
-      "percentage": 2.6
+      "percentage": 2.9
     },
     {
       "country": "Ethiopia",
       "code": "ET",
+      "percentage": 2.0
+    },
+    {
+      "country": "South Korea",
+      "code": "KR",
       "percentage": 1.9
     },
     {
       "country": "Australia",
       "code": "AU",
       "percentage": 1.8
-    },
-    {
-      "country": "South Korea",
-      "code": "KR",
-      "percentage": 1.7
     },
     {
       "country": "Serbia",
@@ -69,47 +69,47 @@
     {
       "country": "Others",
       "code": "Others",
-      "percentage": 29.5
+      "percentage": 30.2
     }
   ],
   "active_hours": {
-    "0": 824,
-    "1": 570,
-    "2": 364,
-    "3": 282,
-    "4": 253,
-    "5": 289,
-    "6": 398,
-    "7": 569,
-    "8": 658,
-    "9": 685,
-    "10": 708,
-    "11": 752,
-    "12": 813,
-    "13": 862,
-    "14": 918,
-    "15": 931,
-    "16": 935,
-    "17": 942,
-    "18": 946,
-    "19": 956,
-    "20": 988,
-    "21": 1055,
-    "22": 1020,
-    "23": 932
+    "0": 951,
+    "1": 685,
+    "2": 494,
+    "3": 321,
+    "4": 273,
+    "5": 280,
+    "6": 373,
+    "7": 552,
+    "8": 609,
+    "9": 663,
+    "10": 722,
+    "11": 744,
+    "12": 810,
+    "13": 866,
+    "14": 902,
+    "15": 914,
+    "16": 938,
+    "17": 948,
+    "18": 933,
+    "19": 921,
+    "20": 941,
+    "21": 1016,
+    "22": 1073,
+    "23": 1013
   },
   "peak_hours": [
     {
-      "hour": 21,
-      "avg_active": 1055
-    },
-    {
       "hour": 22,
-      "avg_active": 1020
+      "avg_active": 1073
     },
     {
-      "hour": 20,
-      "avg_active": 988
+      "hour": 21,
+      "avg_active": 1016
+    },
+    {
+      "hour": 23,
+      "avg_active": 1013
     }
   ]
 }

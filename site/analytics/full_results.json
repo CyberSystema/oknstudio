@@ -1,56 +1,56 @@
 {
-  "generated_at": "2026-04-06T01:10:38.999278",
+  "generated_at": "2026-04-10T12:22:39.481865",
   "analysis": {
     "meta": {
-      "generated_at": "2026-04-06T01:10:22.140255",
-      "total_posts": 143,
+      "generated_at": "2026-04-10T12:22:16.942615",
+      "total_posts": 166,
       "platforms": [
         "instagram",
         "tiktok"
       ],
       "date_range": {
         "earliest": "2025-03-22 09:03:00+00:00",
-        "latest": "2026-03-21 23:45:00+00:00"
+        "latest": "2026-04-10 00:00:00+00:00"
       }
     },
     "platform_overview": {
       "instagram": {
-        "total_posts": 128,
-        "posts_this_week": 6,
-        "total_reach": 147411,
-        "total_engagement": 26489,
-        "avg_engagement_rate": 0.1663,
-        "median_engagement_rate": 0.1483,
+        "total_posts": 148,
+        "posts_this_week": 13,
+        "total_reach": 279080,
+        "total_engagement": 50477,
+        "avg_engagement_rate": 0.1566,
+        "median_engagement_rate": 0.1444,
         "benchmark_engagement": 0.02,
-        "vs_benchmark": 0.1463,
-        "total_followers_gained": 1022,
-        "wow_reach_change": 4.798,
-        "wow_engagement_change": 5.4472,
+        "vs_benchmark": 0.1366,
+        "total_followers_gained": 2235,
+        "wow_reach_change": 2.6082,
+        "wow_engagement_change": 4.0367,
         "top_post": {
           "title": "[\uc544\ud1a0\uc2a4 \uc131\uc0b0 \uc601\uc801 \uc21c\ub840 | Pilgrimage to Mount Athos]\n\nFrom February 9 to 19, six of our youth from Syndesmos w",
-          "engagement": 7490,
-          "reach": 31714,
+          "engagement": 20288,
+          "reach": 99098,
           "type": "carousel",
           "date": "2026-03-17 11:19:00+00:00",
           "permalink": "https://www.instagram.com/p/DV-87nHD0lw/"
         }
       },
       "tiktok": {
-        "total_posts": 15,
-        "posts_this_week": 0,
-        "total_reach": 485471,
-        "total_engagement": 68578,
-        "avg_engagement_rate": 0.097,
-        "median_engagement_rate": 0.08,
+        "total_posts": 18,
+        "posts_this_week": 2,
+        "total_reach": 567199,
+        "total_engagement": 80199,
+        "avg_engagement_rate": 0.103,
+        "median_engagement_rate": 0.1097,
         "benchmark_engagement": 0.025,
-        "vs_benchmark": 0.072,
+        "vs_benchmark": 0.078,
         "total_followers_gained": 0,
-        "wow_reach_change": -1.0,
-        "wow_engagement_change": -1.0,
+        "wow_reach_change": null,
+        "wow_engagement_change": null,
         "top_post": {
           "title": "\uc815\uad50 \uc8fc\uc77c\uc744 \ub9de\uc544, \ud55c\uad6d\uc815\uad50\ud68c \ub300\uad50\uad6c\ub294 \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc131\ud654\uc0c1 \ud589\ub82c\uc744 \ud558\uba70 \uc6b0\ub9ac \uc2e0\uc559\uc758 \uc2b9\ub9ac\ub97c \uacbd\ucd95\ud558\uc600\uc2b5\ub2c8\ub2e4. On the Sunday of Orthodoxy, the",
-          "engagement": 27439,
-          "reach": 179160,
+          "engagement": 28627,
+          "reach": 188665,
           "type": "short_video",
           "date": "2026-03-01 15:00:00+00:00",
           "permalink": "https://www.tiktok.com/@orthodox.korea/video/7612545815780805904"
@@ -58,90 +58,90 @@
       }
     },
     "content_performance": {
+      "short_video": {
+        "count": 43,
+        "avg_reach": 19575,
+        "avg_engagement": 2810,
+        "avg_engagement_rate": 0.1332,
+        "avg_likes": 2489,
+        "avg_comments": 51,
+        "avg_shares": 257,
+        "avg_saves": 12,
+        "total_reach": 638489,
+        "platforms": [
+          "instagram",
+          "tiktok"
+        ]
+      },
       "carousel": {
-        "count": 91,
-        "avg_reach": 1638,
-        "avg_engagement": 347,
-        "avg_engagement_rate": 0.1721,
-        "avg_likes": 301,
-        "avg_comments": 1,
-        "avg_shares": 30,
-        "avg_saves": 13,
-        "total_reach": 85491,
+        "count": 105,
+        "avg_reach": 3899,
+        "avg_engagement": 749,
+        "avg_engagement_rate": 0.1556,
+        "avg_likes": 647,
+        "avg_comments": 4,
+        "avg_shares": 58,
+        "avg_saves": 39,
+        "total_reach": 193051,
         "platforms": [
           "instagram"
         ]
       },
       "image": {
         "count": 18,
-        "avg_reach": 570,
-        "avg_engagement": 172,
-        "avg_engagement_rate": 0.1069,
-        "avg_likes": 160,
-        "avg_comments": 0,
-        "avg_shares": 10,
+        "avg_reach": 542,
+        "avg_engagement": 238,
+        "avg_engagement_rate": 0.1048,
+        "avg_likes": 223,
+        "avg_comments": 1,
+        "avg_shares": 11,
         "avg_saves": 1,
         "total_reach": 14739,
         "platforms": [
           "instagram"
         ]
       },
-      "short_video": {
-        "count": 34,
-        "avg_reach": 20875,
-        "avg_engagement": 2971,
-        "avg_engagement_rate": 0.1277,
-        "avg_likes": 2631,
-        "avg_comments": 52,
-        "avg_shares": 280,
-        "avg_saves": 6,
-        "total_reach": 532652,
-        "platforms": [
-          "instagram",
-          "tiktok"
-        ]
-      },
       "_platform_rankings": {
         "instagram": [
           {
             "type": "short_video",
-            "engagement_rate": 0.1784,
-            "count": 19,
-            "avg_engagement": 333
+            "engagement_rate": 0.1751,
+            "count": 25,
+            "avg_engagement": 532
           },
           {
             "type": "carousel",
-            "engagement_rate": 0.1721,
-            "count": 91,
-            "avg_engagement": 347
+            "engagement_rate": 0.1556,
+            "count": 105,
+            "avg_engagement": 749
           },
           {
             "type": "image",
-            "engagement_rate": 0.1069,
+            "engagement_rate": 0.1048,
             "count": 18,
-            "avg_engagement": 172
+            "avg_engagement": 238
           }
         ],
         "tiktok": [
           {
             "type": "short_video",
-            "engagement_rate": 0.097,
-            "count": 15,
-            "avg_engagement": 4571
+            "engagement_rate": 0.103,
+            "count": 18,
+            "avg_engagement": 4455
           }
         ]
       },
       "_ranking": [
         {
           "type": "carousel",
-          "engagement_rate": 0.1721,
+          "engagement_rate": 0.1556,
           "platforms": [
             "instagram"
           ]
         },
         {
           "type": "short_video",
-          "engagement_rate": 0.1277,
+          "engagement_rate": 0.1332,
           "platforms": [
             "instagram",
             "tiktok"
@@ -149,7 +149,7 @@
         },
         {
           "type": "image",
-          "engagement_rate": 0.1069,
+          "engagement_rate": 0.1048,
           "platforms": [
             "instagram"
           ]
@@ -158,115 +158,120 @@
     },
     "engagement": {
       "totals": {
-        "likes": 84200,
-        "comments": 1445,
-        "shares": 8327,
-        "saves": 1095
+        "likes": 115293,
+        "comments": 1912,
+        "shares": 10982,
+        "saves": 2489
       },
       "composition": {
-        "likes": 0.8857,
-        "comments": 0.0152,
-        "shares": 0.0876,
-        "saves": 0.0115
+        "likes": 0.8823,
+        "comments": 0.0146,
+        "shares": 0.084,
+        "saves": 0.019
       },
-      "quality_score": 0.212599,
-      "conversation_ratio": 0.0172,
-      "virality_ratio": 0.0876,
+      "quality_score": 0.219662,
+      "conversation_ratio": 0.0166,
+      "virality_ratio": 0.084,
       "platform_breakdown": {
         "instagram": {
-          "likes_pct": 0.8746,
-          "comments_pct": 0.0086,
-          "shares_pct": 0.0754,
-          "saves_pct": 0.0413
+          "likes_pct": 0.8653,
+          "comments_pct": 0.0088,
+          "shares_pct": 0.0766,
+          "saves_pct": 0.0493
         },
         "tiktok": {
-          "likes_pct": 0.89,
-          "comments_pct": 0.0177,
-          "shares_pct": 0.0923,
+          "likes_pct": 0.893,
+          "comments_pct": 0.0183,
+          "shares_pct": 0.0887,
           "saves_pct": 0.0
         }
       }
     },
     "temporal": {
       "best_hours_overall": {
-        "16": {
-          "avg_engagement": 0.2039,
-          "avg_reach": 2042.1724,
-          "post_count": 11.0
-        },
-        "20": {
-          "avg_engagement": 0.1976,
-          "avg_reach": 12941.0769,
-          "post_count": 8.0
+        "9": {
+          "avg_engagement": 0.2373,
+          "avg_reach": 2158.0,
+          "post_count": 1.0
         },
         "6": {
-          "avg_engagement": 0.1953,
-          "avg_reach": 597.1522,
+          "avg_engagement": 0.193,
+          "avg_reach": 588.32,
           "post_count": 9.0
+        },
+        "11": {
+          "avg_engagement": 0.1813,
+          "avg_reach": 568.0,
+          "post_count": 1.0
         }
       },
       "best_days_overall": {
-        "Saturday": {
-          "avg_engagement": 0.1836,
-          "avg_reach": 653.619,
-          "post_count": 24.0
+        "Wednesday": {
+          "avg_engagement": 0.1955,
+          "avg_reach": 882.92,
+          "post_count": 7.0
         },
         "Thursday": {
-          "avg_engagement": 0.1809,
-          "avg_reach": 985.3,
-          "post_count": 23.0
+          "avg_engagement": 0.1844,
+          "avg_reach": 1917.3936,
+          "post_count": 26.0
         },
-        "Monday": {
-          "avg_engagement": 0.1691,
-          "avg_reach": 1144.561,
-          "post_count": 19.0
+        "Saturday": {
+          "avg_engagement": 0.177,
+          "avg_reach": 2604.9333,
+          "post_count": 27.0
         }
       },
       "hourly_data": {
         "0": {
-          "avg_engagement": 0.1091,
-          "avg_reach": 540.7755,
-          "post_count": 11.0
+          "avg_engagement": 0.127,
+          "avg_reach": 1304.987,
+          "post_count": 14.0
         },
         "1": {
-          "avg_engagement": 0.172,
-          "avg_reach": 569.6486,
-          "post_count": 9.0
+          "avg_engagement": 0.141,
+          "avg_reach": 1264.2,
+          "post_count": 11.0
         },
         "2": {
-          "avg_engagement": 0.1386,
-          "avg_reach": 532.9375,
+          "avg_engagement": 0.1005,
+          "avg_reach": 651.5833,
           "post_count": 3.0
         },
         "3": {
-          "avg_engagement": 0.1852,
-          "avg_reach": 786.9643,
+          "avg_engagement": 0.1673,
+          "avg_reach": 954.1071,
           "post_count": 9.0
         },
         "4": {
-          "avg_engagement": 0.1614,
-          "avg_reach": 641.2609,
+          "avg_engagement": 0.1161,
+          "avg_reach": 973.4762,
           "post_count": 3.0
         },
         "5": {
-          "avg_engagement": 0.1331,
-          "avg_reach": 544.8421,
+          "avg_engagement": 0.1641,
+          "avg_reach": 578.0,
           "post_count": 4.0
         },
         "6": {
-          "avg_engagement": 0.1953,
-          "avg_reach": 597.1522,
+          "avg_engagement": 0.193,
+          "avg_reach": 588.32,
           "post_count": 9.0
         },
         "7": {
-          "avg_engagement": 0.1868,
-          "avg_reach": 603.7568,
+          "avg_engagement": 0.1752,
+          "avg_reach": 653.75,
           "post_count": 6.0
         },
         "8": {
-          "avg_engagement": 0.1665,
-          "avg_reach": 840.8571,
+          "avg_engagement": 0.1094,
+          "avg_reach": 1798.9524,
           "post_count": 3.0
+        },
+        "9": {
+          "avg_engagement": 0.2373,
+          "avg_reach": 2158.0,
+          "post_count": 1.0
         },
         "11": {
           "avg_engagement": 0.1813,
@@ -274,13 +279,13 @@
           "post_count": 1.0
         },
         "12": {
-          "avg_engagement": 0.1304,
-          "avg_reach": 1201.9286,
+          "avg_engagement": 0.1474,
+          "avg_reach": 939.8571,
           "post_count": 3.0
         },
         "13": {
-          "avg_engagement": 0.1702,
-          "avg_reach": 622.7692,
+          "avg_engagement": 0.1624,
+          "avg_reach": 584.0,
           "post_count": 4.0
         },
         "14": {
@@ -289,105 +294,105 @@
           "post_count": 3.0
         },
         "15": {
-          "avg_engagement": 0.1674,
-          "avg_reach": 1117.3846,
+          "avg_engagement": 0.1343,
+          "avg_reach": 1657.3846,
           "post_count": 4.0
         },
         "16": {
-          "avg_engagement": 0.2039,
-          "avg_reach": 2042.1724,
-          "post_count": 11.0
+          "avg_engagement": 0.1809,
+          "avg_reach": 2908.0256,
+          "post_count": 12.0
         },
         "17": {
-          "avg_engagement": 0.1407,
-          "avg_reach": 1453.9091,
-          "post_count": 11.0
+          "avg_engagement": 0.1776,
+          "avg_reach": 2643.0435,
+          "post_count": 12.0
         },
         "18": {
-          "avg_engagement": 0.1729,
-          "avg_reach": 2057.92,
-          "post_count": 7.0
+          "avg_engagement": 0.1625,
+          "avg_reach": 3998.8,
+          "post_count": 8.0
         },
         "19": {
-          "avg_engagement": 0.1898,
-          "avg_reach": 763.6667,
+          "avg_engagement": 0.1746,
+          "avg_reach": 766.4286,
           "post_count": 5.0
         },
         "20": {
-          "avg_engagement": 0.1976,
-          "avg_reach": 12941.0769,
+          "avg_engagement": 0.1711,
+          "avg_reach": 39181.4615,
           "post_count": 8.0
         },
         "21": {
-          "avg_engagement": 0.1616,
-          "avg_reach": 1637.6923,
-          "post_count": 4.0
+          "avg_engagement": 0.1608,
+          "avg_reach": 2145.283,
+          "post_count": 8.0
         },
         "22": {
-          "avg_engagement": 0.1553,
-          "avg_reach": 576.8571,
-          "post_count": 5.0
+          "avg_engagement": 0.1772,
+          "avg_reach": 2410.7164,
+          "post_count": 11.0
         },
         "23": {
-          "avg_engagement": 0.1374,
-          "avg_reach": 998.8,
-          "post_count": 5.0
+          "avg_engagement": 0.1437,
+          "avg_reach": 1672.2667,
+          "post_count": 6.0
         }
       },
       "daily_data": {
         "Monday": {
-          "avg_engagement": 0.1691,
-          "avg_reach": 1144.561,
-          "post_count": 19.0
+          "avg_engagement": 0.1512,
+          "avg_reach": 1579.1217,
+          "post_count": 21.0
         },
         "Tuesday": {
-          "avg_engagement": 0.169,
-          "avg_reach": 12243.2963,
-          "post_count": 9.0
+          "avg_engagement": 0.1397,
+          "avg_reach": 22217.0,
+          "post_count": 11.0
         },
         "Wednesday": {
-          "avg_engagement": 0.1302,
-          "avg_reach": 559.5714,
-          "post_count": 5.0
+          "avg_engagement": 0.1955,
+          "avg_reach": 882.92,
+          "post_count": 7.0
         },
         "Thursday": {
-          "avg_engagement": 0.1809,
-          "avg_reach": 985.3,
-          "post_count": 23.0
+          "avg_engagement": 0.1844,
+          "avg_reach": 1917.3936,
+          "post_count": 26.0
         },
         "Friday": {
-          "avg_engagement": 0.1639,
-          "avg_reach": 859.4583,
-          "post_count": 23.0
+          "avg_engagement": 0.1646,
+          "avg_reach": 1799.0698,
+          "post_count": 27.0
         },
         "Saturday": {
-          "avg_engagement": 0.1836,
-          "avg_reach": 653.619,
-          "post_count": 24.0
+          "avg_engagement": 0.177,
+          "avg_reach": 2604.9333,
+          "post_count": 27.0
         },
         "Sunday": {
-          "avg_engagement": 0.1386,
-          "avg_reach": 889.0313,
-          "post_count": 25.0
+          "avg_engagement": 0.1227,
+          "avg_reach": 1620.6385,
+          "post_count": 29.0
         }
       },
       "platform_timing": {
         "instagram": {
           "best_hours": [
-            16,
-            20,
-            6
+            9,
+            6,
+            11
           ],
           "best_days": [
-            "Saturday",
+            "Wednesday",
             "Thursday"
           ]
         }
       },
       "heatmap": {
         "Friday": {
-          "0": 0.0927,
-          "1": NaN,
+          "0": 0.1017,
+          "1": 0.1345,
           "2": NaN,
           "3": 0.061,
           "4": NaN,
@@ -395,46 +400,48 @@
           "6": 0.1845,
           "7": 0.2057,
           "8": NaN,
+          "9": 0.2373,
           "11": NaN,
           "12": NaN,
           "13": 0.1938,
           "14": NaN,
-          "15": 0.1784,
-          "16": 0.0882,
+          "15": 0.1394,
+          "16": 0.1424,
           "17": 0.1046,
           "18": 0.2734,
           "19": 0.1119,
           "20": NaN,
           "21": NaN,
-          "22": 0.1446,
+          "22": 0.1607,
           "23": 0.1722
         },
         "Monday": {
-          "0": 0.0844,
-          "1": 0.1634,
+          "0": 0.0514,
+          "1": 0.1399,
           "2": NaN,
           "3": NaN,
-          "4": 0.1557,
+          "4": 0.112,
           "5": 0.1922,
           "6": 0.1786,
           "7": NaN,
           "8": NaN,
+          "9": NaN,
           "11": NaN,
           "12": 0.1134,
           "13": 0.1768,
           "14": NaN,
           "15": NaN,
-          "16": 0.2283,
+          "16": 0.2122,
           "17": 0.1674,
           "18": NaN,
           "19": NaN,
           "20": NaN,
-          "21": NaN,
+          "21": 0.1586,
           "22": NaN,
           "23": NaN
         },
         "Saturday": {
-          "0": 0.1373,
+          "0": 0.1119,
           "1": 0.1257,
           "2": NaN,
           "3": NaN,
@@ -443,30 +450,32 @@
           "6": 0.2369,
           "7": 0.1956,
           "8": 0.1468,
+          "9": NaN,
           "11": NaN,
           "12": 0.1502,
           "13": 0.0935,
           "14": NaN,
           "15": 0.1127,
           "16": 0.1358,
-          "17": 0.1932,
-          "18": 0.2262,
+          "17": 0.1749,
+          "18": 0.186,
           "19": 0.2628,
           "20": NaN,
           "21": NaN,
-          "22": NaN,
+          "22": 0.2726,
           "23": NaN
         },
         "Sunday": {
-          "0": 0.1167,
+          "0": 0.0899,
           "1": 0.1079,
           "2": 0.1802,
-          "3": 0.1721,
-          "4": 0.1657,
+          "3": 0.1265,
+          "4": 0.1198,
           "5": NaN,
           "6": NaN,
           "7": 0.0734,
-          "8": 0.1518,
+          "8": 0.0992,
+          "9": NaN,
           "11": NaN,
           "12": NaN,
           "13": 0.1565,
@@ -474,15 +483,15 @@
           "15": NaN,
           "16": NaN,
           "17": NaN,
-          "18": 0.1009,
+          "18": 0.1034,
           "19": NaN,
           "20": 0.1586,
-          "21": NaN,
-          "22": 0.2548,
-          "23": NaN
+          "21": 0.1761,
+          "22": 0.1468,
+          "23": 0.1468
         },
         "Thursday": {
-          "0": 0.1224,
+          "0": 0.2307,
           "1": 0.3002,
           "2": NaN,
           "3": 0.202,
@@ -490,31 +499,33 @@
           "5": NaN,
           "6": 0.2751,
           "7": NaN,
-          "8": 0.1832,
+          "8": 0.1159,
+          "9": NaN,
           "11": NaN,
           "12": 0.2414,
           "13": NaN,
           "14": NaN,
           "15": NaN,
           "16": NaN,
-          "17": 0.1303,
+          "17": 0.1984,
           "18": NaN,
           "19": 0.197,
-          "20": 0.1769,
-          "21": 0.172,
+          "20": 0.1428,
+          "21": 0.1508,
           "22": NaN,
           "23": 0.1098
         },
         "Tuesday": {
           "0": NaN,
           "1": NaN,
-          "2": 0.1136,
+          "2": 0.0846,
           "3": NaN,
           "4": NaN,
           "5": NaN,
           "6": NaN,
           "7": NaN,
           "8": NaN,
+          "9": NaN,
           "11": 0.1813,
           "12": NaN,
           "13": NaN,
@@ -524,9 +535,9 @@
           "17": 0.1092,
           "18": NaN,
           "19": NaN,
-          "20": 0.2326,
-          "21": 0.0368,
-          "22": 0.1098,
+          "20": 0.204,
+          "21": 0.1128,
+          "22": 0.1374,
           "23": 0.1854
         },
         "Wednesday": {
@@ -539,6 +550,7 @@
           "6": NaN,
           "7": NaN,
           "8": NaN,
+          "9": NaN,
           "11": NaN,
           "12": NaN,
           "13": NaN,
@@ -549,8 +561,8 @@
           "18": NaN,
           "19": 0.1443,
           "20": NaN,
-          "21": NaN,
-          "22": NaN,
+          "21": 0.2123,
+          "22": 0.2142,
           "23": NaN
         }
       }
@@ -918,133 +930,153 @@
           "followers_growth": 0.0
         },
         "2026-W02": {
-          "total_reach": 9732,
-          "total_engagement": 603,
+          "total_reach": 10040,
+          "total_engagement": 625,
           "total_followers": 0,
           "post_count": 4,
-          "avg_engagement_rate": 0.0616,
-          "reach_growth": 0.665,
-          "engagement_growth": -0.3866,
+          "avg_engagement_rate": 0.0617,
+          "reach_growth": 0.7177,
+          "engagement_growth": -0.3642,
           "followers_growth": -1.0
         },
         "2026-W03": {
-          "total_reach": 493,
+          "total_reach": 662,
           "total_engagement": 56,
           "total_followers": 0,
           "post_count": 1,
-          "avg_engagement_rate": 0.1136,
-          "reach_growth": -0.9493,
-          "engagement_growth": -0.9071,
+          "avg_engagement_rate": 0.0846,
+          "reach_growth": -0.9341,
+          "engagement_growth": -0.9104,
           "followers_growth": 0.0
         },
         "2026-W04": {
-          "total_reach": 533,
+          "total_reach": 741,
           "total_engagement": 83,
           "total_followers": 2,
           "post_count": 1,
-          "avg_engagement_rate": 0.1557,
-          "reach_growth": 0.0811,
+          "avg_engagement_rate": 0.112,
+          "reach_growth": 0.1193,
           "engagement_growth": 0.4821,
           "followers_growth": 0.0
         },
         "2026-W05": {
-          "total_reach": 767,
-          "total_engagement": 191,
+          "total_reach": 1001,
+          "total_engagement": 201,
           "total_followers": 2,
           "post_count": 1,
-          "avg_engagement_rate": 0.249,
-          "reach_growth": 0.439,
-          "engagement_growth": 1.3012,
+          "avg_engagement_rate": 0.2008,
+          "reach_growth": 0.3509,
+          "engagement_growth": 1.4217,
           "followers_growth": 0.0
         },
         "2026-W06": {
-          "total_reach": 1210,
-          "total_engagement": 204,
+          "total_reach": 1685,
+          "total_engagement": 212,
           "total_followers": 1,
           "post_count": 2,
-          "avg_engagement_rate": 0.1539,
-          "reach_growth": 0.5776,
-          "engagement_growth": 0.0681,
+          "avg_engagement_rate": 0.1156,
+          "reach_growth": 0.6833,
+          "engagement_growth": 0.0547,
           "followers_growth": -0.5
         },
         "2026-W07": {
-          "total_reach": 14837,
-          "total_engagement": 1233,
+          "total_reach": 16685,
+          "total_engagement": 1381,
           "total_followers": 0,
           "post_count": 4,
-          "avg_engagement_rate": 0.0802,
-          "reach_growth": 11.262,
-          "engagement_growth": 5.0441,
+          "avg_engagement_rate": 0.0792,
+          "reach_growth": 8.9021,
+          "engagement_growth": 5.5142,
           "followers_growth": -1.0
         },
         "2026-W08": {
-          "total_reach": 16019,
-          "total_engagement": 1666,
+          "total_reach": 17442,
+          "total_engagement": 1782,
           "total_followers": 0,
           "post_count": 2,
-          "avg_engagement_rate": 0.0927,
-          "reach_growth": 0.0797,
-          "engagement_growth": 0.3512,
+          "avg_engagement_rate": 0.0911,
+          "reach_growth": 0.0454,
+          "engagement_growth": 0.2904,
           "followers_growth": 0.0
         },
         "2026-W09": {
-          "total_reach": 347117,
-          "total_engagement": 51618,
-          "total_followers": 43,
+          "total_reach": 376636,
+          "total_engagement": 55917,
+          "total_followers": 57,
           "post_count": 4,
-          "avg_engagement_rate": 0.1816,
-          "reach_growth": 20.6691,
-          "engagement_growth": 29.9832,
+          "avg_engagement_rate": 0.1715,
+          "reach_growth": 20.5936,
+          "engagement_growth": 30.3788,
           "followers_growth": 0.0
         },
         "2026-W10": {
-          "total_reach": 72436,
-          "total_engagement": 10715,
-          "total_followers": 40,
+          "total_reach": 85500,
+          "total_engagement": 12331,
+          "total_followers": 69,
           "post_count": 9,
-          "avg_engagement_rate": 0.1699,
-          "reach_growth": -0.7913,
-          "engagement_growth": -0.7924,
-          "followers_growth": -0.0698
+          "avg_engagement_rate": 0.1376,
+          "reach_growth": -0.773,
+          "engagement_growth": -0.7795,
+          "followers_growth": 0.2105
         },
         "2026-W11": {
-          "total_reach": 75492,
-          "total_engagement": 13474,
-          "total_followers": 363,
+          "total_reach": 157438,
+          "total_engagement": 28426,
+          "total_followers": 1184,
           "post_count": 5,
-          "avg_engagement_rate": 0.1493,
-          "reach_growth": 0.0422,
-          "engagement_growth": 0.2575,
-          "followers_growth": 8.075
+          "avg_engagement_rate": 0.1247,
+          "reach_growth": 0.8414,
+          "engagement_growth": 1.3052,
+          "followers_growth": 16.1594
         },
         "2026-W12": {
-          "total_reach": 685,
-          "total_engagement": 636,
-          "total_followers": 1,
-          "post_count": 2,
-          "avg_engagement_rate": 0.0759,
-          "reach_growth": -0.9909,
-          "engagement_growth": -0.9528,
-          "followers_growth": -0.9972
+          "total_reach": 20677,
+          "total_engagement": 4107,
+          "total_followers": 53,
+          "post_count": 8,
+          "avg_engagement_rate": 0.1358,
+          "reach_growth": -0.8687,
+          "engagement_growth": -0.8555,
+          "followers_growth": -0.9552
+        },
+        "2026-W13": {
+          "total_reach": 17448,
+          "total_engagement": 3558,
+          "total_followers": 189,
+          "post_count": 4,
+          "avg_engagement_rate": 0.173,
+          "reach_growth": -0.1562,
+          "engagement_growth": -0.1337,
+          "followers_growth": 2.566
+        },
+        "2026-W14": {
+          "total_reach": 46763,
+          "total_engagement": 7409,
+          "total_followers": 108,
+          "post_count": 13,
+          "avg_engagement_rate": 0.1736,
+          "reach_growth": 1.6801,
+          "engagement_growth": 1.0823,
+          "followers_growth": -0.4286
         }
       },
       "trajectory": {
-        "avg_weekly_reach": 123932,
-        "avg_weekly_engagement": 19110,
-        "avg_weekly_followers": 111,
-        "avg_weekly_posts": 5.0,
+        "avg_weekly_reach": 60581,
+        "avg_weekly_engagement": 10875,
+        "avg_weekly_followers": 383,
+        "avg_weekly_posts": 7.5,
         "reach_trend": "declining",
         "engagement_trend": "declining",
-        "follower_trend": "growing"
+        "follower_trend": "declining"
       },
       "platform_growth": {
         "instagram": {
-          "latest_week_reach": 685,
-          "reach_trend": "growing",
-          "total_followers_gained": 1022
+          "latest_week_reach": 21850,
+          "reach_trend": "declining",
+          "total_followers_gained": 2235
         },
         "tiktok": {
-          "latest_week_reach": 38722,
+          "latest_week_reach": 24913,
           "reach_trend": "declining",
           "total_followers_gained": 0
         }
@@ -1057,9 +1089,9 @@
           "post_id": "18108915733836126",
           "title": "[\uc544\ud1a0\uc2a4 \uc131\uc0b0 \uc601\uc801 \uc21c\ub840 | Pilgrimage to Mount Athos]\n\nFrom February 9 to 19, six of our youth from Syndesmos w",
           "content_type": "carousel",
-          "engagement": 7490,
-          "reach": 31714,
-          "multiplier": 36.2,
+          "engagement": 20288,
+          "reach": 99098,
+          "multiplier": 59.5,
           "published_at": "2026-03-17 11:19:00+00:00",
           "permalink": "https://www.instagram.com/p/DV-87nHD0lw/"
         },
@@ -1068,9 +1100,9 @@
           "post_id": "7612545815780805904",
           "title": "\uc815\uad50 \uc8fc\uc77c\uc744 \ub9de\uc544, \ud55c\uad6d\uc815\uad50\ud68c \ub300\uad50\uad6c\ub294 \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc131\ud654\uc0c1 \ud589\ub82c\uc744 \ud558\uba70 \uc6b0\ub9ac \uc2e0\uc559\uc758 \uc2b9\ub9ac\ub97c \uacbd\ucd95\ud558\uc600\uc2b5\ub2c8\ub2e4. On the Sunday of Orthodoxy, the",
           "content_type": "short_video",
-          "engagement": 27439,
-          "reach": 179160,
-          "multiplier": 6.0,
+          "engagement": 28627,
+          "reach": 188665,
+          "multiplier": 6.4,
           "published_at": "2026-03-01 15:00:00+00:00",
           "permalink": "https://www.tiktok.com/@orthodox.korea/video/7612545815780805904"
         },
@@ -1079,96 +1111,116 @@
           "post_id": "7614439223717842183",
           "title": "\u03a7\u03b1\u03b9\u03c1\u03b5\u03c4\u03b9\u03c3\u03bc\u03bf\u03af \u03c4\u03b7\u03c2 \u0398\u03b5\u03bf\u03c4\u03cc\u03ba\u03bf\u03c5 \u03c3\u03c4\u03bf\u03bd \u039a\u03b1\u03b8\u03b5\u03b4\u03c1\u03b9\u03ba\u03cc \u0399.\u039d. \u0391\u03b3\u03af\u03bf\u03c5 \u039d\u03b9\u03ba\u03bf\u03bb\u03ac\u03bf\u03c5, \u03a3\u03b5\u03bf\u03cd\u03bb, \u039d\u03cc\u03c4\u03b9\u03b1 \u039a\u03bf\u03c1\u03ad\u03b1 \u2626\ufe0f\ud83c\uddf0\ud83c\uddf7 \uc131\ubaa8 \uae30\ub9bd \ucc2c\uc591 \uc131 \ub2c8\ucf5c\ub77c\uc2a4",
           "content_type": "short_video",
-          "engagement": 23225,
-          "reach": 163163,
-          "multiplier": 5.1,
+          "engagement": 26116,
+          "reach": 181715,
+          "multiplier": 5.9,
           "published_at": "2026-03-06 15:00:00+00:00",
           "permalink": "https://www.tiktok.com/@orthodox.korea/video/7614439223717842183"
+        },
+        {
+          "platform": "instagram",
+          "post_id": "18386802874083879",
+          "title": "\uc624\ub298 2026\ub144 4\uc6d4 4\uc77c \ub77c\uc790\ub85c \ud1a0\uc694\uc77c, \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc554\ube0c\ub85c\uc2dc\uc624\uc2a4 \ub300\uc8fc\uad50, \ub85c\ub9cc \uce74\ube0c\ucc29 \ub300\uc2e0\ubd80, \uc548\ud1a0\ub2c8\uc624\uc2a4 \uc784\uc885\ud6c8 \uc2e0\ubd80, \ud06c\ub9ac\uc2a4\ud1a0\ud37c \uc698\ucee4 \ubcf4\uc81c\uc758 \uacf5\ub3d9 \uc9d1\uc804\uc73c\ub85c \uc138",
+          "content_type": "carousel",
+          "engagement": 1909,
+          "reach": 7004,
+          "multiplier": 5.6,
+          "published_at": "2026-04-04 13:10:00+00:00",
+          "permalink": "https://www.instagram.com/p/DWtf-NYGIRh/"
+        },
+        {
+          "platform": "instagram",
+          "post_id": "18074577716441586",
+          "title": "\uc138\ub840\uc131\uc0ac | Baptism\nLazarus Saturday 2026 | 2026\ub144 \ub77c\uc790\ub85c\uc758 \ubd80\ud65c \ud1a0\uc694\uc77c\nSt. Nicholas Cathedral, Seoul, Korea\n\uc131 \ub2c8\ucf5c\ub77c\uc2a4",
+          "content_type": "short_video",
+          "engagement": 1230,
+          "reach": 7221,
+          "multiplier": 3.6,
+          "published_at": "2026-04-04 09:46:00+00:00",
+          "permalink": "https://www.instagram.com/reel/DWtGyuVAvcr/"
+        },
+        {
+          "platform": "instagram",
+          "post_id": "18081573737574401",
+          "title": "Feast of the Annunciation & Greek Independence Day\nSt. Nicholas Cathedral, Seoul\n\uc131\ubaa8 \ud76c\ubcf4 \ucd95\uc77c \ubc0f \uadf8\ub9ac\uc2a4 \ub3c5\ub9bd \uae30",
+          "content_type": "carousel",
+          "engagement": 1019,
+          "reach": 3660,
+          "multiplier": 3.0,
+          "published_at": "2026-03-25 15:35:00+00:00",
+          "permalink": "https://www.instagram.com/p/DWUAkE9GFk-/"
         },
         {
           "platform": "instagram",
           "post_id": "18109471972753586",
           "title": "\u2626\ufe0f \uc131\ucc2c\uc608\ubc30 \uc774\ud6c4\uc758 \uc608\ubc30 : \u00ab\uc804\ub840 \ud6c4\uc758 \uc804\ub840\u00bb\n\uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uac70\ud589\ub418\ub294 \uc131\ucc2c\uc608\ubc30 \ud6c4\uc5d0\ub294 \ub9e4 \uc8fc\uc77c\ub9c8\ub2e4 \uacf5\ub3d9\uccb4\uc758 \uc624\ucc2c\uc774\uc790 \uc608\ubc30\uc758 \uc5f0\uc7a5\uc120\uc778 \u201c\uc0ac\ub791\uc758 \uc624\ucc2c(Agape Meal)",
           "content_type": "short_video",
-          "engagement": 587,
-          "reach": 2110,
+          "engagement": 944,
+          "reach": 3808,
           "multiplier": 2.8,
           "published_at": "2026-03-09 07:00:00+00:00",
           "permalink": "https://www.instagram.com/reel/DVp4XC8j8Lt/"
-        },
-        {
-          "platform": "instagram",
-          "post_id": "18156502309386316",
-          "title": "\uc815\uad50 \uc8fc\uc77c\uc744 \ub9de\uc544, \ud55c\uad6d\uc815\uad50\ud68c \ub300\uad50\uad6c\ub294 \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc131\ud654\uc0c1 \ud589\ub82c\uc744 \ud558\uba70 \uc6b0\ub9ac \uc2e0\uc559\uc758 \uc2b9\ub9ac\ub97c \uacbd\ucd95\ud558\uc600\uc2b5\ub2c8\ub2e4.\n\nOn the Sunday of Orthodoxy, th",
-          "content_type": "short_video",
-          "engagement": 572,
-          "reach": 3314,
-          "multiplier": 2.8,
-          "published_at": "2026-03-02 07:15:00+00:00",
-          "permalink": "https://www.instagram.com/reel/DVX5A3QjwaI/"
-        },
-        {
-          "platform": "instagram",
-          "post_id": "17930334846214846",
-          "title": "His Eminence Archbishop Elpidophoros of America welcomed to the Greek Orthodox Archdiocese of Americ",
-          "content_type": "image",
-          "engagement": 532,
-          "reach": 0,
-          "multiplier": 2.6,
-          "published_at": "2026-03-21 15:51:00+00:00",
-          "permalink": "https://www.instagram.com/p/DWJu9L9jZ-Y/"
-        },
-        {
-          "platform": "instagram",
-          "post_id": "18039027179280344",
-          "title": "\ud55c\uad6d \uc815\uad50\ud68c \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\nMetropolitan Church of Saint Nikolas in Seoul\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n#\uc815\uad50\ud68c #\ud55c\uad6d\uc815\uad50\ud68c #",
-          "content_type": "short_video",
-          "engagement": 543,
-          "reach": 3439,
-          "multiplier": 2.6,
-          "published_at": "2025-05-02 06:44:00+00:00",
-          "permalink": "https://www.instagram.com/reel/DJJDumMNhB5/"
         }
       ],
       "underperformers": [
         {
           "platform": "instagram",
-          "post_id": "17961791261992589",
-          "title": "\ud55c\uad6d \uc815\uad50\ud68c \ub300\uad50\uad6c \uc8fc\uac04 \uc18c\uc2dd (12\uc6d4 21\uc77c)\nWeekly News of Orthodox metropolis of Korea (December 21)\n\n#\uc815\uad50\ud68c #\ud55c\uad6d\uc815\uad50\ud68c #\ud55c",
+          "post_id": "18088691320935505",
+          "title": "\ud55c\uad6d \uc815\uad50\ud68c \ub300\uad50\uad6c \uc8fc\uac04 \uc18c\uc2dd (3\uc6d4 15\uc77c) | Weekly Bulletin of the Orthodox Metropolis of Korea (March 15)\n\n#\uc815\uad50\ud68c #\ud55c\uad6d",
           "content_type": "carousel",
-          "engagement": 55,
-          "reach": 749,
-          "engagement_rate": 0.0734,
-          "published_at": "2025-12-20 22:07:00+00:00"
+          "engagement": 59,
+          "reach": 1148,
+          "engagement_rate": 0.0514,
+          "published_at": "2026-03-15 15:46:00+00:00"
         },
         {
           "platform": "instagram",
-          "post_id": "18071776964138654",
-          "title": "\ud55c\uad6d \uc815\uad50\ud68c \ub300\uad50\uad6c \uc8fc\uac04 \uc18c\uc2dd (9\uc6d4 28\uc77c)\nWeekly News of Orthodox metropolis of Korea (September 28)\n.\n.\n.\n.\n\n#\uc815\uad50\ud68c #",
+          "post_id": "18079069804886930",
+          "title": "On June 22, a heartbreaking tragedy occurred at an Orthodox church in Damascus, Syria. \nDuring a tim",
+          "content_type": "image",
+          "engagement": 101,
+          "reach": 961,
+          "engagement_rate": 0.1051,
+          "published_at": "2025-06-25 07:59:00+00:00"
+        },
+        {
+          "platform": "instagram",
+          "post_id": "18110829559487711",
+          "title": "\u300a\uc815\uad50\ud68c \uc18c \uae30\ub3c4\uc11c\u300b \uc7ac\ucd9c\uac04\n\u2800\n\ud55c\ub54c \uc808\ud310\ub418\uc5b4 \uc27d\uac8c \uad6c\ud560 \uc218 \uc5c6\uc5c8\ub358 \u300a\uc815\uad50\ud68c \uc18c \uae30\ub3c4\uc11c\u300b\uac00 \uc7ac\ucd9c\uac04\ub418\uc5c8\uc2b5\ub2c8\ub2e4.\n\u2800\n\uc815\uad50\ud68c \uc804\ub840\uc758 \uc228\uacb0\uc774 \ub2f4\uae34 \uae30\ub3c4\ubb38\ub4e4\uc744\n\uc774\uc81c \ub2e4\uc2dc \uc190\uc5d0 \ub4e4\uace0, \ub9c8\uc74c\uc5d0",
+          "content_type": "image",
+          "engagement": 99,
+          "reach": 2693,
+          "engagement_rate": 0.0368,
+          "published_at": "2025-05-06 12:57:00+00:00"
+        },
+        {
+          "platform": "instagram",
+          "post_id": "17875986705299849",
+          "title": "\ud83c\udf89[\uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9 \uc74c\uc2dd\ucd95\uc81c \uc548\ub0b4]\ud83c\udf89\n\uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc74c\uc2dd\ucd95\uc81c\uac00 \uc5f4\ub9bd\ub2c8\ub2e4! \ud55c\uad6d, \uadf8\ub9ac\uc2a4,\ub7ec\uc2dc\uc544,\uc6b0\ud06c\ub77c\uc774\ub098, \ubbf8\uad6d \ub4f1 \ub2e4\uc591\ud55c \ub098\ub77c\uc758 \uc74c\uc2dd\ub4e4\uc774 \uc900\ube44\ub420 \uc608\uc815\uc785\ub2c8\ub2e4",
           "content_type": "carousel",
-          "engagement": 46,
-          "reach": 600,
-          "engagement_rate": 0.0767,
-          "published_at": "2025-09-27 17:45:00+00:00"
+          "engagement": 72,
+          "reach": 1031,
+          "engagement_rate": 0.0698,
+          "published_at": "2025-04-11 08:39:00+00:00"
         }
       ]
     },
     "cross_platform": {
       "platform_averages": {
         "instagram": {
-          "avg_reach": 1581,
-          "avg_engagement_rate": 0.1663,
-          "avg_likes": 279,
-          "avg_comments": 2,
-          "avg_shares": 31,
+          "avg_reach": 3477,
+          "avg_engagement_rate": 0.1566,
+          "avg_likes": 568,
+          "avg_comments": 5,
+          "avg_shares": 57,
           "dominant_content_type": "carousel"
         },
         "tiktok": {
-          "avg_reach": 32364,
-          "avg_engagement_rate": 0.097,
-          "avg_likes": 4068,
+          "avg_reach": 31511,
+          "avg_engagement_rate": 0.103,
+          "avg_likes": 3978,
           "avg_comments": 81,
-          "avg_shares": 422,
+          "avg_shares": 395,
           "dominant_content_type": "short_video"
         }
       },
@@ -1176,18 +1228,18 @@
         "short_video": {
           "platforms": {
             "instagram": {
-              "avg_engagement_rate": 0.1784,
-              "avg_reach": 1936,
-              "count": 19
+              "avg_engagement_rate": 0.1751,
+              "avg_reach": 3049,
+              "count": 25
             },
             "tiktok": {
-              "avg_engagement_rate": 0.097,
-              "avg_reach": 32364,
-              "count": 15
+              "avg_engagement_rate": 0.103,
+              "avg_reach": 31511,
+              "count": 18
             }
           },
           "best_platform": "instagram",
-          "best_rate": 0.1784
+          "best_rate": 0.1751
         }
       }
     },
@@ -1195,17 +1247,17 @@
       {
         "priority": "high",
         "category": "content",
-        "message": "On Instagram, your best content type is 'Short Video' with 17.8% avg engagement (19 posts). Create more of this."
+        "message": "On Instagram, your best content type is 'Short Video' with 17.5% avg engagement (25 posts). Create more of this."
       },
       {
         "priority": "high",
         "category": "content",
-        "message": "On TikTok, your best content type is 'Short Video' with 9.7% avg engagement (15 posts). Create more of this."
+        "message": "On TikTok, your best content type is 'Short Video' with 10.3% avg engagement (18 posts). Create more of this."
       },
       {
         "priority": "high",
-        "category": "timing",
-        "message": "Your best posting hour is 16:00 KST (based on 11 posts). Schedule high-priority content around this time."
+        "category": "growth",
+        "message": "Instagram reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
       },
       {
         "priority": "high",
@@ -1215,7 +1267,7 @@
       {
         "priority": "high",
         "category": "content",
-        "message": "Viral content on Instagram: Image, Carousel, Short Video. Create more content in these formats."
+        "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
       },
       {
         "priority": "high",
@@ -1225,7 +1277,12 @@
       {
         "priority": "medium",
         "category": "timing",
-        "message": "Best performing day is Saturday. Consider making this your primary posting day."
+        "message": "Hour 6:00 KST shows strong engagement (9 posts). Consider posting around this time."
+      },
+      {
+        "priority": "medium",
+        "category": "timing",
+        "message": "Best performing day is Wednesday. Consider making this your primary posting day."
       },
       {
         "priority": "medium",
@@ -1235,17 +1292,12 @@
       {
         "priority": "low",
         "category": "platform",
-        "message": "Instagram is outperforming industry benchmark by 14.6%! Keep up the great work."
+        "message": "Instagram is outperforming industry benchmark by 13.7%! Keep up the great work."
       },
       {
         "priority": "low",
         "category": "platform",
-        "message": "TikTok is outperforming industry benchmark by 7.2%! Keep up the great work."
-      },
-      {
-        "priority": "low",
-        "category": "growth",
-        "message": "Instagram reach is growing! Keep up the momentum."
+        "message": "TikTok is outperforming industry benchmark by 7.8%! Keep up the great work."
       },
       {
         "priority": "low",
@@ -1262,24 +1314,24 @@
           {
             "hour": 16,
             "time": "16:00",
-            "score": 0.1613,
+            "score": 0.154,
             "sample_size": 3
           },
           {
             "hour": 5,
             "time": "05:00",
-            "score": 0.1558,
+            "score": 0.151,
             "sample_size": 3
           },
           {
-            "hour": 1,
-            "time": "01:00",
-            "score": 0.1536,
-            "sample_size": 6
+            "hour": 6,
+            "time": "06:00",
+            "score": 0.1472,
+            "sample_size": 2
           }
         ],
-        "avg_engagement": 0.1659,
-        "post_count": 23,
+        "avg_engagement": 0.1554,
+        "post_count": 26,
         "confidence": "high"
       },
       "Tuesday": {
@@ -1288,12 +1340,24 @@
           {
             "hour": 20,
             "time": "20:00",
-            "score": 0.1577,
+            "score": 0.1498,
+            "sample_size": 2
+          },
+          {
+            "hour": 22,
+            "time": "22:00",
+            "score": 0.1431,
+            "sample_size": 2
+          },
+          {
+            "hour": 21,
+            "time": "21:00",
+            "score": 0.1406,
             "sample_size": 2
           }
         ],
-        "avg_engagement": 0.1533,
-        "post_count": 10,
+        "avg_engagement": 0.1444,
+        "post_count": 12,
         "confidence": "high"
       },
       "Wednesday": {
@@ -1302,19 +1366,19 @@
           {
             "hour": 17,
             "time": "17:00",
-            "score": 0.1481,
+            "score": 0.143,
             "sample_size": 2
           },
           {
             "hour": 0,
             "time": "00:00",
-            "score": 0.1364,
+            "score": 0.1316,
             "sample_size": 3
           }
         ],
-        "avg_engagement": 0.1014,
-        "post_count": 8,
-        "confidence": "medium"
+        "avg_engagement": 0.1238,
+        "post_count": 10,
+        "confidence": "high"
       },
       "Thursday": {
         "recommend_posting": true,
@@ -1322,24 +1386,24 @@
           {
             "hour": 3,
             "time": "03:00",
-            "score": 0.1652,
+            "score": 0.1612,
             "sample_size": 6
           },
           {
-            "hour": 21,
-            "time": "21:00",
-            "score": 0.1528,
-            "sample_size": 3
+            "hour": 17,
+            "time": "17:00",
+            "score": 0.1547,
+            "sample_size": 4
           },
           {
-            "hour": 20,
-            "time": "20:00",
-            "score": 0.1522,
-            "sample_size": 2
+            "hour": 0,
+            "time": "00:00",
+            "score": 0.1457,
+            "sample_size": 5
           }
         ],
-        "avg_engagement": 0.1755,
-        "post_count": 25,
+        "avg_engagement": 0.1767,
+        "post_count": 28,
         "confidence": "high"
       },
       "Friday": {
@@ -1348,24 +1412,24 @@
           {
             "hour": 6,
             "time": "06:00",
-            "score": 0.1582,
+            "score": 0.1539,
             "sample_size": 5
           },
           {
             "hour": 7,
             "time": "07:00",
-            "score": 0.155,
+            "score": 0.1499,
             "sample_size": 2
           },
           {
-            "hour": 15,
-            "time": "15:00",
-            "score": 0.1523,
-            "sample_size": 2
+            "hour": 22,
+            "time": "22:00",
+            "score": 0.1471,
+            "sample_size": 4
           }
         ],
-        "avg_engagement": 0.1483,
-        "post_count": 25,
+        "avg_engagement": 0.1496,
+        "post_count": 30,
         "confidence": "high"
       },
       "Saturday": {
@@ -1374,24 +1438,24 @@
           {
             "hour": 18,
             "time": "18:00",
-            "score": 0.1648,
-            "sample_size": 4
+            "score": 0.1543,
+            "sample_size": 5
           },
           {
             "hour": 7,
             "time": "07:00",
-            "score": 0.1563,
+            "score": 0.1515,
             "sample_size": 3
           },
           {
             "hour": 17,
             "time": "17:00",
-            "score": 0.1538,
+            "score": 0.1469,
             "sample_size": 2
           }
         ],
-        "avg_engagement": 0.1525,
-        "post_count": 26,
+        "avg_engagement": 0.1545,
+        "post_count": 29,
         "confidence": "high"
       },
       "Sunday": {
@@ -1400,24 +1464,24 @@
           {
             "hour": 2,
             "time": "02:00",
-            "score": 0.1525,
-            "sample_size": 2
-          },
-          {
-            "hour": 3,
-            "time": "03:00",
-            "score": 0.1517,
+            "score": 0.1474,
             "sample_size": 2
           },
           {
             "hour": 20,
             "time": "20:00",
-            "score": 0.1513,
+            "score": 0.1467,
             "sample_size": 4
+          },
+          {
+            "hour": 14,
+            "time": "14:00",
+            "score": 0.1445,
+            "sample_size": 3
           }
         ],
-        "avg_engagement": 0.1414,
-        "post_count": 26,
+        "avg_engagement": 0.1352,
+        "post_count": 31,
         "confidence": "high"
       }
     },
@@ -1426,31 +1490,31 @@
         "day": "Thursday",
         "hour": 3,
         "time": "03:00",
-        "score": 0.1652
+        "score": 0.1612
+      },
+      {
+        "day": "Thursday",
+        "hour": 17,
+        "time": "17:00",
+        "score": 0.1547
       },
       {
         "day": "Saturday",
         "hour": 18,
         "time": "18:00",
-        "score": 0.1648
+        "score": 0.1543
       },
       {
         "day": "Monday",
         "hour": 16,
         "time": "16:00",
-        "score": 0.1613
+        "score": 0.154
       },
       {
         "day": "Friday",
         "hour": 6,
         "time": "06:00",
-        "score": 0.1582
-      },
-      {
-        "day": "Tuesday",
-        "hour": 20,
-        "time": "20:00",
-        "score": 0.1577
+        "score": 0.1539
       }
     ],
     "avoid_times": [
@@ -1458,10 +1522,10 @@
         "day": "Wednesday",
         "hour": 0,
         "time": "00:00",
-        "avg_engagement_rate": 0.0629
+        "avg_engagement_rate": 0.063
       }
     ],
-    "data_points": 143,
+    "data_points": 166,
     "instagram_schedule": {
       "weekly_schedule": {
         "Monday": {
@@ -1470,24 +1534,24 @@
             {
               "hour": 16,
               "time": "16:00",
-              "score": 0.1613,
+              "score": 0.154,
               "sample_size": 3
             },
             {
               "hour": 5,
               "time": "05:00",
-              "score": 0.1558,
+              "score": 0.151,
               "sample_size": 3
             },
             {
-              "hour": 1,
-              "time": "01:00",
-              "score": 0.1536,
-              "sample_size": 6
+              "hour": 6,
+              "time": "06:00",
+              "score": 0.1472,
+              "sample_size": 2
             }
           ],
-          "avg_engagement": 0.1787,
-          "post_count": 19,
+          "avg_engagement": 0.167,
+          "post_count": 21,
           "confidence": "high"
         },
         "Tuesday": {
@@ -1496,13 +1560,25 @@
             {
               "hour": 20,
               "time": "20:00",
-              "score": 0.1577,
+              "score": 0.1498,
+              "sample_size": 2
+            },
+            {
+              "hour": 22,
+              "time": "22:00",
+              "score": 0.1431,
+              "sample_size": 2
+            },
+            {
+              "hour": 21,
+              "time": "21:00",
+              "score": 0.1406,
               "sample_size": 2
             }
           ],
-          "avg_engagement": 0.1573,
-          "post_count": 9,
-          "confidence": "medium"
+          "avg_engagement": 0.1469,
+          "post_count": 11,
+          "confidence": "high"
         },
         "Wednesday": {
           "recommend_posting": true,
@@ -1510,12 +1586,12 @@
             {
               "hour": 17,
               "time": "17:00",
-              "score": 0.1481,
+              "score": 0.143,
               "sample_size": 2
             }
           ],
-          "avg_engagement": 0.1246,
-          "post_count": 5,
+          "avg_engagement": 0.1499,
+          "post_count": 7,
           "confidence": "medium"
         },
         "Thursday": {
@@ -1524,24 +1600,24 @@
             {
               "hour": 3,
               "time": "03:00",
-              "score": 0.1652,
+              "score": 0.1612,
               "sample_size": 6
             },
             {
-              "hour": 21,
-              "time": "21:00",
-              "score": 0.1528,
+              "hour": 0,
+              "time": "00:00",
+              "score": 0.1568,
               "sample_size": 3
             },
             {
-              "hour": 20,
-              "time": "20:00",
-              "score": 0.1522,
-              "sample_size": 2
+              "hour": 17,
+              "time": "17:00",
+              "score": 0.1547,
+              "sample_size": 4
             }
           ],
-          "avg_engagement": 0.1847,
-          "post_count": 23,
+          "avg_engagement": 0.185,
+          "post_count": 26,
           "confidence": "high"
         },
         "Friday": {
@@ -1550,24 +1626,24 @@
             {
               "hour": 6,
               "time": "06:00",
-              "score": 0.1582,
+              "score": 0.1539,
               "sample_size": 5
             },
             {
               "hour": 7,
               "time": "07:00",
-              "score": 0.155,
+              "score": 0.1499,
               "sample_size": 2
             },
             {
-              "hour": 15,
-              "time": "15:00",
-              "score": 0.1523,
-              "sample_size": 2
+              "hour": 22,
+              "time": "22:00",
+              "score": 0.1471,
+              "sample_size": 4
             }
           ],
-          "avg_engagement": 0.1525,
-          "post_count": 23,
+          "avg_engagement": 0.1538,
+          "post_count": 27,
           "confidence": "high"
         },
         "Saturday": {
@@ -1576,24 +1652,24 @@
             {
               "hour": 18,
               "time": "18:00",
-              "score": 0.1648,
-              "sample_size": 4
+              "score": 0.1543,
+              "sample_size": 5
             },
             {
               "hour": 7,
               "time": "07:00",
-              "score": 0.1563,
+              "score": 0.1515,
               "sample_size": 3
             },
             {
               "hour": 17,
               "time": "17:00",
-              "score": 0.1538,
+              "score": 0.1469,
               "sample_size": 2
             }
           ],
-          "avg_engagement": 0.1548,
-          "post_count": 24,
+          "avg_engagement": 0.1566,
+          "post_count": 27,
           "confidence": "high"
         },
         "Sunday": {
@@ -1602,24 +1678,24 @@
             {
               "hour": 2,
               "time": "02:00",
-              "score": 0.1525,
-              "sample_size": 2
-            },
-            {
-              "hour": 3,
-              "time": "03:00",
-              "score": 0.1517,
+              "score": 0.1474,
               "sample_size": 2
             },
             {
               "hour": 20,
               "time": "20:00",
-              "score": 0.1513,
+              "score": 0.1467,
               "sample_size": 4
+            },
+            {
+              "hour": 14,
+              "time": "14:00",
+              "score": 0.1445,
+              "sample_size": 3
             }
           ],
-          "avg_engagement": 0.1415,
-          "post_count": 25,
+          "avg_engagement": 0.1346,
+          "post_count": 29,
           "confidence": "high"
         }
       },
@@ -1628,35 +1704,35 @@
           "day": "Thursday",
           "hour": 3,
           "time": "03:00",
-          "score": 0.1652
+          "score": 0.1612
+        },
+        {
+          "day": "Thursday",
+          "hour": 0,
+          "time": "00:00",
+          "score": 0.1568
+        },
+        {
+          "day": "Thursday",
+          "hour": 17,
+          "time": "17:00",
+          "score": 0.1547
         },
         {
           "day": "Saturday",
           "hour": 18,
           "time": "18:00",
-          "score": 0.1648
+          "score": 0.1543
         },
         {
           "day": "Monday",
           "hour": 16,
           "time": "16:00",
-          "score": 0.1613
-        },
-        {
-          "day": "Friday",
-          "hour": 6,
-          "time": "06:00",
-          "score": 0.1582
-        },
-        {
-          "day": "Tuesday",
-          "hour": 20,
-          "time": "20:00",
-          "score": 0.1577
+          "score": 0.154
         }
       ],
       "avoid_times": [],
-      "data_points": 128
+      "data_points": 148
     },
     "tiktok_schedule": {
       "weekly_schedule": {
@@ -1666,13 +1742,13 @@
             {
               "hour": 0,
               "time": "00:00",
-              "score": 0.1406,
-              "sample_size": 4
+              "score": 0.1345,
+              "sample_size": 5
             }
           ],
-          "avg_engagement": 0.1052,
-          "post_count": 4,
-          "confidence": "low"
+          "avg_engagement": 0.1068,
+          "post_count": 5,
+          "confidence": "medium"
         },
         "Tuesday": {
           "recommend_posting": true,
@@ -1685,11 +1761,11 @@
             {
               "hour": 0,
               "time": "00:00",
-              "score": 0.1364,
+              "score": 0.1316,
               "sample_size": 3
             }
           ],
-          "avg_engagement": 0.0629,
+          "avg_engagement": 0.063,
           "post_count": 3,
           "confidence": "low"
         },
@@ -1699,11 +1775,11 @@
             {
               "hour": 0,
               "time": "00:00",
-              "score": 0.1414,
+              "score": 0.1363,
               "sample_size": 2
             }
           ],
-          "avg_engagement": 0.0695,
+          "avg_engagement": 0.0689,
           "post_count": 2,
           "confidence": "low"
         },
@@ -1713,12 +1789,12 @@
             {
               "hour": 0,
               "time": "00:00",
-              "score": 0.1445,
-              "sample_size": 2
+              "score": 0.139,
+              "sample_size": 3
             }
           ],
-          "avg_engagement": 0.1004,
-          "post_count": 2,
+          "avg_engagement": 0.1121,
+          "post_count": 3,
           "confidence": "low"
         },
         "Saturday": {
@@ -1727,54 +1803,63 @@
             {
               "hour": 0,
               "time": "00:00",
-              "score": 0.1469,
+              "score": 0.1419,
               "sample_size": 2
             }
           ],
-          "avg_engagement": 0.1243,
+          "avg_engagement": 0.1252,
           "post_count": 2,
           "confidence": "low"
         },
         "Sunday": {
           "recommend_posting": true,
-          "best_hours": [],
+          "best_hours": [
+            {
+              "hour": 0,
+              "time": "00:00",
+              "score": 0.1439,
+              "sample_size": 2
+            }
+          ],
+          "avg_engagement": 0.1449,
+          "post_count": 2,
           "confidence": "low"
         }
       },
       "top_5_slots": [
         {
+          "day": "Sunday",
+          "hour": 0,
+          "time": "00:00",
+          "score": 0.1439
+        },
+        {
           "day": "Saturday",
           "hour": 0,
           "time": "00:00",
-          "score": 0.1469
+          "score": 0.1419
         },
         {
           "day": "Friday",
           "hour": 0,
           "time": "00:00",
-          "score": 0.1445
+          "score": 0.139
         },
         {
           "day": "Thursday",
           "hour": 0,
           "time": "00:00",
-          "score": 0.1414
+          "score": 0.1363
         },
         {
           "day": "Monday",
           "hour": 0,
           "time": "00:00",
-          "score": 0.1406
-        },
-        {
-          "day": "Wednesday",
-          "hour": 0,
-          "time": "00:00",
-          "score": 0.1364
+          "score": 0.1345
         }
       ],
       "avoid_times": [],
-      "data_points": 15
+      "data_points": 18
     }
   },
   "scoring": {
@@ -1784,10 +1869,10 @@
         "title": "\uc815\uad50 \uc8fc\uc77c\uc744 \ub9de\uc544, \ud55c\uad6d\uc815\uad50\ud68c \ub300\uad50\uad6c\ub294 \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc131\ud654\uc0c1 \ud589\ub82c\uc744 \ud558\uba70 \uc6b0\ub9ac \uc2e0\uc559\uc758 \uc2b9\ub9ac\ub97c \uacbd\ucd95\ud558\uc600\uc2b5\ub2c8\ub2e4. On the Sund",
         "platform": "tiktok",
         "content_type": "short_video",
-        "score": 79.1,
+        "score": 79.0,
         "grade": "A+",
-        "reach": 179160,
-        "engagement": 27439,
+        "reach": 188665,
+        "engagement": 28627,
         "published_at": "2026-03-02 00:00:00+09:00",
         "permalink": "https://www.tiktok.com/@orthodox.korea/video/7612545815780805904"
       },
@@ -1796,10 +1881,10 @@
         "title": "\u03a7\u03b1\u03b9\u03c1\u03b5\u03c4\u03b9\u03c3\u03bc\u03bf\u03af \u03c4\u03b7\u03c2 \u0398\u03b5\u03bf\u03c4\u03cc\u03ba\u03bf\u03c5 \u03c3\u03c4\u03bf\u03bd \u039a\u03b1\u03b8\u03b5\u03b4\u03c1\u03b9\u03ba\u03cc \u0399.\u039d. \u0391\u03b3\u03af\u03bf\u03c5 \u039d\u03b9\u03ba\u03bf\u03bb\u03ac\u03bf\u03c5, \u03a3\u03b5\u03bf\u03cd\u03bb, \u039d\u03cc\u03c4\u03b9\u03b1 \u039a\u03bf\u03c1\u03ad\u03b1 ",
         "platform": "tiktok",
         "content_type": "short_video",
-        "score": 66.9,
-        "grade": "A",
-        "reach": 163163,
-        "engagement": 23225,
+        "score": 71.1,
+        "grade": "A+",
+        "reach": 181715,
+        "engagement": 26116,
         "published_at": "2026-03-07 00:00:00+09:00",
         "permalink": "https://www.tiktok.com/@orthodox.korea/video/7614439223717842183"
       },
@@ -1808,10 +1893,10 @@
         "title": "[\uc544\ud1a0\uc2a4 \uc131\uc0b0 \uc601\uc801 \uc21c\ub840 | Pilgrimage to Mount Athos]\n\nFrom February 9 to 19, six of our yo",
         "platform": "instagram",
         "content_type": "carousel",
-        "score": 41.0,
-        "grade": "B+",
-        "reach": 31714,
-        "engagement": 7490,
+        "score": 67.9,
+        "grade": "A",
+        "reach": 99098,
+        "engagement": 20288,
         "published_at": "2026-03-17 20:19:00+09:00",
         "permalink": "https://www.instagram.com/p/DV-87nHD0lw/"
       },
@@ -1820,36 +1905,36 @@
         "title": "\u2626\ufe0f \u201cLiturgy after the Liturgy\u201d After the Divine Liturgy at St. Nicholas Cathedra",
         "platform": "tiktok",
         "content_type": "short_video",
-        "score": 29.8,
-        "grade": "C+",
-        "reach": 60699,
-        "engagement": 8631,
+        "score": 31.2,
+        "grade": "B",
+        "reach": 67503,
+        "engagement": 9612,
         "published_at": "2026-03-09 00:00:00+09:00",
         "permalink": "https://www.tiktok.com/@orthodox.korea/video/7615099844952182024"
       },
       {
         "rank": 5,
-        "title": "\ud55c\uad6d \uc815\uad50\ud68c \ubd80\ud65c\uc808 \uc131\ucc2c\uc608\ubc30\nThe Holy Easter in Korea\n\n\uadf8\ub9ac\uc2a4\ub3c4\uaed8\uc11c \ubd80\ud65c\ud558\uc168\uc2b5\ub2c8\ub2e4! \ucc38\uc73c\ub85c \ubd80\ud65c\ud558\uc168\uc2b5\ub2c8\ub2e4!\nChrist is",
-        "platform": "instagram",
-        "content_type": "short_video",
-        "score": 27.1,
-        "grade": "C+",
-        "reach": 18108,
-        "engagement": 3032,
-        "published_at": "2025-04-21 17:56:00+09:00",
-        "permalink": "https://www.instagram.com/reel/DIs-I3YtDd3/"
-      },
-      {
-        "rank": 6,
         "title": "\u03a3\u03ae\u03bc\u03b5\u03c1\u03b1, \u039a\u03c5\u03c1\u03b9\u03b1\u03ba\u03ae \u03c4\u03b7\u03c2 \u03a3\u03c4\u03b1\u03c5\u03c1\u03bf\u03c0\u03c1\u03bf\u03c3\u03ba\u03c5\u03bd\u03ae\u03c3\u03b5\u03c9\u03c2, \u03c3\u03c5\u03bd\u03b5\u03c7\u03af\u03b6\u03bf\u03c5\u03bc\u03b5 \u03c4\u03bf \u03c5\u03c0\u03cc\u03bb\u03bf\u03b9\u03c0\u03bf \u03bc\u03b9\u03c3\u03cc \u03c4\u03b7\u03c2 \u0391\u03b3\u03af\u03b1\u03c2 \u03ba",
         "platform": "tiktok",
         "content_type": "short_video",
-        "score": 21.8,
+        "score": 26.0,
         "grade": "C+",
-        "reach": 38722,
-        "engagement": 5387,
+        "reach": 50651,
+        "engagement": 7362,
         "published_at": "2026-03-15 00:00:00+09:00",
         "permalink": "https://www.tiktok.com/@orthodox.korea/video/7617398220494310677"
+      },
+      {
+        "rank": 6,
+        "title": "\uc624\ub298 2026\ub144 4\uc6d4 4\uc77c \ub77c\uc790\ub85c \ud1a0\uc694\uc77c, \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc554\ube0c\ub85c\uc2dc\uc624\uc2a4 \ub300\uc8fc\uad50, \ub85c\ub9cc \uce74\ube0c\ucc29 \ub300\uc2e0\ubd80, \uc548\ud1a0\ub2c8\uc624\uc2a4 \uc784\uc885\ud6c8 \uc2e0\ubd80, \ud06c\ub9ac",
+        "platform": "instagram",
+        "content_type": "carousel",
+        "score": 21.4,
+        "grade": "C+",
+        "reach": 7004,
+        "engagement": 1909,
+        "published_at": "2026-04-04 22:10:00+09:00",
+        "permalink": "https://www.instagram.com/p/DWtf-NYGIRh/"
       },
       {
         "rank": 7,
@@ -1865,101 +1950,101 @@
       },
       {
         "rank": 8,
-        "title": "\u2626\ufe0f \uc131\ucc2c\uc608\ubc30 \uc774\ud6c4\uc758 \uc608\ubc30 : \u00ab\uc804\ub840 \ud6c4\uc758 \uc804\ub840\u00bb\n\uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uac70\ud589\ub418\ub294 \uc131\ucc2c\uc608\ubc30 \ud6c4\uc5d0\ub294 \ub9e4 \uc8fc\uc77c\ub9c8\ub2e4 \uacf5\ub3d9\uccb4\uc758 \uc624\ucc2c\uc774\uc790 \uc608\ubc30\uc758 \uc5f0\uc7a5\uc120\uc778",
+        "title": "\ud55c\uad6d \uc815\uad50\ud68c \ubd80\ud65c\uc808 \uc131\ucc2c\uc608\ubc30\nThe Holy Easter in Korea\n\n\uadf8\ub9ac\uc2a4\ub3c4\uaed8\uc11c \ubd80\ud65c\ud558\uc168\uc2b5\ub2c8\ub2e4! \ucc38\uc73c\ub85c \ubd80\ud65c\ud558\uc168\uc2b5\ub2c8\ub2e4!\nChrist is",
         "platform": "instagram",
         "content_type": "short_video",
-        "score": 18.4,
+        "score": 19.8,
         "grade": "C",
-        "reach": 2110,
-        "engagement": 587,
-        "published_at": "2026-03-09 16:00:00+09:00",
-        "permalink": "https://www.instagram.com/reel/DVp4XC8j8Lt/"
+        "reach": 18108,
+        "engagement": 3032,
+        "published_at": "2025-04-21 17:56:00+09:00",
+        "permalink": "https://www.instagram.com/reel/DIs-I3YtDd3/"
       },
       {
         "rank": 9,
+        "title": "Feast of the Annunciation & Greek Independence Day\nSt. Nicholas Cathedral, Seoul",
+        "platform": "instagram",
+        "content_type": "carousel",
+        "score": 18.7,
+        "grade": "C",
+        "reach": 3660,
+        "engagement": 1019,
+        "published_at": "2026-03-26 00:35:00+09:00",
+        "permalink": "https://www.instagram.com/p/DWUAkE9GFk-/"
+      },
+      {
+        "rank": 10,
         "title": "[NCCK Visits and Ecumenical Seminar]\n\n On September 8, Kang Tae-seok(Salvation A",
         "platform": "instagram",
         "content_type": "carousel",
-        "score": 18.3,
+        "score": 18.2,
         "grade": "C",
         "reach": 583,
         "engagement": 175,
         "published_at": "2025-09-25 01:11:00+09:00",
         "permalink": "https://www.instagram.com/p/DO_cBllCD6v/"
-      },
-      {
-        "rank": 10,
-        "title": "[Baptism in Seoul]\nToday, on the feast of the Birth of John the Baptist accordin",
-        "platform": "instagram",
-        "content_type": "carousel",
-        "score": 17.5,
-        "grade": "C",
-        "reach": 811,
-        "engagement": 233,
-        "published_at": "2025-07-07 16:59:00+09:00",
-        "permalink": "https://www.instagram.com/p/DLzI9pVvgjl/"
       }
     ],
     "content_type_scores": {
       "short_video": {
-        "avg_score": 13.8,
-        "median_score": 8.1,
-        "best_score": 79.1,
-        "worst_score": 3.8,
-        "count": 34
+        "avg_score": 13.3,
+        "median_score": 9.0,
+        "best_score": 79.0,
+        "worst_score": 3.7,
+        "count": 43
       },
       "carousel": {
         "avg_score": 10.5,
-        "median_score": 9.5,
-        "best_score": 41.0,
-        "worst_score": 4.5,
-        "count": 91
+        "median_score": 9.1,
+        "best_score": 67.9,
+        "worst_score": 3.2,
+        "count": 105
       },
       "image": {
-        "avg_score": 7.9,
+        "avg_score": 7.8,
         "median_score": 7.6,
         "best_score": 16.1,
-        "worst_score": 0.8,
+        "worst_score": 1.0,
         "count": 18
       }
     },
     "platform_scores": {
       "instagram": {
         "avg_score": 10.2,
-        "best_score": 41.0,
-        "count": 128
+        "best_score": 67.9,
+        "count": 148
       },
       "tiktok": {
-        "avg_score": 17.4,
-        "best_score": 79.1,
-        "count": 15
+        "avg_score": 16.9,
+        "best_score": 79.0,
+        "count": 18
       }
     }
   },
   "forecast": {
     "horizon_days": 0,
     "method_used": "prophet",
-    "generated_at": "2026-04-06T01:10:22.879906",
+    "generated_at": "2026-04-10T12:22:17.707980",
     "reach": {
       "method": "prophet",
-      "historical_weeks": 44,
-      "current_weekly_avg": 127937,
+      "historical_weeks": 47,
+      "current_weekly_avg": 46842,
       "trend_direction": "up",
       "forecast": [],
       "summary": "Insufficient data for forecast."
     },
     "engagement": {
       "method": "prophet",
-      "historical_weeks": 44,
-      "current_weekly_avg": 19527,
+      "historical_weeks": 47,
+      "current_weekly_avg": 8920,
       "trend_direction": "up",
       "forecast": [],
       "summary": "Insufficient data for forecast."
     },
     "followers": {
       "method": "prophet",
-      "historical_weeks": 44,
-      "current_weekly_avg": 112,
+      "historical_weeks": 47,
+      "current_weekly_avg": 382,
       "trend_direction": "up",
       "forecast": [],
       "summary": "Insufficient data for forecast."
@@ -1973,27 +2058,27 @@
     "instagram_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-04-06T01:10:23.271664",
+      "generated_at": "2026-04-10T12:22:18.080053",
       "reach": {
         "method": "prophet",
-        "historical_weeks": 41,
-        "current_weekly_avg": 13014,
+        "historical_weeks": 44,
+        "current_weekly_avg": 39261,
         "trend_direction": "up",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "engagement": {
         "method": "prophet",
-        "historical_weeks": 41,
-        "current_weekly_avg": 2893,
+        "historical_weeks": 44,
+        "current_weekly_avg": 7864,
         "trend_direction": "up",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "followers": {
         "method": "prophet",
-        "historical_weeks": 41,
-        "current_weekly_avg": 112,
+        "historical_weeks": 44,
+        "current_weekly_avg": 382,
         "trend_direction": "up",
         "forecast": [],
         "summary": "Insufficient data for forecast."
@@ -2009,39 +2094,36 @@
     "tiktok_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-04-06T01:10:23.554725",
+      "generated_at": "2026-04-10T12:22:18.533736",
       "reach": {
-        "method": "linear_trend_ma",
-        "historical_weeks": 5,
-        "current_weekly_avg": 118935,
-        "trend_direction": "up",
-        "weekly_change_rate": 0.4314,
+        "method": "prophet",
+        "historical_weeks": 8,
+        "current_weekly_avg": 38163,
+        "trend_direction": "down",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "engagement": {
-        "method": "linear_trend_ma",
-        "historical_weeks": 5,
-        "current_weekly_avg": 16994,
-        "trend_direction": "up",
-        "weekly_change_rate": 0.4534,
+        "method": "prophet",
+        "historical_weeks": 8,
+        "current_weekly_avg": 5417,
+        "trend_direction": "down",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "followers": {
-        "method": "linear_trend_ma",
-        "historical_weeks": 5,
+        "method": "prophet",
+        "historical_weeks": 8,
         "current_weekly_avg": 0,
         "trend_direction": "flat",
-        "weekly_change_rate": 0.0,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "health": {
-        "status": "strong_growth",
-        "emoji": "\ud83d\ude80",
-        "message": "OKN's social presence is growing well across key metrics.",
-        "signal_score": 0.67
+        "status": "needs_attention",
+        "emoji": "\u26a0\ufe0f",
+        "message": "Multiple metrics are declining. Review content strategy.",
+        "signal_score": -0.67
       },
       "platform": "tiktok"
     }
