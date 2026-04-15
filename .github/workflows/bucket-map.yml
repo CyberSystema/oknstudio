@@ -1,0 +1,73 @@
+name: Bucket Map
+
+on:
+  schedule:
+    # Daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:  # manual trigger
+
+concurrency:
+  group: bucket-map
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    name: 🗂️ Generate Bucket Map
+    timeout-minutes: 5
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🔧 Install rclone
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+          rclone version
+
+      - name: 🔑 Configure rclone remotes
+        env:
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          RCLONE_GDRIVE_TOKEN: ${{ secrets.RCLONE_GDRIVE_TOKEN }}
+          GDRIVE_REMOTE_NAME: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive' }}
+        run: |
+          mkdir -p ~/.config/rclone
+
+          cat >> ~/.config/rclone/rclone.conf <<EOF
+          [b2-okn]
+          type = b2
+          account = ${B2_KEY_ID}
+          key = ${B2_APP_KEY}
+          EOF
+
+          cat >> ~/.config/rclone/rclone.conf <<EOF
+          [${GDRIVE_REMOTE_NAME}]
+          type = drive
+          scope = drive
+          token = ${RCLONE_GDRIVE_TOKEN}
+          EOF
+
+          # Verify
+          echo "✅ Remotes configured:"
+          rclone listremotes
+
+      - name: 📂 Generate bucket map
+        env:
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          GDRIVE_REMOTE_NAME: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive' }}
+          GDRIVE_FOLDER: ${{ vars.GDRIVE_BUCKET_MAP_FOLDER || 'OKN Media Archive' }}
+        run: |
+          python3 tools/bucket-map.py \
+            --gdrive-remote "${GDRIVE_REMOTE_NAME}" \
+            --drive-folder "${GDRIVE_FOLDER}"

@@ -4,6 +4,10 @@ on:
   push:
     paths-ignore:
       - 'analytics-pipeline/**'
+      - 'tools/**'
+      - 'README.md'
+      - '.github/workflows/analytics.yml'
+      - '.github/workflows/bucket-map.yml'
       - 'site/analytics/full_results.json'
       - 'site/analytics/report.html'
 
@@ -47,6 +51,9 @@ jobs:
           cp -r assets/* site/assets/ 2>/dev/null || echo "No assets to copy"
           echo "✅ Assets copied to site/assets/"
           ls -la site/assets/ 2>/dev/null || true
+
+      - name: 📦 Install dependencies
+        run: npm install --production
 
       - name: 🚀 Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

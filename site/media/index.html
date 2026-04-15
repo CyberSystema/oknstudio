@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Media Pool — OKN Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--navy:#0f2137;--navy-light:#1a3a5c;--navy-surface:#162d47;--gold:#c4953a;--gold-light:#e8c97a;--cream:#f5f0e8;--warm-white:#faf8f4;--text:#2c2c2c;--text-soft:#6b7280;--red:#8b1a1a;--green:#2d6a4f;--border:rgba(255,255,255,0.08);--surface:rgba(255,255,255,0.04)}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:#fff;min-height:100vh;overflow-x:hidden}
+
+/* ── Header ── */
+.header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;position:sticky;top:0;background:rgba(15,33,55,0.95);backdrop-filter:blur(12px);z-index:100}
+.header-home{text-decoration:none;color:rgba(255,255,255,0.5);font-size:13px;transition:color 0.2s;flex-shrink:0}
+.header-home:hover{color:var(--gold)}
+.header h1{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:white;flex-shrink:0}
+.header-divider{width:1px;height:24px;background:var(--border);flex-shrink:0}
+
+/* ── Breadcrumbs ── */
+.breadcrumbs{display:flex;align-items:center;gap:4px;font-size:13px;overflow-x:auto;white-space:nowrap;flex:1;min-width:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.breadcrumbs::-webkit-scrollbar{display:none}
+.breadcrumb{color:rgba(255,255,255,0.45);text-decoration:none;transition:color 0.2s;cursor:pointer;padding:4px 6px;border-radius:6px;flex-shrink:0}
+.breadcrumb:hover{color:var(--gold);background:rgba(196,149,58,0.1)}
+.breadcrumb.active{color:var(--gold-light);font-weight:600}
+.breadcrumb-sep{color:rgba(255,255,255,0.2);flex-shrink:0;user-select:none}
+
+/* ── Toolbar ── */
+.toolbar{padding:16px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.stats{font-size:13px;color:rgba(255,255,255,0.4);flex:1}
+.stats strong{color:rgba(255,255,255,0.7)}
+.view-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.view-btn{padding:6px 12px;border:none;background:none;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;transition:all 0.2s}
+.view-btn.active{background:rgba(196,149,58,0.15);color:var(--gold)}
+.view-btn:hover:not(.active){color:rgba(255,255,255,0.7)}
+
+/* ── Content Area ── */
+.content{padding:0 24px 40px}
+
+/* ── Grid View ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+
+/* ── List View ── */
+.list{display:flex;flex-direction:column;gap:2px}
+.list .item{grid-template-columns:auto 1fr auto auto;border-radius:10px}
+.list .item .item-thumb{width:40px;height:40px;border-radius:8px;font-size:18px}
+.list .item .item-name{font-size:13px}
+.list .item .item-meta{font-size:12px}
+
+/* ── Items (shared) ── */
+.item{display:grid;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.25s;text-decoration:none;color:inherit}
+.item:hover{background:rgba(255,255,255,0.07);border-color:rgba(196,149,58,0.2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+
+/* ── Grid item layout ── */
+.grid .item{grid-template-columns:1fr;grid-template-rows:auto auto;text-align:center;padding:16px}
+.grid .item .item-row{display:flex;align-items:center;gap:10px;text-align:left}
+
+/* ── Folder ── */
+.item.folder{border-color:rgba(196,149,58,0.12);background:rgba(196,149,58,0.04)}
+.item.folder:hover{border-color:rgba(196,149,58,0.3);background:rgba(196,149,58,0.08)}
+
+/* ── Thumbnails / Icons ── */
+.item-thumb{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,0.05);overflow:hidden}
+.item-thumb img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.item.folder .item-thumb{background:rgba(196,149,58,0.12);font-size:24px}
+
+/* ── File info ── */
+.item-info{min-width:0;flex:1}
+.item-name{font-size:14px;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;white-space:nowrap}
+.item-meta .tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-right:4px}
+.tag-image{background:rgba(99,179,237,0.15);color:#63b3ed}
+.tag-video{background:rgba(237,100,166,0.15);color:#ed64a6}
+.tag-audio{background:rgba(154,130,237,0.15);color:#9a82ed}
+.tag-document{background:rgba(72,187,120,0.15);color:#48bb78}
+.tag-design{background:rgba(237,179,64,0.15);color:#edb340}
+.tag-archive{background:rgba(160,160,160,0.15);color:#a0a0a0}
+.tag-other{background:rgba(160,160,160,0.1);color:#888}
+
+/* ── Actions ── */
+.item-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-icon{width:32px;height:32px;border:none;border-radius:8px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.btn-icon:hover{background:rgba(196,149,58,0.15);color:var(--gold)}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:80px 24px;color:rgba(255,255,255,0.4)}
+.loading-spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:80px 24px}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:0.3}
+.empty h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:rgba(255,255,255,0.5);margin-bottom:8px}
+.empty p{font-size:14px;color:rgba(255,255,255,0.3);max-width:360px;margin:0 auto}
+
+/* ── Error ── */
+.error{text-align:center;padding:60px 24px}
+.error-box{display:inline-block;padding:20px 32px;background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.2);border-radius:14px;color:#f88}
+.error-box h3{font-size:16px;margin-bottom:4px}
+.error-box p{font-size:13px;color:rgba(255,150,150,0.7)}
+
+/* ── Preview Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+.modal-overlay.active{display:flex}
+.modal{position:relative;max-width:90vw;max-height:90vh;display:flex;flex-direction:column;align-items:center}
+.modal-close{position:fixed;top:16px;right:16px;width:40px;height:40px;border:none;border-radius:50%;background:rgba(255,255,255,0.1);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:210}
+.modal-close:hover{background:rgba(255,255,255,0.2)}
+.modal img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
+.modal video{max-width:100%;max-height:80vh;border-radius:8px;outline:none}
+.modal audio{min-width:320px;margin-top:40px}
+.modal-info{margin-top:12px;text-align:center;font-size:13px;color:rgba(255,255,255,0.5)}
+.modal-info .name{color:white;font-weight:500;font-size:14px;margin-bottom:4px}
+.modal-download{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:10px 20px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;text-decoration:none;transition:transform 0.2s}
+.modal-download:hover{transform:translateY(-1px)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .header{padding:14px 16px;gap:10px}
+  .header h1{font-size:20px}
+  .toolbar{padding:12px 16px}
+  .content{padding:0 16px 32px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+}
+@media(max-width:480px){
+  .header{flex-wrap:wrap}
+  .breadcrumbs{order:3;width:100%;margin-top:4px}
+  .grid{grid-template-columns:1fr 1fr;gap:8px}
+  .grid .item{padding:12px}
+  .grid .item .item-thumb{width:36px;height:36px;font-size:18px}
+  .item-name{font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <a href="/" class="header-home">← Studio</a>
+  <div class="header-divider"></div>
+  <h1>🗂️ Media Pool</h1>
+  <div class="header-divider"></div>
+  <nav class="breadcrumbs" id="breadcrumbs"></nav>
+</header>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="stats" id="stats"></div>
+  <div class="view-toggle">
+    <button class="view-btn active" data-view="grid" title="Grid view">▦</button>
+    <button class="view-btn" data-view="list" title="List view">☰</button>
+  </div>
+</div>
+
+<!-- Content -->
+<main class="content" id="content">
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading media…</div>
+  </div>
+</main>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="modal">
+  <button class="modal-close" id="modal-close">✕</button>
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+
+let currentPrefix = '';
+let viewMode = 'grid'; // grid | list
+
+// Client-side cache — avoids repeat B2 API calls when navigating back
+// Entries expire after 10 minutes
+const listCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000;
+
+const TYPE_ICONS = {
+  folder: '📁',
+  image: '🖼️',
+  video: '🎬',
+  audio: '🎵',
+  document: '📄',
+  design: '🎨',
+  archive: '📦',
+  other: '📎',
+};
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Parse hash for initial path
+  const hash = decodeURIComponent(location.hash.slice(1));
+  if (hash) currentPrefix = hash;
+
+  loadDirectory(currentPrefix);
+  setupViewToggle();
+  setupModal();
+});
+
+window.addEventListener('hashchange', () => {
+  const hash = decodeURIComponent(location.hash.slice(1));
+  currentPrefix = hash || '';
+  loadDirectory(currentPrefix);
+});
+
+// ══════════════════════════════════════
+// DATA FETCHING
+// ══════════════════════════════════════
+
+async function loadDirectory(prefix) {
+  const content = document.getElementById('content');
+  const loading = document.getElementById('loading');
+
+  content.innerHTML = '';
+  content.appendChild(loading);
+  loading.style.display = '';
+
+  renderBreadcrumbs(prefix);
+
+  try {
+    // Check client-side cache first
+    const cached = listCache.get(prefix);
+    if (cached && (Date.now() - cached.time < CACHE_TTL)) {
+      renderContent(cached.data);
+      return;
+    }
+
+    const url = `/api/media/list?prefix=${encodeURIComponent(prefix)}`;
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Cache the response
+    listCache.set(prefix, { data, time: Date.now() });
+
+    renderContent(data);
+  } catch (err) {
+    content.innerHTML = `
+      <div class="error">
+        <div class="error-box">
+          <h3>Failed to load</h3>
+          <p>${escapeHtml(err.message)}</p>
+        </div>
+      </div>`;
+  }
+}
+
+// ══════════════════════════════════════
+// RENDERING
+// ══════════════════════════════════════
+
+function renderBreadcrumbs(prefix) {
+  const nav = document.getElementById('breadcrumbs');
+  const parts = prefix.split('/').filter(Boolean);
+
+  let html = `<span class="breadcrumb ${parts.length === 0 ? 'active' : ''}" onclick="navigate('')">Root</span>`;
+
+  let path = '';
+  for (let i = 0; i < parts.length; i++) {
+    path += parts[i] + '/';
+    const isLast = i === parts.length - 1;
+    html += `<span class="breadcrumb-sep">›</span>`;
+    html += `<span class="breadcrumb ${isLast ? 'active' : ''}" onclick="navigate('${escapeAttr(path)}')">${escapeHtml(parts[i])}</span>`;
+  }
+
+  nav.innerHTML = html;
+  // Scroll breadcrumbs to the end
+  nav.scrollLeft = nav.scrollWidth;
+}
+
+function renderContent(data) {
+  const content = document.getElementById('content');
+  const stats = document.getElementById('stats');
+
+  const totalItems = data.folderCount + data.count;
+  if (totalItems === 0) {
+    content.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📂</div>
+        <h3>Empty folder</h3>
+        <p>No files or subfolders here yet. Upload media via Cyberduck or rclone to see it appear.</p>
+      </div>`;
+    stats.innerHTML = '';
+    return;
+  }
+
+  stats.innerHTML = `<strong>${data.folderCount}</strong> folder${data.folderCount !== 1 ? 's' : ''} · <strong>${data.count}</strong> file${data.count !== 1 ? 's' : ''}`;
+
+  const container = document.createElement('div');
+  container.className = viewMode;
+
+  // Render folders first
+  for (const folder of data.folders) {
+    const name = folder.replace(data.prefix, '').replace(/\/$/, '');
+    container.appendChild(createFolderItem(folder, name));
+  }
+
+  // Render files
+  for (const file of data.files) {
+    const name = file.key.replace(data.prefix, '');
+    container.appendChild(createFileItem(file, name));
+  }
+
+  content.innerHTML = '';
+  content.appendChild(container);
+
+  // Load thumbnails for images
+  lazyLoadThumbnails();
+}
+
+function createFolderItem(path, name) {
+  const el = document.createElement('div');
+  el.className = 'item folder';
+  el.onclick = () => navigate(path);
+  el.innerHTML = `
+    <div class="item-row" style="display:flex;align-items:center;gap:12px">
+      <div class="item-thumb">${TYPE_ICONS.folder}</div>
+      <div class="item-info">
+        <div class="item-name">${escapeHtml(name)}</div>
+        <div class="item-meta">Folder</div>
+      </div>
+    </div>`;
+  return el;
+}
+
+function createFileItem(file, name) {
+  const el = document.createElement('div');
+  el.className = 'item file';
+
+  const isPreviewable = ['image', 'video', 'audio'].includes(file.type);
+  const isImage = file.type === 'image';
+  const thumbSrc = isImage ? `/api/media/download/${encodeFilePath(file.key)}` : '';
+  const date = file.modified ? new Date(file.modified).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+
+  el.innerHTML = `
+    <div class="item-row" style="display:flex;align-items:center;gap:12px">
+      <div class="item-thumb" ${isImage ? `data-thumb="${escapeAttr(thumbSrc)}"` : ''}>
+        ${isImage ? '' : (TYPE_ICONS[file.type] || TYPE_ICONS.other)}
+      </div>
+      <div class="item-info">
+        <div class="item-name" title="${escapeAttr(name)}">${escapeHtml(name)}</div>
+        <div class="item-meta">
+          <span class="tag tag-${file.type}">${file.type}</span>
+          ${file.sizeFormatted} ${date ? '· ' + date : ''}
+        </div>
+      </div>
+      <div class="item-actions">
+        ${isPreviewable ? `<button class="btn-icon" onclick="event.stopPropagation();preview('${escapeAttr(file.key)}','${file.type}','${escapeAttr(name)}','${file.sizeFormatted}')" title="Preview">👁</button>` : ''}
+        <a class="btn-icon" href="/api/media/download/${encodeFilePath(file.key)}?download" onclick="event.stopPropagation()" title="Download">⬇</a>
+      </div>
+    </div>`;
+
+  if (isPreviewable) {
+    el.onclick = () => preview(file.key, file.type, name, file.sizeFormatted);
+  }
+
+  return el;
+}
+
+// ══════════════════════════════════════
+// THUMBNAILS
+// ══════════════════════════════════════
+
+// Lazy-load image thumbnails only when they scroll into view.
+// Each thumbnail is one B2 Class B call, but with cold storage
+// activity this stays well within the 2,500 free daily limit.
+function lazyLoadThumbnails() {
+  const thumbs = document.querySelectorAll('[data-thumb]');
+  if (!thumbs.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const src = el.dataset.thumb;
+        const img = new Image();
+        img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
+        img.onerror = () => { el.textContent = TYPE_ICONS.image; };
+        img.src = src;
+        img.alt = '';
+        observer.unobserve(el);
+      }
+    }
+  }, { rootMargin: '50px' });
+
+  thumbs.forEach(el => observer.observe(el));
+}
+
+// ══════════════════════════════════════
+// PREVIEW MODAL
+// ══════════════════════════════════════
+
+function setupModal() {
+  const overlay = document.getElementById('modal');
+  const closeBtn = document.getElementById('modal-close');
+
+  closeBtn.onclick = closeModal;
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+}
+
+function preview(key, type, name, size) {
+  const overlay = document.getElementById('modal');
+  const body = document.getElementById('modal-body');
+  const src = `/api/media/download/${encodeFilePath(key)}`;
+  const downloadSrc = src + '?download';
+
+  let mediaHtml = '';
+  if (type === 'image') {
+    mediaHtml = `<img src="${escapeAttr(src)}" alt="${escapeAttr(name)}">`;
+  } else if (type === 'video') {
+    mediaHtml = `<video src="${escapeAttr(src)}" controls autoplay playsinline></video>`;
+  } else if (type === 'audio') {
+    mediaHtml = `<div style="font-size:64px;margin-bottom:16px">🎵</div><audio src="${escapeAttr(src)}" controls autoplay></audio>`;
+  }
+
+  body.innerHTML = `
+    ${mediaHtml}
+    <div class="modal-info">
+      <div class="name">${escapeHtml(name)}</div>
+      <div>${size}</div>
+    </div>
+    <a class="modal-download" href="${escapeAttr(downloadSrc)}">⬇ Download</a>`;
+
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  const overlay = document.getElementById('modal');
+  const body = document.getElementById('modal-body');
+
+  // Stop any playing media
+  body.querySelectorAll('video, audio').forEach(el => { el.pause(); el.src = ''; });
+
+  overlay.classList.remove('active');
+  body.innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+
+function navigate(prefix) {
+  location.hash = prefix ? encodeURIComponent(prefix) : '';
+}
+
+// ══════════════════════════════════════
+// VIEW TOGGLE
+// ══════════════════════════════════════
+
+function setupViewToggle() {
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewMode = btn.dataset.view;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Re-render current view
+      const container = document.querySelector('.grid, .list');
+      if (container) container.className = viewMode;
+    });
+  });
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+
+function encodeFilePath(path) {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function escapeAttr(str) {
+  return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
+}
+</script>
+</body>
+</html>

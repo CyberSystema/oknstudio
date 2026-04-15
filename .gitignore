@@ -18,6 +18,7 @@ site/assets/
 
 # Node (wrangler)
 node_modules/
+package-lock.json
 
 # Logs
 *.log
