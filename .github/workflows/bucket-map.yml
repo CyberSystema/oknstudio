@@ -56,6 +56,12 @@ jobs:
           type = drive
           scope = drive
           token = ${RCLONE_GDRIVE_TOKEN}
+          shared_with_me = true
+          skip_gdocs = true
+          skip_shortcuts = true
+          skip_dangling_shortcuts = true
+          list_chunk = 1000
+          disable_http2 = true
           EOF
 
           # Verify
