@@ -1,11 +1,25 @@
 name: Analytics Pipeline
 
+# ─────────────────────────────────────────────────────────
+# Runs the ML analytics pipeline, commits results to repo.
+# After success → triggers Deploy workflow via workflow_run.
+#
+# Triggers:
+#   • Push to analytics data/scripts/models
+#   • Weekly Monday 09:00 KST (00:00 UTC)
+#   • Manual dispatch with mode selection
+# ─────────────────────────────────────────────────────────
+
 on:
   push:
+    branches: [main]
     paths:
       - 'analytics-pipeline/data/**'
       - 'analytics-pipeline/scripts/**'
       - 'analytics-pipeline/models/**'
+
+  schedule:
+    - cron: '0 0 * * 1'  # Monday 09:00 KST = 00:00 UTC
 
   workflow_dispatch:
     inputs:
@@ -14,26 +28,19 @@ on:
         required: false
         default: 'full'
         type: choice
-        options:
-          - full
-          - ingest-only
-          - report-only
+        options: [full, ingest-only, report-only]
       reset_history:
         description: 'Delete history and rebuild from scratch'
         required: false
         default: false
         type: boolean
 
-  schedule:
-    # Every Monday 09:00 KST = 00:00 UTC
-    - cron: '0 0 * * 1'
-
 concurrency:
   group: analytics-pipeline
-  cancel-in-progress: false
+  cancel-in-progress: false  # Don't cancel running pipelines
 
 permissions:
-  contents: write
+  contents: write  # Needs to push results
 
 jobs:
   analyze:
@@ -48,12 +55,10 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - name: ☦️ Checkout repository
+      - name: ☦️ Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
-      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -81,7 +86,7 @@ jobs:
           "
 
       - name: 🗑️ Reset history
-        if: github.event.inputs.reset_history == 'true'
+        if: inputs.reset_history == 'true'
         run: |
           rm -f analytics-pipeline/history/unified_history.parquet
           rm -f analytics-pipeline/history/unified_history.csv
@@ -89,9 +94,9 @@ jobs:
           rm -f analytics-pipeline/history/demographics_history_*.jsonl
           echo "🗑️ History cleared"
 
-      - name: 🔬 Run analytics pipeline
+      - name: 🔬 Run pipeline
         run: |
-          MODE="${{ github.event.inputs.mode || 'full' }}"
+          MODE="${{ inputs.mode || 'full' }}"
           case "$MODE" in
             ingest-only)  python analytics-pipeline/scripts/main.py --ingest-only ;;
             report-only)  python analytics-pipeline/scripts/main.py --report-only ;;
@@ -105,9 +110,11 @@ jobs:
           git add site/analytics/ analytics-pipeline/history/ || true
 
           if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            POST_COUNT=$(python -c "
+            echo "ℹ️ No changes to commit"
+            exit 0
+          fi
+
+          POST_COUNT=$(python -c "
           import pandas as pd
           try:
               df = pd.read_parquet('analytics-pipeline/history/unified_history.parquet')
@@ -120,13 +127,12 @@ jobs:
                   print('?')
           " 2>/dev/null || echo "?")
 
-            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
-            git commit -m "📊 Analytics report — ${TIMESTAMP} (${POST_COUNT} posts)"
-            git push
-            echo "✅ Committed and pushed"
-          fi
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "📊 Analytics report — ${TIMESTAMP} (${POST_COUNT} posts)"
+          git push
+          echo "✅ Committed and pushed"
 
-      - name: 📋 Pipeline summary
+      - name: 📋 Summary
         if: always()
         run: |
           echo "## 📊 OKN Analytics Pipeline" >> $GITHUB_STEP_SUMMARY
@@ -146,16 +152,11 @@ jobs:
           health = data.get('health', {})
           recs = data.get('recommendations', [])
 
-          posts = meta.get('total_posts', '?')
-          platforms = ', '.join(meta.get('platforms', []))
-          status = health.get('status', 'unknown').replace('_', ' ').title()
-          emoji = health.get('emoji', '📊')
-
           print(f'| Metric | Value |')
           print(f'|--------|-------|')
-          print(f'| Posts | **{posts}** |')
-          print(f'| Platforms | {platforms} |')
-          print(f'| Health | {emoji} {status} |')
+          print(f'| Posts | **{meta.get("total_posts", "?")}** |')
+          print(f'| Platforms | {", ".join(meta.get("platforms", []))} |')
+          print(f'| Health | {health.get("emoji", "📊")} {health.get("status", "unknown").replace("_", " ").title()} |')
           print()
 
           if recs:

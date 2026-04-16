@@ -14,22 +14,23 @@
 import { AwsClient } from 'aws4fetch';
 
 const EXT_TO_CONTENT_TYPE = {
-  // Images
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif',
   webp: 'image/webp', svg: 'image/svg+xml', heic: 'image/heic', tiff: 'image/tiff',
   bmp: 'image/bmp',
-  // Video
   mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', avi: 'video/x-msvideo',
   mkv: 'video/x-matroska', m4v: 'video/mp4',
-  // Audio
   mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', m4a: 'audio/mp4',
   aac: 'audio/aac', flac: 'audio/flac',
-  // Documents
   pdf: 'application/pdf', json: 'application/json', csv: 'text/csv',
   txt: 'text/plain', md: 'text/markdown',
-  // Archives
   zip: 'application/zip', gz: 'application/gzip',
 };
+
+/** Extract region from B2 endpoint: s3.eu-central-003.backblazeb2.com → eu-central-003 */
+function extractRegion(endpoint) {
+  const match = endpoint.match(/^s3\.([^.]+)\.backblazeb2\.com$/);
+  return match ? match[1] : 'us-west-004';
+}
 
 export async function onRequestGet(context) {
   const { request, env, params } = context;
@@ -38,78 +39,61 @@ export async function onRequestGet(context) {
     return Response.json({ error: 'B2 not configured' }, { status: 500 });
   }
 
-  // [[path]] gives us an array of path segments
   const filePath = (params.path || []).join('/');
   if (!filePath) {
     return Response.json({ error: 'No file path specified' }, { status: 400 });
   }
 
-  // Prevent path traversal
   if (filePath.includes('..') || filePath.startsWith('/')) {
     return Response.json({ error: 'Invalid path' }, { status: 400 });
   }
+
+  const region = extractRegion(env.B2_ENDPOINT);
 
   const s3 = new AwsClient({
     accessKeyId: env.B2_KEY_ID,
     secretAccessKey: env.B2_APP_KEY,
     service: 's3',
-    region: 'auto',
+    region: region,
   });
 
   const s3Url = `https://${env.B2_BUCKET}.${env.B2_ENDPOINT}/${filePath}`;
 
   try {
-    // Forward range headers for streaming support
     const headers = {};
     const rangeHeader = request.headers.get('Range');
-    if (rangeHeader) {
-      headers['Range'] = rangeHeader;
-    }
+    if (rangeHeader) headers['Range'] = rangeHeader;
 
     const res = await s3.fetch(s3Url, { method: 'GET', headers });
 
     if (!res.ok) {
-      if (res.status === 404) {
-        return Response.json({ error: 'File not found' }, { status: 404 });
-      }
+      if (res.status === 404) return Response.json({ error: 'File not found' }, { status: 404 });
       return Response.json({ error: 'Download failed' }, { status: res.status });
     }
 
-    // Determine content type
     const ext = filePath.split('.').pop().toLowerCase();
     const contentType = EXT_TO_CONTENT_TYPE[ext] || res.headers.get('Content-Type') || 'application/octet-stream';
 
-    // Determine if this should be inline (preview) or attachment (download)
     const url = new URL(request.url);
     const forceDownload = url.searchParams.has('download');
     const fileName = filePath.split('/').pop();
 
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', contentType);
+    responseHeaders.set('Content-Disposition', forceDownload
+      ? `attachment; filename="${fileName}"`
+      : `inline; filename="${fileName}"`);
 
-    if (forceDownload) {
-      responseHeaders.set('Content-Disposition', `attachment; filename="${fileName}"`);
-    } else {
-      responseHeaders.set('Content-Disposition', `inline; filename="${fileName}"`);
-    }
-
-    // Pass through relevant headers
     const contentLength = res.headers.get('Content-Length');
     if (contentLength) responseHeaders.set('Content-Length', contentLength);
 
     const contentRange = res.headers.get('Content-Range');
     if (contentRange) responseHeaders.set('Content-Range', contentRange);
 
-    // Always advertise range support (needed for video seeking)
     responseHeaders.set('Accept-Ranges', 'bytes');
+    responseHeaders.set('Cache-Control', 'private, max-age=86400');
 
-    // Cache media files at the edge for 1 hour (private — only for this user)
-    responseHeaders.set('Cache-Control', 'private, max-age=3600');
-
-    return new Response(res.body, {
-      status: res.status,
-      headers: responseHeaders,
-    });
+    return new Response(res.body, { status: res.status, headers: responseHeaders });
   } catch (err) {
     console.error('B2 download exception:', err);
     return Response.json({ error: 'B2 connection failed' }, { status: 502 });

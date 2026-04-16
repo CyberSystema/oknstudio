@@ -1,10 +1,26 @@
 name: Bucket Map
 
+# ─────────────────────────────────────────────────────────
+# Generates a styled HTML directory map of the B2 bucket
+# and uploads it to a shared Google Drive folder.
+#
+# Triggers:
+#   • Daily at 06:00 UTC
+#   • Manual dispatch
+#
+# Required secrets:
+#   B2_KEY_ID, B2_APP_KEY, B2_ENDPOINT, B2_BUCKET,
+#   RCLONE_GDRIVE_TOKEN
+#
+# Required variables:
+#   GDRIVE_REMOTE_NAME  (e.g. gdrive-okn)
+#   GDRIVE_BUCKET_MAP_FOLDER  (e.g. OKN Videos and Posts)
+# ─────────────────────────────────────────────────────────
+
 on:
   schedule:
-    # Daily at 06:00 UTC
-    - cron: '0 6 * * *'
-  workflow_dispatch:  # manual trigger
+    - cron: '0 6 * * *'  # Daily 06:00 UTC
+  workflow_dispatch:
 
 concurrency:
   group: bucket-map
@@ -21,59 +37,71 @@ jobs:
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      RCLONE_FAST_LIST: 'true'
 
     steps:
-      - name: ☦️ Checkout repository
+      - name: ☦️ Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: 🔧 Install rclone
         run: |
           curl -fsSL https://rclone.org/install.sh | sudo bash
-          rclone version
+          echo "rclone $(rclone version --check | head -1 || rclone version | head -1)"
 
-      - name: 🔑 Configure rclone remotes
+      - name: 🔑 Configure B2 remote
         env:
           B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
           B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
-          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
-          B2_BUCKET: ${{ secrets.B2_BUCKET }}
-          RCLONE_GDRIVE_TOKEN: ${{ secrets.RCLONE_GDRIVE_TOKEN }}
-          GDRIVE_REMOTE_NAME: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive' }}
         run: |
-          mkdir -p ~/.config/rclone
+          rclone config create b2-okn b2 \
+            account "$B2_KEY_ID" \
+            key "$B2_APP_KEY"
 
-          cat >> ~/.config/rclone/rclone.conf <<EOF
-          [b2-okn]
-          type = b2
-          account = ${B2_KEY_ID}
-          key = ${B2_APP_KEY}
-          EOF
+      - name: 🔑 Configure Google Drive remote
+        env:
+          RCLONE_GDRIVE_TOKEN: ${{ secrets.RCLONE_GDRIVE_TOKEN }}
+          GDRIVE_REMOTE: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive-okn' }}
+        run: |
+          rclone config create "$GDRIVE_REMOTE" drive \
+            scope drive \
+            token "$RCLONE_GDRIVE_TOKEN" \
+            shared_with_me true \
+            skip_gdocs true \
+            skip_shortcuts true \
+            skip_dangling_shortcuts true \
+            list_chunk 1000 \
+            disable_http2 true
 
-          cat >> ~/.config/rclone/rclone.conf <<EOF
-          [${GDRIVE_REMOTE_NAME}]
-          type = drive
-          scope = drive
-          token = ${RCLONE_GDRIVE_TOKEN}
-          shared_with_me = true
-          skip_gdocs = true
-          skip_shortcuts = true
-          skip_dangling_shortcuts = true
-          list_chunk = 1000
-          disable_http2 = true
-          EOF
-
-          # Verify
-          echo "✅ Remotes configured:"
-          rclone listremotes
-
-      - name: 📂 Generate bucket map
+      - name: ✅ Verify remotes
         env:
           B2_BUCKET: ${{ secrets.B2_BUCKET }}
-          GDRIVE_REMOTE_NAME: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive' }}
-          GDRIVE_FOLDER: ${{ vars.GDRIVE_BUCKET_MAP_FOLDER || 'OKN Media Archive' }}
+          GDRIVE_REMOTE: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive-okn' }}
+        run: |
+          echo "Configured remotes:"
+          rclone listremotes
+
+          echo ""
+          echo "Testing B2 access..."
+          rclone lsd "b2-okn:${B2_BUCKET}" --max-depth 1 && echo "✅ B2 OK" || echo "❌ B2 failed"
+
+          echo ""
+          echo "Testing Google Drive access..."
+          rclone lsd "${GDRIVE_REMOTE}:" --max-depth 1 && echo "✅ Drive OK" || echo "❌ Drive failed"
+
+      - name: 📂 Generate and upload bucket map
+        env:
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          GDRIVE_REMOTE_NAME: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive-okn' }}
+          GDRIVE_FOLDER: ${{ vars.GDRIVE_BUCKET_MAP_FOLDER || 'OKN Videos and Posts' }}
         run: |
           python3 tools/bucket-map.py \
             --gdrive-remote "${GDRIVE_REMOTE_NAME}" \
             --drive-folder "${GDRIVE_FOLDER}"
+
+      - name: 📋 Summary
+        if: always()
+        run: |
+          echo "## 🗂️ Bucket Map" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          FOLDER="${{ vars.GDRIVE_BUCKET_MAP_FOLDER || 'OKN Videos and Posts' }}"
+          echo "Uploaded \`bucket-map.html\` to **${FOLDER}** on Google Drive." >> $GITHUB_STEP_SUMMARY

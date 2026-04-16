@@ -1,18 +1,43 @@
-name: Deploy to Cloudflare Pages
+name: Deploy
+
+# ─────────────────────────────────────────────────────────
+# Deploys OKN Studio to Cloudflare Pages.
+# Cloudflare auto-deploy is DISABLED — this is the only
+# deploy mechanism.
+#
+# Triggers:
+#   • Push to main (site, functions, assets, config files)
+#   • After Analytics Pipeline completes successfully
+#   • Manual dispatch
+#
+# Does NOT trigger on:
+#   • analytics-pipeline/ changes (handled by analytics.yml)
+#   • tools/ changes (operational scripts, not deployed)
+#   • README.md, .gitattributes, LICENSE
+#   • Other workflow file changes
+#   • Analytics bot commits (report.html, full_results.json)
+#     → These are picked up by the workflow_run trigger instead
+# ─────────────────────────────────────────────────────────
 
 on:
   push:
+    branches: [main]
     paths-ignore:
       - 'analytics-pipeline/**'
       - 'tools/**'
       - 'README.md'
+      - 'LICENSE'
+      - '.gitattributes'
       - '.github/workflows/analytics.yml'
       - '.github/workflows/bucket-map.yml'
+      # Analytics bot commits only these two files in site/analytics/
+      # They must be ignored here to prevent double-deploy
+      # (the workflow_run trigger below handles deploying after analytics)
       - 'site/analytics/full_results.json'
       - 'site/analytics/report.html'
 
   workflow_run:
-    workflows: ["Analytics Pipeline"]
+    workflows: ['Analytics Pipeline']
     types: [completed]
     branches: [main]
 
@@ -20,7 +45,7 @@ on:
 
 concurrency:
   group: deploy
-  cancel-in-progress: true
+  cancel-in-progress: true  # Latest deploy wins
 
 permissions:
   contents: read
@@ -28,36 +53,47 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: 🚀 Deploy
-    # Deploy on push + manual + successful Analytics Pipeline completion
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    name: 🚀 Deploy to Cloudflare Pages
     timeout-minutes: 5
+
+    # Skip deploy if analytics pipeline failed
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - name: ☦️ Checkout repository
+      - name: ☦️ Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-
-      - name: 📁 Copy assets to deploy directory
-        run: |
-          mkdir -p site/assets
-          cp -r assets/* site/assets/ 2>/dev/null || echo "No assets to copy"
-          echo "✅ Assets copied to site/assets/"
-          ls -la site/assets/ 2>/dev/null || true
+          # Always get latest main — critical for workflow_run
+          # which fires after analytics bot pushes new results
+          ref: main
 
       - name: 📦 Install dependencies
         run: npm install --production
 
-      - name: 🚀 Deploy to Cloudflare Pages
+      - name: 📁 Copy assets
+        run: |
+          mkdir -p site/assets
+          cp -r assets/* site/assets/ 2>/dev/null || true
+
+      - name: 🚀 Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy site/ --project-name=oknstudio --commit-dirty=true
+
+      - name: 📋 Summary
+        if: always()
+        run: |
+          echo "## 🚀 Deploy" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${GITHUB_SHA::8}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | [oknstudio.cybersystema.com](https://oknstudio.cybersystema.com) |" >> $GITHUB_STEP_SUMMARY

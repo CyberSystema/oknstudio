@@ -8,491 +8,450 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--navy:#0f2137;--navy-light:#1a3a5c;--navy-surface:#162d47;--gold:#c4953a;--gold-light:#e8c97a;--cream:#f5f0e8;--warm-white:#faf8f4;--text:#2c2c2c;--text-soft:#6b7280;--red:#8b1a1a;--green:#2d6a4f;--border:rgba(255,255,255,0.08);--surface:rgba(255,255,255,0.04)}
+:root{--navy:#0f2137;--navy-light:#1a3a5c;--navy-surface:#162d47;--gold:#c4953a;--gold-light:#e8c97a;--border:rgba(255,255,255,0.08);--surface:rgba(255,255,255,0.04)}
 html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--navy);color:#fff;min-height:100vh;overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:#fff;min-height:100vh}
 
 /* ── Header ── */
-.header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;position:sticky;top:0;background:rgba(15,33,55,0.95);backdrop-filter:blur(12px);z-index:100}
-.header-home{text-decoration:none;color:rgba(255,255,255,0.5);font-size:13px;transition:color 0.2s;flex-shrink:0}
-.header-home:hover{color:var(--gold)}
-.header h1{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:white;flex-shrink:0}
-.header-divider{width:1px;height:24px;background:var(--border);flex-shrink:0}
+.header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;position:sticky;top:0;background:rgba(15,33,55,0.97);backdrop-filter:blur(12px);z-index:100}
+.header-back{display:flex;align-items:center;gap:6px;text-decoration:none;color:rgba(255,255,255,0.5);font-size:13px;transition:color 0.2s;flex-shrink:0;padding:6px 10px;border-radius:8px;border:1px solid transparent}
+.header-back:hover{color:var(--gold);background:rgba(196,149,58,0.06);border-color:rgba(196,149,58,0.15)}
+.header h1{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:white;flex-shrink:0}
+.sep{width:1px;height:20px;background:var(--border);flex-shrink:0}
 
 /* ── Breadcrumbs ── */
-.breadcrumbs{display:flex;align-items:center;gap:4px;font-size:13px;overflow-x:auto;white-space:nowrap;flex:1;min-width:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.breadcrumbs{display:flex;align-items:center;gap:2px;font-size:13px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .breadcrumbs::-webkit-scrollbar{display:none}
-.breadcrumb{color:rgba(255,255,255,0.45);text-decoration:none;transition:color 0.2s;cursor:pointer;padding:4px 6px;border-radius:6px;flex-shrink:0}
-.breadcrumb:hover{color:var(--gold);background:rgba(196,149,58,0.1)}
-.breadcrumb.active{color:var(--gold-light);font-weight:600}
-.breadcrumb-sep{color:rgba(255,255,255,0.2);flex-shrink:0;user-select:none}
+.bc{color:rgba(255,255,255,0.4);text-decoration:none;cursor:pointer;padding:5px 8px;border-radius:6px;flex-shrink:0;transition:all 0.15s;white-space:nowrap}
+.bc:hover{color:var(--gold);background:rgba(196,149,58,0.08)}
+.bc.active{color:var(--gold-light);font-weight:600}
+.bc-sep{color:rgba(255,255,255,0.15);flex-shrink:0;font-size:11px}
 
 /* ── Toolbar ── */
-.toolbar{padding:16px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.stats{font-size:13px;color:rgba(255,255,255,0.4);flex:1}
-.stats strong{color:rgba(255,255,255,0.7)}
-.view-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.view-btn{padding:6px 12px;border:none;background:none;color:rgba(255,255,255,0.45);font-size:16px;cursor:pointer;transition:all 0.2s}
-.view-btn.active{background:rgba(196,149,58,0.15);color:var(--gold)}
-.view-btn:hover:not(.active){color:rgba(255,255,255,0.7)}
+.toolbar{padding:12px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search-box{flex:1;min-width:180px;max-width:340px;position:relative}
+.search-box input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:white;font-size:13px;font-family:inherit;outline:none;transition:border 0.2s}
+.search-box input:focus{border-color:rgba(196,149,58,0.4)}
+.search-box input::placeholder{color:rgba(255,255,255,0.25)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.25);font-size:14px;pointer-events:none}
+.stats{font-size:12px;color:rgba(255,255,255,0.35);margin-left:auto;flex-shrink:0}
+.stats b{color:rgba(255,255,255,0.6)}
+.toolbar-btns{display:flex;gap:4px}
+.tb{padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:none;color:rgba(255,255,255,0.4);font-size:14px;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.tb.active{background:rgba(196,149,58,0.12);color:var(--gold);border-color:rgba(196,149,58,0.2)}
+.tb:hover:not(.active){color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15)}
 
-/* ── Content Area ── */
-.content{padding:0 24px 40px}
+/* ── Content ── */
+.content{padding:8px 24px 40px}
 
-/* ── Grid View ── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.grid .item{padding:14px;text-align:left}
+.grid .item-thumb{width:44px;height:44px;font-size:20px}
+.grid .item-name{font-size:13px}
 
-/* ── List View ── */
+/* ── List ── */
 .list{display:flex;flex-direction:column;gap:2px}
-.list .item{grid-template-columns:auto 1fr auto auto;border-radius:10px}
-.list .item .item-thumb{width:40px;height:40px;border-radius:8px;font-size:18px}
-.list .item .item-name{font-size:13px}
-.list .item .item-meta{font-size:12px}
+.list .item{flex-direction:row;padding:10px 16px;border-radius:10px}
+.list .item-thumb{width:36px;height:36px;font-size:17px}
+.list .item-name{font-size:13px}
+.list .item-meta{font-size:11px}
 
-/* ── Items (shared) ── */
-.item{display:grid;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.25s;text-decoration:none;color:inherit}
-.item:hover{background:rgba(255,255,255,0.07);border-color:rgba(196,149,58,0.2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+/* ── Item (shared) ── */
+.item{display:flex;align-items:center;gap:12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.2s;text-decoration:none;color:inherit}
+.item:hover{background:rgba(255,255,255,0.06);border-color:rgba(196,149,58,0.2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.12)}
+.item.folder{border-color:rgba(196,149,58,0.1);background:rgba(196,149,58,0.03)}
+.item.folder:hover{border-color:rgba(196,149,58,0.25);background:rgba(196,149,58,0.07)}
 
-/* ── Grid item layout ── */
-.grid .item{grid-template-columns:1fr;grid-template-rows:auto auto;text-align:center;padding:16px}
-.grid .item .item-row{display:flex;align-items:center;gap:10px;text-align:left}
-
-/* ── Folder ── */
-.item.folder{border-color:rgba(196,149,58,0.12);background:rgba(196,149,58,0.04)}
-.item.folder:hover{border-color:rgba(196,149,58,0.3);background:rgba(196,149,58,0.08)}
-
-/* ── Thumbnails / Icons ── */
-.item-thumb{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,0.05);overflow:hidden}
+.item-thumb{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(255,255,255,0.04);overflow:hidden}
 .item-thumb img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
-.item.folder .item-thumb{background:rgba(196,149,58,0.12);font-size:24px}
-
-/* ── File info ── */
+.item.folder .item-thumb{background:rgba(196,149,58,0.1)}
 .item-info{min-width:0;flex:1}
-.item-name{font-size:14px;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-meta{font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;white-space:nowrap}
-.item-meta .tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-right:4px}
-.tag-image{background:rgba(99,179,237,0.15);color:#63b3ed}
-.tag-video{background:rgba(237,100,166,0.15);color:#ed64a6}
-.tag-audio{background:rgba(154,130,237,0.15);color:#9a82ed}
-.tag-document{background:rgba(72,187,120,0.15);color:#48bb78}
-.tag-design{background:rgba(237,179,64,0.15);color:#edb340}
-.tag-archive{background:rgba(160,160,160,0.15);color:#a0a0a0}
-.tag-other{background:rgba(160,160,160,0.1);color:#888}
+.item-name{font-size:14px;font-weight:500;color:#e8ecf2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
+.tag-image{background:rgba(99,179,237,0.12);color:#63b3ed}
+.tag-video{background:rgba(237,100,166,0.12);color:#ed64a6}
+.tag-audio{background:rgba(154,130,237,0.12);color:#9a82ed}
+.tag-document{background:rgba(72,187,120,0.12);color:#48bb78}
+.tag-design{background:rgba(237,179,64,0.12);color:#edb340}
+.tag-archive{background:rgba(160,160,160,0.1);color:#a0a0a0}
+.tag-other{background:rgba(160,160,160,0.08);color:#888}
 
-/* ── Actions ── */
-.item-actions{display:flex;gap:6px;flex-shrink:0}
-.btn-icon{width:32px;height:32px;border:none;border-radius:8px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
-.btn-icon:hover{background:rgba(196,149,58,0.15);color:var(--gold)}
+.item-actions{display:flex;gap:4px;flex-shrink:0}
+.abtn{width:30px;height:30px;border:none;border-radius:7px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;text-decoration:none}
+.abtn:hover{background:rgba(196,149,58,0.12);color:var(--gold)}
 
 /* ── Loading ── */
-.loading{text-align:center;padding:80px 24px;color:rgba(255,255,255,0.4)}
-.loading-spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px}
+.loading{text-align:center;padding:80px 24px;color:rgba(255,255,255,0.35)}
+.spinner{display:inline-block;width:28px;height:28px;border:2.5px solid rgba(255,255,255,0.08);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── Empty ── */
 .empty{text-align:center;padding:80px 24px}
-.empty-icon{font-size:48px;margin-bottom:16px;opacity:0.3}
-.empty h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:rgba(255,255,255,0.5);margin-bottom:8px}
-.empty p{font-size:14px;color:rgba(255,255,255,0.3);max-width:360px;margin:0 auto}
+.empty-icon{font-size:40px;margin-bottom:14px;opacity:0.25}
+.empty h3{font-family:'Cormorant Garamond',serif;font-size:20px;color:rgba(255,255,255,0.45);margin-bottom:6px}
+.empty p{font-size:13px;color:rgba(255,255,255,0.25);max-width:340px;margin:0 auto}
 
 /* ── Error ── */
-.error{text-align:center;padding:60px 24px}
-.error-box{display:inline-block;padding:20px 32px;background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.2);border-radius:14px;color:#f88}
-.error-box h3{font-size:16px;margin-bottom:4px}
-.error-box p{font-size:13px;color:rgba(255,150,150,0.7)}
+.error-box{display:inline-block;padding:20px 32px;background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.15);border-radius:12px;color:#f88;text-align:center;margin:60px auto;max-width:400px}
+.error-box h3{font-size:15px;margin-bottom:4px}
+.error-box p{font-size:12px;color:rgba(255,150,150,0.6)}
+.error-box button{margin-top:12px;padding:8px 20px;border:1px solid rgba(255,150,150,0.2);border-radius:7px;background:none;color:#f88;font-size:12px;cursor:pointer;font-family:inherit}
+.error-box button:hover{background:rgba(255,100,100,0.08)}
 
-/* ── Preview Modal ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+/* ── Load More ── */
+.load-more{display:flex;justify-content:center;padding:20px}
+.load-more button{padding:10px 28px;border:1px solid rgba(196,149,58,0.2);border-radius:8px;background:rgba(196,149,58,0.06);color:var(--gold);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.load-more button:hover{background:rgba(196,149,58,0.12);border-color:rgba(196,149,58,0.35)}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
 .modal-overlay.active{display:flex}
-.modal{position:relative;max-width:90vw;max-height:90vh;display:flex;flex-direction:column;align-items:center}
-.modal-close{position:fixed;top:16px;right:16px;width:40px;height:40px;border:none;border-radius:50%;background:rgba(255,255,255,0.1);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:210}
-.modal-close:hover{background:rgba(255,255,255,0.2)}
-.modal img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
-.modal video{max-width:100%;max-height:80vh;border-radius:8px;outline:none}
-.modal audio{min-width:320px;margin-top:40px}
-.modal-info{margin-top:12px;text-align:center;font-size:13px;color:rgba(255,255,255,0.5)}
-.modal-info .name{color:white;font-weight:500;font-size:14px;margin-bottom:4px}
-.modal-download{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:10px 20px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;text-decoration:none;transition:transform 0.2s}
-.modal-download:hover{transform:translateY(-1px)}
+.modal{max-width:92vw;max-height:92vh;display:flex;flex-direction:column;align-items:center}
+.modal-close{position:fixed;top:14px;right:14px;width:38px;height:38px;border:none;border-radius:50%;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:210;transition:background 0.15s}
+.modal-close:hover{background:rgba(255,255,255,0.15);color:white}
+.modal img{max-width:100%;max-height:80vh;border-radius:6px;object-fit:contain}
+.modal video{max-width:100%;max-height:80vh;border-radius:6px;outline:none;background:#000}
+.modal audio{min-width:300px;margin-top:40px}
+.modal-footer{margin-top:14px;text-align:center}
+.modal-footer .mf-name{color:white;font-weight:500;font-size:14px}
+.modal-footer .mf-meta{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px}
+.modal-dl{display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:9px 18px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);font-size:12px;font-weight:600;border:none;border-radius:7px;cursor:pointer;text-decoration:none;transition:transform 0.15s}
+.modal-dl:hover{transform:translateY(-1px)}
+.modal-nav{position:fixed;top:50%;transform:translateY(-50%);width:40px;height:40px;border:none;border-radius:50%;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:210;transition:all 0.15s}
+.modal-nav:hover{background:rgba(255,255,255,0.12);color:white}
+.modal-prev{left:14px}
+.modal-next{right:14px}
 
 /* ── Responsive ── */
 @media(max-width:768px){
-  .header{padding:14px 16px;gap:10px}
-  .header h1{font-size:20px}
-  .toolbar{padding:12px 16px}
-  .content{padding:0 16px 32px}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+  .header{padding:12px 16px;gap:10px}
+  .header h1{font-size:18px}
+  .toolbar{padding:10px 16px}
+  .content{padding:6px 16px 32px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .modal-nav{display:none}
 }
 @media(max-width:480px){
   .header{flex-wrap:wrap}
-  .breadcrumbs{order:3;width:100%;margin-top:4px}
-  .grid{grid-template-columns:1fr 1fr;gap:8px}
-  .grid .item{padding:12px}
-  .grid .item .item-thumb{width:36px;height:36px;font-size:18px}
-  .item-name{font-size:13px}
+  .breadcrumbs{order:10;width:100%;margin-top:4px}
+  .sep:last-of-type{display:none}
+  .grid{grid-template-columns:1fr 1fr;gap:6px}
+  .grid .item{padding:10px}
+  .search-box{min-width:100%;order:11;margin-top:4px}
 }
 </style>
 </head>
 <body>
 
-<!-- Header -->
 <header class="header">
-  <a href="/" class="header-home">← Studio</a>
-  <div class="header-divider"></div>
-  <h1>🗂️ Media Pool</h1>
-  <div class="header-divider"></div>
+  <a href="/" class="header-back">← Studio</a>
+  <h1>Media Pool</h1>
+  <span class="sep"></span>
   <nav class="breadcrumbs" id="breadcrumbs"></nav>
 </header>
 
-<!-- Toolbar -->
 <div class="toolbar">
+  <div class="search-box">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search" placeholder="Filter files…" autocomplete="off">
+  </div>
   <div class="stats" id="stats"></div>
-  <div class="view-toggle">
-    <button class="view-btn active" data-view="grid" title="Grid view">▦</button>
-    <button class="view-btn" data-view="list" title="List view">☰</button>
+  <div class="toolbar-btns">
+    <button class="tb active" data-view="grid" title="Grid">▦</button>
+    <button class="tb" data-view="list" title="List">☰</button>
   </div>
 </div>
 
-<!-- Content -->
 <main class="content" id="content">
-  <div class="loading" id="loading">
-    <div class="loading-spinner"></div>
-    <div>Loading media…</div>
-  </div>
+  <div class="loading" id="loading"><div class="spinner"></div><div>Loading…</div></div>
 </main>
 
-<!-- Preview Modal -->
 <div class="modal-overlay" id="modal">
   <button class="modal-close" id="modal-close">✕</button>
+  <button class="modal-nav modal-prev" id="modal-prev">‹</button>
+  <button class="modal-nav modal-next" id="modal-next">›</button>
   <div class="modal" id="modal-body"></div>
 </div>
 
 <script>
-// ══════════════════════════════════════
-// STATE
-// ══════════════════════════════════════
+const ICONS = {folder:'📁',image:'🖼️',video:'🎬',audio:'🎵',document:'📄',design:'🎨',archive:'📦',other:'📎'};
 
-let currentPrefix = '';
-let viewMode = 'grid'; // grid | list
+let prefix = '';
+let view = 'grid';
+let currentData = null;
+let filterText = '';
+let previewList = [];
+let previewIndex = 0;
 
-// Client-side cache — avoids repeat B2 API calls when navigating back
-// Entries expire after 10 minutes
-const listCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000;
+const cache = new Map();
+const CACHE_TTL = 30 * 60 * 1000;
 
-const TYPE_ICONS = {
-  folder: '📁',
-  image: '🖼️',
-  video: '🎬',
-  audio: '🎵',
-  document: '📄',
-  design: '🎨',
-  archive: '📦',
-  other: '📎',
-};
-
-// ══════════════════════════════════════
-// INIT
-// ══════════════════════════════════════
-
+// ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
-  // Parse hash for initial path
-  const hash = decodeURIComponent(location.hash.slice(1));
-  if (hash) currentPrefix = hash;
-
-  loadDirectory(currentPrefix);
-  setupViewToggle();
-  setupModal();
+  prefix = hashToPrefix();
+  load(prefix);
+  setupUI();
 });
 
 window.addEventListener('hashchange', () => {
-  const hash = decodeURIComponent(location.hash.slice(1));
-  currentPrefix = hash || '';
-  loadDirectory(currentPrefix);
+  prefix = hashToPrefix();
+  load(prefix);
 });
 
-// ══════════════════════════════════════
-// DATA FETCHING
-// ══════════════════════════════════════
+function hashToPrefix() {
+  const h = location.hash.slice(1);
+  if (!h) return '';
+  try { return decodeURIComponent(h); } catch { return h; }
+}
 
-async function loadDirectory(prefix) {
+function go(p) { location.hash = p ? '#' + encodeURIComponent(p) : ''; }
+
+// ── Data ──
+async function load(pfx, append) {
   const content = document.getElementById('content');
-  const loading = document.getElementById('loading');
+  if (!append) {
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading…</div></div>';
+    renderBreadcrumbs(pfx);
+  }
 
-  content.innerHTML = '';
-  content.appendChild(loading);
-  loading.style.display = '';
-
-  renderBreadcrumbs(prefix);
+  const cacheKey = pfx + '|' + (append || '');
+  const c = cache.get(cacheKey);
+  if (c && Date.now() - c.t < CACHE_TTL) { render(c.d, append); return; }
 
   try {
-    // Check client-side cache first
-    const cached = listCache.get(prefix);
-    if (cached && (Date.now() - cached.time < CACHE_TTL)) {
-      renderContent(cached.data);
-      return;
-    }
-
-    const url = `/api/media/list?prefix=${encodeURIComponent(prefix)}`;
+    let url = '/api/media/list?prefix=' + encodeURIComponent(pfx);
+    if (append) url += '&cursor=' + encodeURIComponent(append);
     const res = await fetch(url);
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${res.status}`);
-    }
-
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || e.detail || 'HTTP ' + res.status); }
     const data = await res.json();
-
-    // Cache the response
-    listCache.set(prefix, { data, time: Date.now() });
-
-    renderContent(data);
+    cache.set(cacheKey, { d: data, t: Date.now() });
+    render(data, append);
   } catch (err) {
-    content.innerHTML = `
-      <div class="error">
-        <div class="error-box">
-          <h3>Failed to load</h3>
-          <p>${escapeHtml(err.message)}</p>
-        </div>
-      </div>`;
+    content.innerHTML = '<div style="display:flex;justify-content:center"><div class="error-box"><h3>Failed to load</h3><p>' + esc(err.message) + '</p><button onclick="load(prefix)">Retry</button></div></div>';
   }
 }
 
-// ══════════════════════════════════════
-// RENDERING
-// ══════════════════════════════════════
-
-function renderBreadcrumbs(prefix) {
-  const nav = document.getElementById('breadcrumbs');
-  const parts = prefix.split('/').filter(Boolean);
-
-  let html = `<span class="breadcrumb ${parts.length === 0 ? 'active' : ''}" onclick="navigate('')">Root</span>`;
-
-  let path = '';
-  for (let i = 0; i < parts.length; i++) {
-    path += parts[i] + '/';
-    const isLast = i === parts.length - 1;
-    html += `<span class="breadcrumb-sep">›</span>`;
-    html += `<span class="breadcrumb ${isLast ? 'active' : ''}" onclick="navigate('${escapeAttr(path)}')">${escapeHtml(parts[i])}</span>`;
-  }
-
-  nav.innerHTML = html;
-  // Scroll breadcrumbs to the end
-  nav.scrollLeft = nav.scrollWidth;
-}
-
-function renderContent(data) {
+// ── Render ──
+function render(data, append) {
   const content = document.getElementById('content');
   const stats = document.getElementById('stats');
 
-  const totalItems = data.folderCount + data.count;
-  if (totalItems === 0) {
-    content.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">📂</div>
-        <h3>Empty folder</h3>
-        <p>No files or subfolders here yet. Upload media via Cyberduck or rclone to see it appear.</p>
-      </div>`;
-    stats.innerHTML = '';
+  if (append && currentData) {
+    currentData.files = currentData.files.concat(data.files);
+    currentData.folders = currentData.folders.concat(data.folders);
+    currentData.cursor = data.cursor;
+    currentData.truncated = data.truncated;
+    currentData.count += data.count;
+    currentData.folderCount += data.folderCount;
+  } else {
+    currentData = data;
+  }
+
+  const d = currentData;
+  const total = d.folderCount + d.count;
+
+  if (total === 0) {
+    content.innerHTML = '<div class="empty"><div class="empty-icon">📂</div><h3>Empty folder</h3><p>Upload media via Cyberduck or rclone to see it here.</p></div>';
+    stats.textContent = '';
     return;
   }
 
-  stats.innerHTML = `<strong>${data.folderCount}</strong> folder${data.folderCount !== 1 ? 's' : ''} · <strong>${data.count}</strong> file${data.count !== 1 ? 's' : ''}`;
+  stats.innerHTML = (d.folderCount ? '<b>' + d.folderCount + '</b> folder' + (d.folderCount !== 1 ? 's' : '') : '') +
+    (d.folderCount && d.count ? ' · ' : '') +
+    (d.count ? '<b>' + d.count + '</b> file' + (d.count !== 1 ? 's' : '') : '');
 
   const container = document.createElement('div');
-  container.className = viewMode;
+  container.className = view;
+  container.id = 'items';
 
-  // Render folders first
-  for (const folder of data.folders) {
-    const name = folder.replace(data.prefix, '').replace(/\/$/, '');
-    container.appendChild(createFolderItem(folder, name));
+  const filter = filterText.toLowerCase();
+
+  for (const f of d.folders) {
+    const name = f.replace(d.prefix, '').replace(/\/$/, '');
+    if (filter && !name.toLowerCase().includes(filter)) continue;
+    container.appendChild(mkFolder(f, name));
   }
 
-  // Render files
-  for (const file of data.files) {
-    const name = file.key.replace(data.prefix, '');
-    container.appendChild(createFileItem(file, name));
+  previewList = [];
+  for (const f of d.files) {
+    const name = f.key.replace(d.prefix, '');
+    if (filter && !name.toLowerCase().includes(filter)) continue;
+    if (['image','video','audio'].includes(f.type)) previewList.push(f);
+    container.appendChild(mkFile(f, name));
   }
 
   content.innerHTML = '';
   content.appendChild(container);
 
-  // Load thumbnails for images
-  lazyLoadThumbnails();
+  if (d.truncated && d.cursor) {
+    const lm = document.createElement('div');
+    lm.className = 'load-more';
+    lm.innerHTML = '<button>Load more…</button>';
+    lm.querySelector('button').onclick = () => { lm.remove(); load(prefix, d.cursor); };
+    content.appendChild(lm);
+  }
+
+  lazyThumbs();
 }
 
-function createFolderItem(path, name) {
+function mkFolder(path, name) {
   const el = document.createElement('div');
   el.className = 'item folder';
-  el.onclick = () => navigate(path);
-  el.innerHTML = `
-    <div class="item-row" style="display:flex;align-items:center;gap:12px">
-      <div class="item-thumb">${TYPE_ICONS.folder}</div>
-      <div class="item-info">
-        <div class="item-name">${escapeHtml(name)}</div>
-        <div class="item-meta">Folder</div>
-      </div>
-    </div>`;
+  el.onclick = () => go(path);
+  el.innerHTML =
+    '<div class="item-thumb">' + ICONS.folder + '</div>' +
+    '<div class="item-info"><div class="item-name">' + esc(name) + '</div><div class="item-meta">Folder</div></div>';
   return el;
 }
 
-function createFileItem(file, name) {
+function mkFile(file, name) {
   const el = document.createElement('div');
-  el.className = 'item file';
+  el.className = 'item';
+  const canPreview = ['image','video','audio'].includes(file.type);
+  const isImg = file.type === 'image';
+  const src = '/api/media/download/' + encodePath(file.key);
+  const date = file.modified ? new Date(file.modified).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '';
 
-  const isPreviewable = ['image', 'video', 'audio'].includes(file.type);
-  const isImage = file.type === 'image';
-  const thumbSrc = isImage ? `/api/media/download/${encodeFilePath(file.key)}` : '';
-  const date = file.modified ? new Date(file.modified).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  el.innerHTML =
+    '<div class="item-thumb"' + (isImg ? ' data-thumb="' + attr(src) + '"' : '') + '>' +
+      (isImg ? '' : (ICONS[file.type] || ICONS.other)) +
+    '</div>' +
+    '<div class="item-info">' +
+      '<div class="item-name" title="' + attr(name) + '">' + esc(name) + '</div>' +
+      '<div class="item-meta">' +
+        '<span class="tag tag-' + file.type + '">' + file.type + '</span>' +
+        '<span>' + file.sizeFormatted + '</span>' +
+        (date ? '<span>' + date + '</span>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="item-actions">' +
+      (canPreview ? '<button class="abtn" data-preview="' + attr(file.key) + '" title="Preview">👁</button>' : '') +
+      '<a class="abtn" href="' + attr(src) + '?download" title="Download" onclick="event.stopPropagation()">↓</a>' +
+    '</div>';
 
-  el.innerHTML = `
-    <div class="item-row" style="display:flex;align-items:center;gap:12px">
-      <div class="item-thumb" ${isImage ? `data-thumb="${escapeAttr(thumbSrc)}"` : ''}>
-        ${isImage ? '' : (TYPE_ICONS[file.type] || TYPE_ICONS.other)}
-      </div>
-      <div class="item-info">
-        <div class="item-name" title="${escapeAttr(name)}">${escapeHtml(name)}</div>
-        <div class="item-meta">
-          <span class="tag tag-${file.type}">${file.type}</span>
-          ${file.sizeFormatted} ${date ? '· ' + date : ''}
-        </div>
-      </div>
-      <div class="item-actions">
-        ${isPreviewable ? `<button class="btn-icon" onclick="event.stopPropagation();preview('${escapeAttr(file.key)}','${file.type}','${escapeAttr(name)}','${file.sizeFormatted}')" title="Preview">👁</button>` : ''}
-        <a class="btn-icon" href="/api/media/download/${encodeFilePath(file.key)}?download" onclick="event.stopPropagation()" title="Download">⬇</a>
-      </div>
-    </div>`;
-
-  if (isPreviewable) {
-    el.onclick = () => preview(file.key, file.type, name, file.sizeFormatted);
+  if (canPreview) {
+    el.onclick = (e) => { if (!e.target.closest('a')) openPreview(file.key); };
+    const btn = el.querySelector('[data-preview]');
+    if (btn) btn.onclick = (e) => { e.stopPropagation(); openPreview(file.key); };
   }
 
   return el;
 }
 
-// ══════════════════════════════════════
-// THUMBNAILS
-// ══════════════════════════════════════
-
-// Lazy-load image thumbnails only when they scroll into view.
-// Each thumbnail is one B2 Class B call, but with cold storage
-// activity this stays well within the 2,500 free daily limit.
-function lazyLoadThumbnails() {
-  const thumbs = document.querySelectorAll('[data-thumb]');
-  if (!thumbs.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        const el = entry.target;
-        const src = el.dataset.thumb;
-        const img = new Image();
-        img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
-        img.onerror = () => { el.textContent = TYPE_ICONS.image; };
-        img.src = src;
-        img.alt = '';
-        observer.unobserve(el);
-      }
-    }
-  }, { rootMargin: '50px' });
-
-  thumbs.forEach(el => observer.observe(el));
+// ── Breadcrumbs ──
+function renderBreadcrumbs(pfx) {
+  const nav = document.getElementById('breadcrumbs');
+  const parts = pfx.split('/').filter(Boolean);
+  let html = '<span class="bc' + (parts.length ? '' : ' active') + '" onclick="go(\'\')">Root</span>';
+  let p = '';
+  for (let i = 0; i < parts.length; i++) {
+    p += parts[i] + '/';
+    html += '<span class="bc-sep">›</span><span class="bc' + (i === parts.length - 1 ? ' active' : '') + '" onclick="go(\'' + attr(p) + '\')">' + esc(parts[i]) + '</span>';
+  }
+  nav.innerHTML = html;
+  nav.scrollLeft = nav.scrollWidth;
 }
 
-// ══════════════════════════════════════
-// PREVIEW MODAL
-// ══════════════════════════════════════
-
-function setupModal() {
-  const overlay = document.getElementById('modal');
-  const closeBtn = document.getElementById('modal-close');
-
-  closeBtn.onclick = closeModal;
-  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+// ── Thumbnails ──
+function lazyThumbs() {
+  const els = document.querySelectorAll('[data-thumb]');
+  if (!els.length) return;
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target, src = el.dataset.thumb;
+      const img = new Image();
+      img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
+      img.onerror = () => { el.textContent = ICONS.image; };
+      img.src = src;
+      img.alt = '';
+      obs.unobserve(el);
+    });
+  }, { rootMargin: '80px' });
+  els.forEach(el => obs.observe(el));
 }
 
-function preview(key, type, name, size) {
+// ── Preview Modal ──
+function openPreview(key) {
+  previewIndex = previewList.findIndex(f => f.key === key);
+  if (previewIndex < 0) previewIndex = 0;
+  showPreview();
+}
+
+function showPreview() {
+  const file = previewList[previewIndex];
+  if (!file) return;
   const overlay = document.getElementById('modal');
   const body = document.getElementById('modal-body');
-  const src = `/api/media/download/${encodeFilePath(key)}`;
-  const downloadSrc = src + '?download';
-
-  let mediaHtml = '';
-  if (type === 'image') {
-    mediaHtml = `<img src="${escapeAttr(src)}" alt="${escapeAttr(name)}">`;
-  } else if (type === 'video') {
-    mediaHtml = `<video src="${escapeAttr(src)}" controls autoplay playsinline></video>`;
-  } else if (type === 'audio') {
-    mediaHtml = `<div style="font-size:64px;margin-bottom:16px">🎵</div><audio src="${escapeAttr(src)}" controls autoplay></audio>`;
-  }
-
-  body.innerHTML = `
-    ${mediaHtml}
-    <div class="modal-info">
-      <div class="name">${escapeHtml(name)}</div>
-      <div>${size}</div>
-    </div>
-    <a class="modal-download" href="${escapeAttr(downloadSrc)}">⬇ Download</a>`;
-
+  const src = '/api/media/download/' + encodePath(file.key);
+  const name = file.key.split('/').pop();
+  let media = '';
+  if (file.type === 'image') media = '<img src="' + attr(src) + '" alt="' + attr(name) + '">';
+  else if (file.type === 'video') media = '<video src="' + attr(src) + '" controls autoplay playsinline></video>';
+  else if (file.type === 'audio') media = '<div style="font-size:56px;margin-bottom:20px">🎵</div><audio src="' + attr(src) + '" controls autoplay></audio>';
+  body.innerHTML = media +
+    '<div class="modal-footer"><div class="mf-name">' + esc(name) + '</div><div class="mf-meta">' + file.sizeFormatted + ' · ' + file.type + '</div>' +
+    '<a class="modal-dl" href="' + attr(src) + '?download">↓ Download</a></div>';
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
+  updateNav();
+}
+
+function updateNav() {
+  document.getElementById('modal-prev').style.display = previewIndex > 0 ? '' : 'none';
+  document.getElementById('modal-next').style.display = previewIndex < previewList.length - 1 ? '' : 'none';
 }
 
 function closeModal() {
   const overlay = document.getElementById('modal');
   const body = document.getElementById('modal-body');
-
-  // Stop any playing media
-  body.querySelectorAll('video, audio').forEach(el => { el.pause(); el.src = ''; });
-
+  body.querySelectorAll('video,audio').forEach(el => { el.pause(); el.src = ''; });
   overlay.classList.remove('active');
   body.innerHTML = '';
   document.body.style.overflow = '';
 }
 
-// ══════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════
-
-function navigate(prefix) {
-  location.hash = prefix ? encodeURIComponent(prefix) : '';
-}
-
-// ══════════════════════════════════════
-// VIEW TOGGLE
-// ══════════════════════════════════════
-
-function setupViewToggle() {
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      viewMode = btn.dataset.view;
-      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+// ── UI Setup ──
+function setupUI() {
+  // View toggle
+  document.querySelectorAll('.tb[data-view]').forEach(btn => {
+    btn.onclick = () => {
+      view = btn.dataset.view;
+      document.querySelectorAll('.tb[data-view]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Re-render current view
-      const container = document.querySelector('.grid, .list');
-      if (container) container.className = viewMode;
-    });
+      if (currentData) render(currentData);
+    };
+  });
+
+  // Search filter
+  let searchTimer;
+  document.getElementById('search').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      filterText = e.target.value.trim();
+      if (currentData) render(currentData);
+    }, 200);
+  });
+
+  // Modal controls
+  document.getElementById('modal-close').onclick = closeModal;
+  document.getElementById('modal').onclick = (e) => { if (e.target.id === 'modal') closeModal(); };
+  document.getElementById('modal-prev').onclick = () => { if (previewIndex > 0) { previewIndex--; showPreview(); } };
+  document.getElementById('modal-next').onclick = () => { if (previewIndex < previewList.length - 1) { previewIndex++; showPreview(); } };
+  document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('modal').classList.contains('active')) return;
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'ArrowLeft' && previewIndex > 0) { previewIndex--; showPreview(); }
+    if (e.key === 'ArrowRight' && previewIndex < previewList.length - 1) { previewIndex++; showPreview(); }
   });
 }
 
-// ══════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════
-
-function encodeFilePath(path) {
-  return path.split('/').map(encodeURIComponent).join('/');
-}
-
-function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-function escapeAttr(str) {
-  return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
-}
+// ── Utils ──
+function encodePath(p) { return p.split('/').map(encodeURIComponent).join('/'); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function attr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;'); }
 </script>
 </body>
 </html>
