@@ -35,6 +35,8 @@ GDRIVE_REMOTE = os.environ.get("GDRIVE_REMOTE_NAME", "gdrive")
 GDRIVE_FOLDER = os.environ.get("GDRIVE_FOLDER", "OKN Media Archive")
 MAP_FILENAME = "bucket-map.html"
 LOCAL_DIR = Path.home() / ".okn" / "bucket-map"
+LIST_TIMEOUT_SECONDS = int(os.environ.get("B2_LIST_TIMEOUT_SECONDS", "900"))
+UPLOAD_TIMEOUT_SECONDS = int(os.environ.get("GDRIVE_UPLOAD_TIMEOUT_SECONDS", "300"))
 
 # File type categories
 CATEGORIES = {
@@ -71,7 +73,15 @@ def list_bucket():
         "--no-mimetype",
         f"{B2_REMOTE}:{B2_BUCKET}",
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=LIST_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        print(
+            f"ERROR: rclone lsjson timed out after {LIST_TIMEOUT_SECONDS}s. "
+            "Increase B2_LIST_TIMEOUT_SECONDS if the bucket is very large.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     if result.returncode != 0:
         print(f"ERROR: rclone lsjson failed:\n{result.stderr}", file=sys.stderr)
         sys.exit(1)
@@ -459,7 +469,15 @@ def upload_to_drive(local_path, drive_folder):
         str(local_path),
         f"{dest}/{MAP_FILENAME}",
     ]
-    result = subprocess.run(cmd_dir, capture_output=True, text=True, timeout=60)
+    try:
+        result = subprocess.run(cmd_dir, capture_output=True, text=True, timeout=UPLOAD_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        print(
+            f"ERROR: Drive upload timed out after {UPLOAD_TIMEOUT_SECONDS}s. "
+            "Increase GDRIVE_UPLOAD_TIMEOUT_SECONDS if needed.",
+            file=sys.stderr,
+        )
+        return False
     if result.returncode != 0:
         print(f"ERROR: Drive upload failed:\n{result.stderr}", file=sys.stderr)
         return False

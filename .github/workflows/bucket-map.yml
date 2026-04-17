@@ -33,7 +33,7 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     name: 🗂️ Generate Bucket Map
-    timeout-minutes: 10
+    timeout-minutes: 30
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -82,11 +82,11 @@ jobs:
 
           echo ""
           echo "Testing B2 access..."
-          rclone lsd "b2-okn:${B2_BUCKET}" --max-depth 1 && echo "✅ B2 OK" || echo "❌ B2 failed"
+          timeout 45s rclone lsd "b2-okn:${B2_BUCKET}" --max-depth 1 && echo "✅ B2 OK" || echo "❌ B2 failed or timed out"
 
           echo ""
           echo "Testing Google Drive access..."
-          rclone lsd "${GDRIVE_REMOTE}:" --max-depth 1 && echo "✅ Drive OK" || echo "❌ Drive failed"
+          timeout 45s rclone lsd "${GDRIVE_REMOTE}:" --max-depth 1 && echo "✅ Drive OK" || echo "❌ Drive failed or timed out"
 
       - name: 📂 Generate and upload bucket map
         env:
@@ -94,7 +94,7 @@ jobs:
           GDRIVE_REMOTE_NAME: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive-okn' }}
           GDRIVE_FOLDER: ${{ vars.GDRIVE_BUCKET_MAP_FOLDER || 'OKN Videos and Posts' }}
         run: |
-          python3 tools/bucket-map.py \
+          timeout 20m python3 tools/bucket-map.py \
             --gdrive-remote "${GDRIVE_REMOTE_NAME}" \
             --drive-folder "${GDRIVE_FOLDER}"
 
