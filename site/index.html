@@ -71,12 +71,19 @@
   --warn:#fbbf24;
   --danger:#f87171;
   --success:#5eead4;
+  --signal-warn:#fbbf24;
+  --signal-danger:#f87171;
 
   /* ── Text ── */
   --text:#e8edf2;
   --text-dim:rgba(232,237,242,0.55);
   --text-faint:rgba(232,237,242,0.32);
   --text-ghost:rgba(232,237,242,0.18);
+
+  /* ── OG tone ── */
+  --tone:var(--signal);
+  --tone-rgb:94,234,212;
+  --tone-soft:rgba(94,234,212,0.16);
 
   /* ── Type ── */
   --font-display:'Sora',system-ui,sans-serif;
@@ -209,39 +216,26 @@ body::after{
 
 /* OG replacement block at top of homepage */
 .hero-og-top{
-  min-height:auto;
-  padding:120px 32px 64px;
+  overflow:hidden;
 }
 
-.hero-og-wrap{
-  width:100%;
-  max-width:1280px;
-  margin:0 auto;
-  aspect-ratio:1200 / 630;
-  border:1px solid var(--line);
-  border-radius:var(--r-2);
-  overflow:hidden;
-  background:linear-gradient(135deg, var(--bg-3), var(--bg-2));
-  box-shadow:
-    0 0 0 1px rgba(94,234,212,0.08),
-    0 24px 70px rgba(0,0,0,0.45);
+.card-scale{
+  width:1200px;
+  height:630px;
+  transform-origin:center;
+  will-change:transform;
 }
 
-/* Native OG component styles (merged directly into homepage) */
-.og-native-card{
-  width:100%;
-  height:100%;
-  position:relative;
-  overflow:hidden;
-  font-family:var(--font-body);
+.card{
+  width:1200px;height:630px;
+  position:relative;overflow:hidden;
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
   background:linear-gradient(180deg,#0c1218 0%,#080d12 100%);
   color:var(--text);
 }
 
-.og-native-grid{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
+.card-grid{
+  position:absolute;inset:0;
   background-image:
     linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),
     linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);
@@ -249,80 +243,383 @@ body::after{
   -webkit-mask-image:radial-gradient(ellipse 70% 85% at 50% 50%,#000 30%,transparent 100%);
           mask-image:radial-gradient(ellipse 70% 85% at 50% 50%,#000 30%,transparent 100%);
   animation:grid-drift 90s linear infinite;
-}
-
-.og-native-glow{
-  position:absolute;
-  top:-120px;
-  right:-150px;
-  width:700px;
-  height:700px;
-  background:radial-gradient(circle,rgba(94,234,212,0.16) 0%,transparent 60%);
   pointer-events:none;
-  animation:pulse 4s ease-in-out infinite;
 }
 
-.og-native-top{position:absolute;left:80px;right:80px;top:66px;height:28px;display:flex;justify-content:space-between;align-items:center;opacity:0;animation:slideUp .5s ease .2s forwards}
-.og-native-brand{display:flex;align-items:center;gap:14px;padding:6px 12px;border:1px solid rgba(94,234,212,.35);background:linear-gradient(180deg,rgba(94,234,212,.16),rgba(94,234,212,.04));border-radius:4px;box-shadow:0 0 28px rgba(94,234,212,.12)}
-.og-native-brand svg{width:30px;height:30px;display:block;filter:drop-shadow(0 0 8px rgba(94,234,212,.45));animation:node-pulse 2.8s ease-in-out infinite}
-.og-native-brand-name{font-family:var(--font-mono);font-size:22px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text);text-shadow:0 0 18px rgba(94,234,212,.35)}
-.og-native-brand-name .slash{color:var(--text-ghost)}
-.og-native-brand-name .studio{color:var(--signal)}
+.card-glow{
+  position:absolute;top:-120px;right:-150px;
+  width:700px;height:700px;
+  background:radial-gradient(circle,var(--tone-soft) 0%,transparent 60%);
+  pointer-events:none;
+  animation:breathe 4s ease-in-out infinite;
+}
 
-.og-native-status{display:flex;align-items:center;gap:16px;font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;color:var(--text-dim);font-weight:500}
-.og-native-status .dot{width:8px;height:8px;border-radius:50%;background:var(--signal);box-shadow:0 0 12px rgba(94,234,212,.6);animation:pulse 2s ease-in-out infinite}
-.og-native-status .label{width:270px;text-align:right}
-.og-native-status .v{color:var(--text);border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.08);padding:2px 8px;border-radius:3px;font-size:11px;letter-spacing:.14em}
+.corner{position:absolute;width:22px;height:22px;opacity:0;animation:corner-in .5s ease forwards}
+.corner::before{content:'';position:absolute;inset:0;border:1.5px solid var(--signal);opacity:.55}
+.corner::after{content:'';position:absolute;width:3.6px;height:3.6px;background:var(--signal);border-radius:50%}
+.corner.tl{top:40px;left:40px;animation-delay:.08s}
+.corner.tl::before{border-right:none;border-bottom:none}
+.corner.tl::after{top:-1.8px;left:-1.8px}
+.corner.tr{top:40px;right:40px;animation-delay:.16s}
+.corner.tr::before{border-left:none;border-bottom:none}
+.corner.tr::after{top:-1.8px;right:-1.8px}
+.corner.bl{bottom:40px;left:40px;animation-delay:.12s}
+.corner.bl::before{border-right:none;border-top:none}
+.corner.bl::after{bottom:-1.8px;left:-1.8px}
+.corner.br{bottom:40px;right:40px;animation-delay:.20s}
+.corner.br::before{border-left:none;border-top:none}
+.corner.br::after{bottom:-1.8px;right:-1.8px}
 
-.og-native-top-divider{position:absolute;left:80px;right:80px;top:120px;height:1px;background:var(--line)}
-.og-native-bottom-divider{position:absolute;left:80px;right:80px;top:540px;height:1px;background:var(--line)}
+.top{
+  position:absolute;left:80px;right:80px;top:66px;
+  display:flex;justify-content:space-between;align-items:center;
+  height:28px;
+  opacity:0;animation:fade-up .5s ease .28s forwards;
+}
+.brand{
+  display:flex;align-items:center;gap:14px;
+  padding:6px 12px;
+  border:1px solid rgba(var(--tone-rgb),.35);
+  background:linear-gradient(180deg,rgba(var(--tone-rgb),.16),rgba(var(--tone-rgb),.04));
+  border-radius:4px;
+  box-shadow:0 0 28px rgba(var(--tone-rgb),.12);
+}
+.brand svg{
+  width:30px;height:30px;display:block;
+  filter:drop-shadow(0 0 8px rgba(var(--tone-rgb),.45));
+  animation:brand-mark-pulse 2.8s ease-in-out infinite;
+}
+.brand-wm{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:22px;font-weight:600;letter-spacing:.05em;color:var(--text);
+  text-transform:uppercase;
+  text-shadow:0 0 18px rgba(var(--tone-rgb),.35);
+  animation:brand-pulse 3.2s ease-in-out infinite;
+}
+.brand-wm .okn{color:var(--text)}
+.brand-wm .slash{color:var(--text-ghost)}
+.brand-wm .studio{color:var(--signal)}
 
-.og-native-left{position:absolute;left:80px;top:170px;width:560px;opacity:0;animation:slideUp .65s ease .32s forwards}
-.og-native-kicker{display:inline-flex;align-items:center;gap:10px;padding:6px 14px;border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.1);border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.2em;color:var(--signal);margin-bottom:36px}
-.og-native-kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal);animation:pulse 1.8s ease-in-out infinite}
-.og-native-title{font-family:var(--font-display);font-size:72px;font-weight:400;letter-spacing:-.035em;line-height:1.05;color:var(--text)}
-.og-native-title .line{display:block}
-.og-native-title .accent{color:var(--signal);font-weight:500;text-shadow:0 0 36px rgba(94,234,212,.45)}
-.og-native-sub{display:flex;align-items:center;gap:14px;margin-top:36px;font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;color:var(--text-dim);font-weight:500}
-.og-native-sub::before{content:'';width:28px;height:1px;background:var(--signal);opacity:.85}
+.status-bar{
+  display:flex;align-items:center;gap:16px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;letter-spacing:.2em;color:var(--text-dim);font-weight:500;
+}
+.status-bar .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--tone);
+  box-shadow:0 0 12px rgba(var(--tone-rgb),.6);
+  flex:0 0 auto;
+  animation:status-dot 2s ease-in-out infinite;
+}
+.status-bar .label{width:270px;text-align:right}
+.status-bar .v{
+  color:var(--text);
+  border:1px solid rgba(var(--tone-rgb),.3);
+  background:rgba(var(--tone-rgb),.08);
+  padding:2px 8px;border-radius:3px;
+  font-size:11px;letter-spacing:.14em;
+}
 
-.og-native-console{position:absolute;right:80px;top:160px;width:420px;height:380px;background:#0e141b;border:1px solid rgba(255,255,255,.08);border-radius:6px;overflow:hidden;opacity:0;animation:fadeIn .8s ease .25s forwards}
-.og-native-console::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
-.og-native-console-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgba(255,255,255,.015);border-bottom:1px solid rgba(255,255,255,.06);height:36px;position:relative;z-index:2}
-.og-native-console-dots{display:flex;gap:6px;margin-right:6px}
-.og-native-console-dots span{width:8px;height:8px;border-radius:50%}
-.og-native-console-dots span:nth-child(1){background:#ef4444}
-.og-native-console-dots span:nth-child(2){background:#fbbf24}
-.og-native-console-dots span:nth-child(3){background:var(--signal)}
-.og-native-console-path{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:.08em;font-weight:500}
-.og-native-console-badge{margin-left:auto;display:flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.12);border-radius:3px;font-family:var(--font-mono);font-size:9px;color:var(--signal);letter-spacing:.18em;font-weight:600}
+.top-divider{
+  position:absolute;left:80px;right:80px;top:120px;
+  height:1px;background:var(--line);
+  transform:scaleX(0);transform-origin:left;
+  animation:line-expand .6s ease .36s forwards;
+}
+.bottom-divider{
+  position:absolute;left:80px;right:80px;top:540px;
+  height:1px;background:var(--line);
+  transform:scaleX(0);transform-origin:left;
+  animation:line-expand .6s ease .48s forwards;
+}
 
-.og-native-hud{position:absolute;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;color:var(--text-faint);font-weight:500;display:flex;align-items:center;gap:7px}
-.og-native-hud .hd{width:5px;height:5px;border-radius:50%;background:var(--signal)}
-.og-native-hud .v{color:var(--signal)}
-.og-native-hud.tl{top:54px;left:34px}
-.og-native-hud.tr{top:54px;right:34px}
-.og-native-hud.bl{bottom:20px;left:34px}
-.og-native-hud.br{bottom:38px;right:34px}
+.left{
+  position:absolute;left:80px;top:170px;width:560px;
+  opacity:0;animation:fade-up .65s ease .44s forwards;
+}
 
-.og-native-mark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;height:300px;margin-top:8px}
-.og-native-mark svg{width:100%;height:100%;overflow:visible}
-.og-native-mark .ring-outer{transform-box:fill-box;transform-origin:center;animation:spin-cw 50s linear infinite}
-.og-native-mark .ring-mid{transform-box:fill-box;transform-origin:center;animation:spin-ccw 35s linear infinite}
-.og-native-mark .ring-inner{transform-box:fill-box;transform-origin:center;animation:spin-cw 22s linear infinite}
-.og-native-mark .center-glow{transform-box:fill-box;transform-origin:center;animation:pulse 2.5s ease-in-out infinite}
+.kicker{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:6px 14px;
+  border:1px solid rgba(var(--tone-rgb),.3);
+  background:rgba(var(--tone-rgb),.1);
+  border-radius:3px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:.2em;color:var(--signal);
+  margin-bottom:36px;
+}
+.kicker .dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--signal);box-shadow:0 0 6px var(--signal);
+  animation:kicker-dot 1.8s ease-in-out infinite;
+}
+.title{
+  font-family:'Sora',sans-serif;
+  font-size:72px;font-weight:400;
+  letter-spacing:-.035em;line-height:1.05;
+  color:var(--text);
+  position:relative;
+}
+.title .line{
+  display:block;
+  position:relative;
+  width:max-content;
+  animation:title-flicker 6s linear infinite;
+}
+.title .line::after{
+  content:'';
+  position:absolute;
+  top:-4px;bottom:-4px;left:-20px;right:-20px;
+  background:linear-gradient(90deg,transparent,rgba(var(--tone-rgb),.28),transparent);
+  transform:translateX(-130%);
+  pointer-events:none;
+}
+.title .line:nth-child(1)::after{animation:line-scan 4.4s linear .2s infinite}
+.title .line:nth-child(2)::after{animation:line-scan 4.4s linear .8s infinite}
+.title .line:nth-child(3)::after{animation:line-scan 4.4s linear 1.4s infinite}
+.title .line:nth-child(1){animation-delay:.1s}
+.title .line:nth-child(2){animation-delay:.3s}
+.title .line:nth-child(3){animation-delay:.5s}
 
-.og-native-board{position:absolute;left:24px;right:24px;bottom:48px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px}
-.og-native-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--text-faint)}
-.og-native-item .name{color:var(--text-dim)}
-.og-native-item .value{color:var(--signal)}
-.og-native-updated{position:absolute;right:24px;bottom:20px;max-width:220px;text-align:right;font-family:var(--font-mono);font-size:8px;letter-spacing:.12em;color:var(--text-ghost)}
+.title .line .word{
+  display:inline-block;
+  text-shadow:0 0 0 rgba(var(--tone-rgb),0);
+}
+.title .accent{
+  color:transparent;
+  font-weight:500;
+  background:linear-gradient(90deg,#77f7e5 0%,#5eead4 35%,#b8fff5 52%,#5eead4 72%,#77f7e5 100%);
+  background-size:230% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:accent-glow 3.5s ease-in-out infinite,accent-shift 2.8s linear infinite;
+}
+.sub{
+  display:flex;align-items:center;gap:14px;
+  margin-top:36px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;letter-spacing:.16em;
+  color:var(--text-dim);font-weight:500;
+}
+.sub::before{content:'';width:28px;height:1px;background:var(--signal);opacity:.85}
 
-.og-native-bottom{position:absolute;left:80px;right:80px;bottom:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-family:var(--font-mono);font-size:11px;color:var(--text-faint);letter-spacing:.16em;font-weight:500}
-.og-native-bottom .left{justify-self:start}
-.og-native-bottom .center{justify-self:center;display:flex;align-items:center;gap:14px}
-.og-native-bottom .center .kr{font-family:'Noto Sans KR',sans-serif;color:var(--signal);font-size:13px;letter-spacing:.04em}
-.og-native-bottom .right{justify-self:end;font-size:9px;color:var(--text-ghost);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.console{
+  position:absolute;right:80px;top:160px;
+  width:420px;height:380px;
+  background:#0e141b;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:6px;overflow:hidden;
+  opacity:0;animation:fade-up .65s ease .42s forwards;
+}
+
+.console::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--tone),transparent);
+  animation:top-edge-pulse 3s ease-in-out infinite;
+  z-index:1;
+}
+
+.console-scanline{
+  position:absolute;left:0;right:0;height:80px;
+  background:linear-gradient(180deg,transparent,rgba(var(--tone-rgb),.04),transparent);
+  pointer-events:none;z-index:5;
+  animation:scanline 6s ease-in-out 1.2s infinite;
+}
+
+.console-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;
+  background:rgba(255,255,255,.015);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  height:36px;position:relative;z-index:2;
+}
+.console-dots{display:flex;gap:6px;margin-right:6px}
+.console-dots span{width:8px;height:8px;border-radius:50%}
+.console-dots span:nth-child(1){background:#ef4444}
+.console-dots span:nth-child(2){background:#fbbf24}
+.console-dots span:nth-child(3){background:var(--signal)}
+.console-path{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--text-dim);letter-spacing:.08em;font-weight:500;
+}
+.console-badge{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  padding:3px 9px;
+  border:1px solid rgba(var(--tone-rgb),.3);
+  background:rgba(var(--tone-rgb),.12);
+  border-radius:3px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9px;color:var(--tone);letter-spacing:.18em;font-weight:600;
+}
+.console-badge .d{
+  width:4px;height:4px;border-radius:50%;background:currentColor;
+  animation:kicker-dot 1.4s ease-in-out infinite;
+}
+
+.c-corner{position:absolute;width:10px;height:10px;opacity:.55}
+.c-corner::before{content:'';position:absolute;inset:0;border:1px solid var(--signal)}
+.c-corner.tl{top:52px;left:14px}
+.c-corner.tl::before{border-right:none;border-bottom:none}
+.c-corner.tr{top:52px;right:14px}
+.c-corner.tr::before{border-left:none;border-bottom:none}
+.c-corner.bl{bottom:14px;left:14px}
+.c-corner.bl::before{border-right:none;border-top:none}
+.c-corner.br{bottom:14px;right:14px}
+.c-corner.br::before{border-left:none;border-top:none}
+
+.hud{
+  position:absolute;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.15em;color:var(--text-faint);font-weight:500;
+  display:flex;align-items:center;gap:7px;
+}
+.hud .hd{width:5px;height:5px;border-radius:50%;background:var(--tone)}
+.hud .v{color:var(--tone)}
+.hud.tl{top:54px;left:34px}
+.hud.tr{top:54px;right:34px}
+.hud.bl{bottom:20px;left:34px}
+.hud.br{bottom:38px;right:34px}
+
+.mark{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:300px;height:300px;
+  margin-top:8px;
+}
+.mark svg{width:100%;height:100%;overflow:visible}
+
+.ring-outer{
+  transform-box:fill-box;transform-origin:center;
+  animation:spin-cw 50s linear infinite;
+}
+.ring-mid{
+  transform-box:fill-box;transform-origin:center;
+  animation:spin-ccw 35s linear infinite;
+}
+.ring-inner{
+  transform-box:fill-box;transform-origin:center;
+  animation:spin-cw 22s linear infinite;
+}
+.ep-dot{transform-box:fill-box;transform-origin:center}
+.ep-ring{transform-box:fill-box;transform-origin:center}
+.center-glow{transform-box:fill-box;transform-origin:center;animation:center-breathe 2.5s ease-in-out infinite}
+
+.status-board{
+  position:absolute;left:24px;right:24px;bottom:48px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;
+}
+.status-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:6px;border-top:1px solid rgba(255,255,255,.06);
+  font-family:'IBM Plex Mono',monospace;font-size:9px;
+  letter-spacing:.12em;color:var(--text-faint);
+}
+.status-item.is-wide{grid-column:1 / -1}
+.status-item .name{color:var(--text-dim)}
+.status-item .value{color:var(--tone)}
+.status-item.state-down .value,
+.status-item.state-timeout .value{color:var(--signal-danger)}
+.updated-at{
+  position:absolute;right:24px;bottom:20px;
+  max-width:220px;text-align:right;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:.12em;color:var(--text-ghost);
+}
+
+.bottom{
+  position:absolute;left:80px;right:80px;bottom:40px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;color:var(--text-faint);
+  letter-spacing:.16em;font-weight:500;
+  opacity:0;animation:fade-up .5s ease .54s forwards;
+}
+.bottom-left{justify-self:start}
+.bottom-center{justify-self:center;display:flex;align-items:center;gap:14px}
+.bottom-center .kr{font-family:'Noto Sans KR',sans-serif;color:var(--signal);font-size:13px;letter-spacing:.04em}
+.bottom-right{justify-self:end;font-size:9px;color:var(--text-ghost);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+
+@keyframes spin-cw   {to{transform:rotate( 360deg)}}
+@keyframes spin-ccw  {to{transform:rotate(-360deg)}}
+
+@keyframes breathe{
+  0%,100%{opacity:.16}
+  50%{opacity:.32}
+}
+@keyframes status-dot{
+  0%,100%{box-shadow:0 0 12px rgba(var(--tone-rgb),.6);opacity:1}
+  50%{box-shadow:0 0 24px rgba(var(--tone-rgb),1);opacity:.5}
+}
+@keyframes kicker-dot{
+  0%,100%{opacity:1}
+  50%{opacity:.25}
+}
+@keyframes accent-glow{
+  0%,100%{text-shadow:0 0 36px rgba(var(--tone-rgb),.45)}
+  50%{text-shadow:0 0 72px rgba(var(--tone-rgb),.75),0 0 120px rgba(var(--tone-rgb),.25)}
+}
+@keyframes top-edge-pulse{
+  0%,100%{opacity:.55}
+  50%{opacity:1}
+}
+@keyframes scanline{
+  0%{top:36px;opacity:1}
+  85%{opacity:.6}
+  100%{top:380px;opacity:0}
+}
+@keyframes center-breathe{
+  0%,100%{opacity:.28}
+  50%{opacity:.72}
+}
+@keyframes grid-drift{
+  from{background-position:0 0}
+  to{background-position:48px 48px}
+}
+@keyframes corner-in{
+  from{opacity:0;transform:scale(.55)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes fade-up{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:none}
+}
+@keyframes line-expand{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
+@keyframes brand-pulse{
+  0%,100%{text-shadow:0 0 18px rgba(var(--tone-rgb),.35)}
+  50%{text-shadow:0 0 34px rgba(var(--tone-rgb),.65)}
+}
+@keyframes brand-mark-pulse{
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.04);opacity:.82}
+}
+@keyframes line-scan{
+  0%{transform:translateX(-130%);opacity:0}
+  12%{opacity:1}
+  42%{opacity:1}
+  55%{transform:translateX(130%);opacity:0}
+  100%{transform:translateX(130%);opacity:0}
+}
+@keyframes title-flicker{
+  0%,47%,49%,100%{opacity:1;filter:none}
+  48%{opacity:.92;filter:drop-shadow(0 0 8px rgba(var(--tone-rgb),.35))}
+}
+@keyframes accent-shift{
+  from{background-position:0% 50%}
+  to{background-position:200% 50%}
+}
+@keyframes ep-ripple{
+  0%{r:12;stroke-opacity:.35}
+  70%{r:22;stroke-opacity:0}
+  100%{r:22;stroke-opacity:0}
+}
+@keyframes ep-pulse{
+  0%,100%{transform:scale(1);fill-opacity:1}
+  50%{transform:scale(.55);fill-opacity:.3}
+}
 
 /* Left: copy */
 .hero-copy{ animation:slideUp 0.8s cubic-bezier(0.2,0.8,0.2,1) 0.1s both; }
@@ -1201,13 +1498,18 @@ body::after{
 
 <!-- ═══════════ HERO (OG TOP) ═══════════ -->
 <section class="hero hero-og-top">
-  <div class="hero-og-wrap">
-    <div class="og-native-card" aria-label="OKN Studio signal card v1.0">
-      <div class="og-native-grid"></div>
-      <div class="og-native-glow"></div>
+  <div class="card-scale">
+    <div class="card">
+      <div class="card-grid"></div>
+      <div class="card-glow"></div>
 
-      <div class="og-native-top">
-        <div class="og-native-brand">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+
+      <div class="top">
+        <div class="brand">
           <svg viewBox="0 0 28 28" fill="none" stroke="#5eead4" stroke-width="1.5">
             <line x1="14" y1="3" x2="14" y2="10"/>
             <line x1="14" y1="18" x2="14" y2="25"/>
@@ -1219,75 +1521,112 @@ body::after{
             <circle cx="25" cy="14" r="1.8" fill="#5eead4" stroke="none"/>
             <circle cx="14" cy="14" r="2.6" fill="#5eead4" stroke="none"/>
           </svg>
-          <span class="og-native-brand-name">OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+          <span class="brand-wm"><span class="okn">OKN</span><span class="slash">/</span><span class="studio">Studio</span></span>
         </div>
-        <div class="og-native-status">
+        <div class="status-bar">
           <span class="dot"></span>
-          <span class="label" id="og-native-status-label">ALL SYSTEMS OPERATIONAL</span>
+          <span class="label" id="status-label">ALL SYSTEMS OPERATIONAL</span>
           <span class="v">v1.0</span>
         </div>
       </div>
-      <div class="og-native-top-divider"></div>
+      <div class="top-divider"></div>
 
-      <div class="og-native-left">
-        <div class="og-native-kicker"><span class="dot"></span>[ 01 ]&nbsp;&nbsp;SIGNAL STUDIO&nbsp;&nbsp;·&nbsp;&nbsp;ORTHODOX KOREA NETWORK</div>
-        <div class="og-native-title">
-          <span class="line">Where every</span>
-          <span class="line">signal becomes</span>
+      <div class="left">
+        <div class="kicker"><span class="dot"></span>[ 01 ]&nbsp;&nbsp;SIGNAL STUDIO&nbsp;&nbsp;·&nbsp;&nbsp;ORTHODOX KOREA NETWORK</div>
+        <div class="title">
+          <span class="line"><span class="word">Where every</span></span>
+          <span class="line"><span class="word">signal becomes</span></span>
           <span class="line"><span class="accent">story.</span></span>
         </div>
-        <div class="og-native-sub">INTEGRATED WORKBENCH&nbsp;&nbsp;·&nbsp;&nbsp;14 ML MODELS&nbsp;&nbsp;·&nbsp;&nbsp;3 LANGUAGES</div>
+        <div class="sub">INTEGRATED WORKBENCH&nbsp;&nbsp;·&nbsp;&nbsp;14 ML MODELS&nbsp;&nbsp;·&nbsp;&nbsp;3 LANGUAGES</div>
       </div>
 
-      <div class="og-native-console">
-        <div class="og-native-console-bar">
-          <div class="og-native-console-dots"><span></span><span></span><span></span></div>
-          <span class="og-native-console-path">okn-studio :: /network/status</span>
-          <span class="og-native-console-badge">LIVE</span>
-        </div>
-        <div class="og-native-hud tl"><span class="hd"></span>NODE <span class="v">LIVE</span></div>
-        <div class="og-native-hud tr">SYS <span class="v" id="og-native-sys">6/6</span></div>
-        <div class="og-native-hud bl">LAT <span class="v" id="og-native-lat">—</span></div>
-        <div class="og-native-hud br">SYNC <span class="v">OK</span></div>
+      <div class="console">
+        <div class="console-scanline"></div>
 
-        <div class="og-native-mark">
+        <div class="console-bar">
+          <div class="console-dots"><span></span><span></span><span></span></div>
+          <span class="console-path">okn-studio :: /network/status</span>
+          <span class="console-badge"><span class="d"></span><span id="badge-text">LIVE</span></span>
+        </div>
+
+        <span class="c-corner tl"></span>
+        <span class="c-corner tr"></span>
+        <span class="c-corner bl"></span>
+        <span class="c-corner br"></span>
+
+        <div class="hud tl"><span class="hd"></span>NODE <span class="v" id="hud-node">LIVE</span></div>
+        <div class="hud tr">SYS <span class="v" id="hud-sys">6/6</span></div>
+        <div class="hud bl">LAT <span class="v" id="hud-lat">—</span></div>
+        <div class="hud br">SYNC <span class="v" id="hud-sync">OK</span></div>
+
+        <div class="mark">
           <svg viewBox="-150 -150 300 300" xmlns="http://www.w3.org/2000/svg">
-            <g class="ring-outer"><circle r="120" fill="none" stroke="#5eead4" stroke-opacity=".22" stroke-width="1" stroke-dasharray="24 8"/></g>
-            <g class="ring-mid"><circle r="96" fill="none" stroke="#5eead4" stroke-opacity=".09" stroke-width="1" stroke-dasharray="6 20"/></g>
-            <g class="ring-inner"><circle r="75" fill="none" stroke="#5eead4" stroke-opacity=".20" stroke-width="1" stroke-dasharray="10 6"/></g>
+            <defs>
+              <filter id="glow-lg" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="7" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="glow-sm" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="4"/>
+              </filter>
+            </defs>
+
+            <g class="ring-outer">
+              <circle r="120" fill="none" stroke="#5eead4" stroke-opacity=".22" stroke-width="1" stroke-dasharray="24 8"/>
+            </g>
+
+            <g class="ring-mid">
+              <circle r="96" fill="none" stroke="#5eead4" stroke-opacity=".09" stroke-width="1" stroke-dasharray="6 20"/>
+            </g>
+
+            <g class="ring-inner">
+              <circle r="75" fill="none" stroke="#5eead4" stroke-opacity=".20" stroke-width="1" stroke-dasharray="10 6"/>
+            </g>
+
             <g stroke="#5eead4" stroke-width="1" stroke-linecap="round" stroke-opacity=".18">
               <line x1="14" y1="-14" x2="55" y2="-55"/>
               <line x1="-14" y1="14" x2="-55" y2="55"/>
               <line x1="14" y1="14" x2="55" y2="55"/>
               <line x1="-14" y1="-14" x2="-55" y2="-55"/>
             </g>
+
             <g stroke="#5eead4" stroke-width="1.4" stroke-linecap="round" stroke-opacity=".65">
               <line x1="0" y1="-18" x2="0" y2="-102"/>
               <line x1="0" y1="18" x2="0" y2="102"/>
               <line x1="-18" y1="0" x2="-102" y2="0"/>
               <line x1="18" y1="0" x2="102" y2="0"/>
             </g>
-            <circle cx="0" cy="-108" r="6" fill="#5eead4"/>
-            <circle cx="0" cy="108" r="6" fill="#5eead4"/>
-            <circle cx="-108" cy="0" r="6" fill="#5eead4"/>
-            <circle cx="108" cy="0" r="6" fill="#5eead4"/>
+
+            <circle class="ep-ring" cx="0" cy="-108" r="12" fill="none" stroke="#5eead4" stroke-opacity=".35" style="animation:ep-ripple 3s ease-out .00s infinite"/>
+            <circle cx="0" cy="-108" r="6" fill="#5eead4" style="animation:ep-pulse 3s ease-in-out .00s infinite;transform-box:fill-box;transform-origin:center"/>
+            <circle class="ep-ring" cx="0" cy="108" r="12" fill="none" stroke="#5eead4" stroke-opacity=".35" style="animation:ep-ripple 3s ease-out .75s infinite"/>
+            <circle cx="0" cy="108" r="6" fill="#5eead4" style="animation:ep-pulse 3s ease-in-out .75s infinite;transform-box:fill-box;transform-origin:center"/>
+            <circle class="ep-ring" cx="-108" cy="0" r="12" fill="none" stroke="#5eead4" stroke-opacity=".35" style="animation:ep-ripple 3s ease-out 1.5s infinite"/>
+            <circle cx="-108" cy="0" r="6" fill="#5eead4" style="animation:ep-pulse 3s ease-in-out 1.5s infinite;transform-box:fill-box;transform-origin:center"/>
+            <circle class="ep-ring" cx="108" cy="0" r="12" fill="none" stroke="#5eead4" stroke-opacity=".35" style="animation:ep-ripple 3s ease-out 2.25s infinite"/>
+            <circle cx="108" cy="0" r="6" fill="#5eead4" style="animation:ep-pulse 3s ease-in-out 2.25s infinite;transform-box:fill-box;transform-origin:center"/>
+
             <circle r="28" fill="none" stroke="#5eead4" stroke-opacity=".16"/>
             <circle r="18" fill="none" stroke="#5eead4" stroke-opacity=".28"/>
-            <circle class="center-glow" r="14" fill="#5eead4" fill-opacity=".28"/>
+            <circle class="center-glow" r="14" fill="#5eead4" fill-opacity=".28" filter="url(#glow-sm)"/>
             <circle r="11" fill="#5eead4"/>
             <circle r="4" fill="#0e141b"/>
           </svg>
         </div>
 
-        <div class="og-native-board" id="og-native-checks"></div>
-        <div class="og-native-updated">Live · OKN Studio v1.0</div>
+        <div class="status-board" id="status-board"></div>
+        <div class="updated-at" id="updated-at">—</div>
       </div>
 
-      <div class="og-native-bottom-divider"></div>
-      <div class="og-native-bottom">
-        <span class="left">OKN STUDIO&nbsp;&nbsp;·&nbsp;&nbsp;v1.0&nbsp;&nbsp;·&nbsp;&nbsp;2026</span>
-        <span class="center"><span class="kr">정교회 한국</span><span>ORTHODOX KOREA NETWORK</span></span>
-        <span class="right" id="og-native-clock"></span>
+      <div class="bottom-divider"></div>
+      <div class="bottom">
+        <span class="bottom-left">OKN STUDIO&nbsp;&nbsp;·&nbsp;&nbsp;v1.0&nbsp;&nbsp;·&nbsp;&nbsp;2026</span>
+        <div class="bottom-center">
+          <span class="kr">정교회 한국</span>
+          <span>ORTHODOX KOREA NETWORK</span>
+        </div>
+        <span class="bottom-right" id="live-clock"></span>
       </div>
     </div>
   </div>
@@ -1581,49 +1920,107 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Native OG hero runtime
-(function initNativeOgHero(){
-  const checks = [
-    { label:'WEBSITE',   detail:'200 OK' },
-    { label:'ANALYTICS', detail:'RUNNING' },
-    { label:'MEDIA CDN', detail:'LIVE' },
-    { label:'FUNCTIONS', detail:'ACTIVE' },
-    { label:'PIPELINE',  detail:'SYNCED' },
-    { label:'DEPLOY',    detail:'CURRENT' }
-  ];
+function scaleCard(){
+  const host = document.querySelector('.hero-og-top');
+  const card = document.querySelector('.card-scale');
+  if (!host || !card) return;
+  const width = Math.max(host.clientWidth - 32, 320);
+  const height = Math.max(window.innerHeight - 160, 320);
+  const s = Math.min(width / 1200, height / 630, 1);
+  card.style.transform = `scale(${s})`;
+}
+window.addEventListener('resize', scaleCard);
+scaleCard();
 
-  const checksEl = document.getElementById('og-native-checks');
-  if (checksEl) {
-    checks.forEach((c) => {
-      const row = document.createElement('div');
-      row.className = 'og-native-item';
-      const n = document.createElement('span');
-      n.className = 'name';
-      n.textContent = c.label;
-      const v = document.createElement('span');
-      v.className = 'value';
-      v.textContent = c.detail;
-      row.append(n, v);
-      checksEl.appendChild(row);
-    });
-  }
+const clockEl = document.getElementById('live-clock');
+const latEl   = document.getElementById('hud-lat');
+let _t = 0;
 
-  const clockEl = document.getElementById('og-native-clock');
-  const latEl = document.getElementById('og-native-lat');
-  let t = 0;
-  function tick(){
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    if (clockEl) {
-      clockEl.textContent = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+function tick(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  clockEl.textContent =
+    `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ` +
+    `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+
+  _t += 0.04;
+  const lat = Math.round(18 + Math.sin(_t) * 7 + Math.cos(_t * 1.7) * 3);
+  latEl.textContent = lat + 'ms';
+}
+setInterval(tick, 1000);
+tick();
+
+const CHECKS = [
+  { label:'WEBSITE',   detail:'200 OK',   state:'operational' },
+  { label:'ANALYTICS', detail:'RUNNING',  state:'operational' },
+  { label:'MEDIA CDN', detail:'LIVE',     state:'operational' },
+  { label:'FUNCTIONS', detail:'ACTIVE',   state:'operational' },
+  { label:'PIPELINE',  detail:'SYNCED',   state:'operational' },
+  { label:'DEPLOY',    detail:'CURRENT',  state:'operational' },
+];
+
+function renderChecks(checks){
+  const board = document.getElementById('status-board');
+  board.innerHTML = '';
+  checks.forEach((c, i) => {
+    const item = document.createElement('div');
+    item.className = `status-item state-${c.state}`;
+    if (checks.length % 2 === 1 && i === checks.length - 1) {
+      item.classList.add('is-wide');
     }
-    if (latEl) {
-      t += 0.04;
-      latEl.textContent = `${Math.round(18 + Math.sin(t) * 7 + Math.cos(t * 1.7) * 3)}ms`;
+
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = c.label;
+
+    const val = document.createElement('span');
+    val.className = 'value';
+    val.textContent = c.detail;
+
+    item.append(name, val);
+    board.appendChild(item);
+  });
+  document.getElementById('updated-at').textContent = 'Live · OKN Studio v1.0';
+}
+
+(function loadStatus(){
+  const s = document.createElement('script');
+  s.src = '../tools/og/status-data.js';
+  s.onload = () => {
+    if (window.OKN_OG_STATUS && window.OKN_OG_STATUS.checks){
+      const data = window.OKN_OG_STATUS;
+      const tone = (data.summary && data.summary.tone) || 'operational';
+
+      document.documentElement.style.setProperty(
+        '--tone',
+        tone === 'operational' ? 'var(--signal)' :
+        tone === 'degraded' ? 'var(--signal-warn)' :
+        'var(--signal-danger)'
+      );
+      document.documentElement.style.setProperty(
+        '--tone-rgb',
+        tone === 'operational' ? '94,234,212' :
+        tone === 'degraded' ? '251,191,36' :
+        '248,113,113'
+      );
+
+      const label = (data.summary && data.summary.label) || 'ALL SYSTEMS OPERATIONAL';
+      document.getElementById('status-label').textContent = label;
+      document.getElementById('hud-node').textContent =
+        tone === 'operational' ? 'LIVE' : tone === 'degraded' ? 'WARN' : 'FAIL';
+      document.getElementById('hud-sys').textContent = `${data.summary.online||0}/${data.summary.total||0}`;
+      document.getElementById('hud-sync').textContent =
+        (data.summary && data.summary.shortLabel) || 'OK';
+      document.getElementById('badge-text').textContent =
+        tone === 'operational' ? 'LIVE' : tone === 'degraded' ? 'DEGRADED' : 'ALERT';
+
+      renderChecks(data.checks);
+    } else {
+      renderChecks(CHECKS);
     }
-  }
-  tick();
-  setInterval(tick, 1000);
+  };
+  s.onerror = () => renderChecks(CHECKS);
+  document.head.appendChild(s);
 })();
 </script>
 
