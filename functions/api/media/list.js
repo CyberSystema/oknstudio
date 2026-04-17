@@ -85,7 +85,7 @@ export async function onRequestGet(context) {
     if (!res.ok) {
       const body = await res.text();
       console.error('B2 list error:', res.status, body);
-      return Response.json({ error: 'Failed to list files', detail: body.slice(0, 200), status: res.status }, { status: 502 });
+      return Response.json({ error: 'Failed to list files' }, { status: 502 });
     }
 
     const xml = await res.text();
@@ -124,6 +124,6 @@ export async function onRequestGet(context) {
     return response;
   } catch (err) {
     console.error('B2 list exception:', err);
-    return Response.json({ error: 'B2 connection failed', detail: err.message }, { status: 502 });
+    return Response.json({ error: 'B2 connection failed' }, { status: 502 });
   }
 }

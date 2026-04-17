@@ -1,49 +1,101 @@
 /**
- * OKN Studio — Site-Wide Authentication Middleware
- * ================================================
- * Intercepts every request. If no valid session cookie,
- * shows a login page. On correct password, sets a session cookie.
+ * OKN Studio — Authentication Middleware (Hardened)
+ * =================================================
+ * Single site-wide password protecting all pages and API routes.
  *
- * Required Cloudflare env var:
- *   SITE_PASSWORD_HASH — SHA-256 hex hash of the site password
+ * Every request requires a valid session cookie (okns_auth).
+ *
+ * Required Cloudflare env vars:
+ *   SITE_PASSWORD_HASH  — SHA-256 hex hash of the site password
+ *   TOKEN_SECRET        — Random secret for HMAC session signing
  */
 
-const COOKIE_NAME = 'okns_auth';
-const MAX_AUTH_BODY_BYTES = 10 * 1024;
+const SITE_COOKIE = 'okns_auth';
+const MAX_BODY = 10 * 1024;
+const MAX_AGE = 30 * 24 * 60 * 60;       // 30 days (seconds)
+const RATE_WINDOW = 15 * 60 * 1000;      // 15 min (ms)
+const RATE_MAX = 5;
+const attempts = new Map();
 
-export async function onRequest(context) {
-  const { request, env, next } = context;
+// ══════════════════════════════════════
+// SECURITY HEADERS
+// ══════════════════════════════════════
 
-  // Skip auth for the login POST itself
-  const url = new URL(request.url);
-  if (url.pathname === '/_auth' && request.method === 'POST') {
-    return handleLogin(request, env);
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
+
+function applySecurityHeaders(response) {
+  const out = new Response(response.body, response);
+  for (const [k, v] of Object.entries(SECURITY_HEADERS)) {
+    out.headers.set(k, v);
   }
-
-  // Check for valid session cookie
-  const cookie = getCookie(request, COOKIE_NAME);
-  if (cookie) {
-    const valid = await verifyAuthCookie(cookie, env);
-    if (valid) {
-      return next();
-    }
-  }
-
-  // No valid cookie — show login page
-  return new Response(loginPageHTML(url.pathname), {
-    status: 401,
-    headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-  });
+  return out;
 }
 
 // ══════════════════════════════════════
-// LOGIN HANDLER
+// ENTRY POINT
 // ══════════════════════════════════════
 
-async function handleLogin(request, env) {
+export async function onRequest(context) {
+  const { request, env, next } = context;
+  const url = new URL(request.url);
+
+  // ── Site login POST ──
+  if (url.pathname === '/_auth' && request.method === 'POST') {
+    return handleSiteLogin(request, env);
+  }
+
+  // ── Check site session ──
+  const siteCookie = parseCookie(request, SITE_COOKIE);
+  if (!siteCookie || !(await verifySession(siteCookie, env))) {
+    return htmlResponse(loginHTML({
+      pageTitle: 'Authenticate — OKN Studio',
+      kicker: 'Secure Channel',
+      heading: 'Enter',
+      accent: 'Studio',
+      sub: '<span>HTTPS</span><span class="divider">\u00b7</span><span>HMAC-SHA256</span><span class="divider">\u00b7</span><span>30-day</span>',
+      action: '/_auth',
+      hiddenFields: '',
+      redirect: url.pathname,
+      error: '',
+      chromeRight: '<div class="auth-label"><span class="dot"></span>Auth Required</div>',
+      footLeft: '<span class="secure">\u25c9 Encrypted</span>',
+    }), 401);
+  }
+
+  // ── Authenticated — pass through with hardened headers ──
+  const response = await next();
+  return applySecurityHeaders(response);
+}
+
+// ══════════════════════════════════════
+// SITE LOGIN
+// ══════════════════════════════════════
+
+async function handleSiteLogin(request, env) {
   try {
-    const contentLength = Number(request.headers.get('Content-Length') || '0');
-    if (Number.isFinite(contentLength) && contentLength > MAX_AUTH_BODY_BYTES) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (isLimited(ip)) {
+      return htmlResponse(loginHTML({
+        pageTitle: 'Authenticate — OKN Studio',
+        kicker: 'Secure Channel',
+        heading: 'Enter',
+        accent: 'Studio',
+        sub: '<span>HTTPS</span><span class="divider">\u00b7</span><span>HMAC-SHA256</span>',
+        action: '/_auth',
+        hiddenFields: '',
+        redirect: '/',
+        error: 'Too many attempts \u2014 wait 15 minutes.',
+        chromeRight: '<div class="auth-label"><span class="dot"></span>Auth Required</div>',
+        footLeft: '<span class="secure">\u25c9 Encrypted</span>',
+      }), 429);
+    }
+
+    if (bodyTooLarge(request)) {
       return new Response('Payload too large', { status: 413 });
     }
 
@@ -51,116 +103,193 @@ async function handleLogin(request, env) {
     const password = form.get('password') || '';
     const redirect = sanitizeRedirect(form.get('redirect') || '/');
 
-    const storedHash = (env.SITE_PASSWORD_HASH || '').toLowerCase().trim();
-    if (!storedHash) {
+    const stored = (env.SITE_PASSWORD_HASH || '').toLowerCase().trim();
+    if (!stored) {
       return new Response('SITE_PASSWORD_HASH not configured', { status: 500 });
     }
 
     const hash = await sha256(password);
-    if (hash !== storedHash) {
-      return new Response(loginPageHTML(redirect, 'Wrong password — please try again.'), {
-        status: 401,
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-      });
+    if (!(await timeSafeEqual(hash, stored))) {
+      recordAttempt(ip);
+      return htmlResponse(loginHTML({
+        pageTitle: 'Authenticate — OKN Studio',
+        kicker: 'Secure Channel',
+        heading: 'Enter',
+        accent: 'Studio',
+        sub: '<span>HTTPS</span><span class="divider">\u00b7</span><span>HMAC-SHA256</span><span class="divider">\u00b7</span><span>30-day</span>',
+        action: '/_auth',
+        hiddenFields: '',
+        redirect,
+        error: 'Wrong password \u2014 please try again.',
+        chromeRight: '<div class="auth-label"><span class="dot"></span>Auth Required</div>',
+        footLeft: '<span class="secure">\u25c9 Encrypted</span>',
+      }), 401);
     }
 
-    // Generate signed session cookie
-    const token = await generateAuthCookie(env);
-
+    const token = await signSession(env);
     return new Response(null, {
       status: 302,
       headers: {
         'Location': redirect,
-        'Set-Cookie': `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax`,
+        'Set-Cookie': `${SITE_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${MAX_AGE}`,
       },
     });
-  } catch (e) {
+  } catch {
     return new Response('Authentication error', { status: 500 });
   }
 }
 
 // ══════════════════════════════════════
-// COOKIE HELPERS
+// SESSION HELPERS
 // ══════════════════════════════════════
 
-function getCookie(request, name) {
-  const cookieHeader = request.headers.get('Cookie') || '';
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? match[1] : null;
+function parseCookie(request, name) {
+  const hdr = request.headers.get('Cookie') || '';
+  const m = hdr.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  return m ? m[1] : null;
 }
 
-async function generateAuthCookie(env) {
-  const secret = getRequiredTokenSecret(env);
+async function signSession(env) {
+  const secret = requireSecret(env);
   const payload = Date.now().toString();
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
-  const sigHex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return payload + '.' + sigHex;
+  return payload + '.' + hex(new Uint8Array(sig));
 }
 
-async function verifyAuthCookie(token, env) {
+async function verifySession(token, env) {
   if (!token) return false;
-  const parts = token.split('.');
-  if (parts.length !== 2) return false;
-
-  const timestamp = Number(parts[0]);
-  if (!Number.isSafeInteger(timestamp)) return false;
-  if (timestamp > Date.now()) return false;
-
-  // Session cookie — no expiry check (browser handles it)
-  // But reject tokens older than 30 days as a safety net
-  if (Date.now() - timestamp > 30 * 24 * 60 * 60 * 1000) return false;
+  const dot = token.indexOf('.');
+  if (dot < 1) return false;
+  const ts = token.slice(0, dot);
+  const sigHex = token.slice(dot + 1);
+  const timestamp = Number(ts);
+  if (!Number.isSafeInteger(timestamp) || timestamp > Date.now()) return false;
+  if (Date.now() - timestamp > MAX_AGE * 1000) return false;
 
   let secret;
-  try {
-    secret = getRequiredTokenSecret(env);
-  } catch {
-    return false;
-  }
+  try { secret = requireSecret(env); } catch { return false; }
 
-  const sigBytes = hexToBytes(parts[1]);
+  const sigBytes = unhex(sigHex);
   if (!sigBytes) return false;
 
-  // Use crypto.subtle.verify for constant-time HMAC comparison
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
   );
-  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(parts[0]));
+  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(ts));
 }
 
-function hexToBytes(hex) {
-  if (!hex || hex.length % 2 !== 0) return null;
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    const n = parseInt(hex.slice(i, i + 2), 16);
-    if (isNaN(n)) return null;
-    bytes[i / 2] = n;
-  }
-  return bytes;
-}
+// ══════════════════════════════════════
+// CRYPTO
+// ══════════════════════════════════════
 
 async function sha256(text) {
-  const data = new TextEncoder().encode(text);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return hex(new Uint8Array(buf));
+}
+
+/**
+ * Constant-time string comparison via HMAC.
+ * Signs `a`, then verifies the signature against `b`.
+ * crypto.subtle.verify uses constant-time comparison internally.
+ */
+async function timeSafeEqual(a, b) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode('okns-ts-cmp'),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(a));
+  return crypto.subtle.verify('HMAC', key, sig, enc.encode(b));
+}
+
+function hex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function unhex(h) {
+  if (!h || h.length % 2) return null;
+  const out = new Uint8Array(h.length / 2);
+  for (let i = 0; i < h.length; i += 2) {
+    const n = parseInt(h.slice(i, i + 2), 16);
+    if (isNaN(n)) return null;
+    out[i / 2] = n;
+  }
+  return out;
 }
 
 // ══════════════════════════════════════
-// LOGIN PAGE HTML
+// RATE LIMITING (in-memory; ephemeral on Workers cold starts)
 // ══════════════════════════════════════
 
-function loginPageHTML(redirect = '/', error = '') {
-  const safeRedirect = escapeHtmlAttr(sanitizeRedirect(redirect));
-  const safeError = escapeHtmlText(error);
+function isLimited(ip) {
+  const now = Date.now();
+  const rec = attempts.get(ip);
+  if (!rec) return false;
+  if (now - rec.start > RATE_WINDOW) { attempts.delete(ip); return false; }
+  return rec.count >= RATE_MAX;
+}
 
-  const errorHtml = safeError
+function recordAttempt(ip) {
+  const now = Date.now();
+  const rec = attempts.get(ip);
+  if (!rec || now - rec.start > RATE_WINDOW) {
+    attempts.set(ip, { start: now, count: 1 });
+  } else {
+    rec.count++;
+  }
+}
+
+// ══════════════════════════════════════
+// VALIDATION
+// ══════════════════════════════════════
+
+function requireSecret(env) {
+  const s = (env.TOKEN_SECRET || '').trim();
+  if (!s) throw new Error('TOKEN_SECRET not configured');
+  return s;
+}
+
+function sanitizeRedirect(val) {
+  const r = String(val || '').trim();
+  if (!r.startsWith('/') || r.startsWith('//') || r.includes('\\') || /\r|\n/.test(r)) return '/';
+  return r;
+}
+
+function bodyTooLarge(request) {
+  const cl = Number(request.headers.get('Content-Length') || '0');
+  return Number.isFinite(cl) && cl > MAX_BODY;
+}
+
+function htmlResponse(html, status) {
+  return new Response(html, {
+    status,
+    headers: {
+      'Content-Type': 'text/html;charset=UTF-8',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+    },
+  });
+}
+
+function esc(v) { return String(v).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'); }
+function escAttr(v) { return esc(v).replaceAll('"', '&quot;').replaceAll("'", '&#39;'); }
+
+// ══════════════════════════════════════
+// LOGIN PAGE TEMPLATE (shared by site + module)
+// ══════════════════════════════════════
+
+function loginHTML({ pageTitle, kicker, heading, accent, sub, action, hiddenFields, redirect, error, chromeRight, footLeft }) {
+  const safeRedirect = escAttr(sanitizeRedirect(redirect));
+  const errorBlock = error
     ? `<div class="alert">
          <span class="alert-icon">!</span>
-         <span class="alert-msg">${safeError}</span>
+         <span class="alert-msg">${esc(error)}</span>
        </div>`
     : '';
 
@@ -169,28 +298,24 @@ function loginPageHTML(redirect = '/', error = '') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Authenticate — OKN Studio</title>
+<title>${esc(pageTitle)}</title>
 <meta name="theme-color" content="#0a0f14">
 <meta name="color-scheme" content="dark">
 
-<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/favicon.svg">
 <link rel="mask-icon" href="/favicon.svg" color="#5eead4">
 
-<!-- Open Graph / Twitter -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OKN Studio">
-<meta property="og:title" content="OKN Studio — Orthodox Korea Network">
-<meta property="og:description" content="The signal studio of the Orthodox Korea Network — analytics, media pool, and production tools, one integrated workbench.">
+<meta property="og:title" content="OKN Studio \u2014 Orthodox Korea Network">
+<meta property="og:description" content="The signal studio of the Orthodox Korea Network.">
 <meta property="og:url" content="https://oknstudio.cybersystema.com/">
 <meta property="og:image" content="https://oknstudio.cybersystema.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="OKN Studio — Signal Studio">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OKN Studio">
-<meta name="twitter:description" content="The signal studio of the Orthodox Korea Network.">
 <meta name="twitter:image" content="https://oknstudio.cybersystema.com/og-image.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -203,7 +328,7 @@ function loginPageHTML(redirect = '/', error = '') {
   --text:#e8edf2;--text-dim:rgba(232,237,242,0.55);--text-faint:rgba(232,237,242,0.32);
   --text-ghost:rgba(232,237,242,0.18);
   --line:rgba(255,255,255,0.06);--line-2:rgba(255,255,255,0.1);--line-signal:rgba(94,234,212,0.2);
-  --danger:#f87171;
+  --danger:#f87171;--warn:#fbbf24;
   --font-display:'Sora',sans-serif;--font-body:'IBM Plex Sans',sans-serif;--font-mono:'IBM Plex Mono',monospace;
 }
 html{-webkit-font-smoothing:antialiased}
@@ -239,7 +364,7 @@ h1 .accent{color:var(--signal);font-weight:500}
 .field-label .hint{font-family:var(--font-mono);font-size:10px;color:var(--text-ghost);letter-spacing:0.08em}
 
 .input-wrap{position:relative}
-.input-wrap::before{content:'›';position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--signal);font-family:var(--font-mono);font-size:16px;pointer-events:none;opacity:0.7}
+.input-wrap::before{content:'\u203a';position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--signal);font-family:var(--font-mono);font-size:16px;pointer-events:none;opacity:0.7}
 input{width:100%;padding:14px 16px 14px 34px;border:1px solid var(--line-2);border-radius:3px;background:var(--bg-3);color:var(--text);font-size:14px;font-family:var(--font-mono);outline:none;transition:all 0.2s;letter-spacing:0.06em}
 input:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-dim)}
 input::placeholder{color:var(--text-ghost);letter-spacing:0.2em}
@@ -281,7 +406,7 @@ button:hover .arrow{transform:translateX(4px)}
       </svg>
       <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
     </div>
-    <div class="auth-label"><span class="dot"></span>Auth Required</div>
+    ${chromeRight}
   </div>
 </header>
 
@@ -290,68 +415,37 @@ button:hover .arrow{transform:translateX(4px)}
   <span class="card-br"></span>
 
   <div class="card-head">
-    <div class="kicker"><span class="dot"></span>Secure Channel</div>
-    <h1>Enter <span class="accent">Studio</span></h1>
-    <div class="sub">
-      <span>HTTPS</span><span class="divider">·</span><span>HMAC-SHA256</span><span class="divider">·</span><span>30-day</span>
-    </div>
+    <div class="kicker"><span class="dot"></span>${esc(kicker)}</div>
+    <h1>${heading} <span class="accent">${accent}</span></h1>
+    <div class="sub">${sub}</div>
   </div>
 
-  ${errorHtml}
+  ${errorBlock}
 
-  <form method="POST" action="/_auth">
+  <form method="POST" action="${escAttr(action)}">
     <input type="hidden" name="redirect" value="${safeRedirect}">
+    ${hiddenFields}
     <div class="field">
       <div class="field-label">
-        <span class="label">Team Password</span>
+        <span class="label">Password</span>
         <span class="hint">required</span>
       </div>
       <div class="input-wrap">
-        <input id="pw" type="password" name="password" placeholder="••••••••••" autofocus autocomplete="off">
+        <input id="pw" type="password" name="password" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autofocus autocomplete="off">
       </div>
     </div>
     <button type="submit">
       Authenticate
-      <span class="arrow">→</span>
+      <span class="arrow">\u2192</span>
     </button>
   </form>
 
   <div class="foot">
-    <span class="secure">◉ Encrypted</span>
-    <span>by <a href="https://cybersystema.com" target="_blank">CyberSystema</a></span>
+    ${footLeft}
+    <span>by <a href="https://cybersystema.com" target="_blank" rel="noopener">CyberSystema</a></span>
   </div>
 </div>
 
 </body>
 </html>`;
-}
-
-function getRequiredTokenSecret(env) {
-  const secret = (env.TOKEN_SECRET || '').trim();
-  if (!secret) {
-    throw new Error('TOKEN_SECRET not configured');
-  }
-  return secret;
-}
-
-function sanitizeRedirect(value) {
-  const raw = String(value || '').trim();
-  if (!raw.startsWith('/')) return '/';
-  if (raw.startsWith('//')) return '/';
-  if (raw.includes('\\')) return '/';
-  if (/\r|\n/.test(raw)) return '/';
-  return raw;
-}
-
-function escapeHtmlText(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
-}
-
-function escapeHtmlAttr(value) {
-  return escapeHtmlText(value)
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
 }

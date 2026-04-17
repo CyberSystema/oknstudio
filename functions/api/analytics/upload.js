@@ -75,21 +75,14 @@ export async function onRequestPost(context) {
     } else {
       return respond({ ok: false, error: 'Invalid action' }, 400, headers);
     }
-  } catch (e) {
-    return respond({ ok: false, error: 'Server error: ' + e.message }, 500, headers);
+  } catch {
+    return respond({ ok: false, error: 'Server error' }, 500, headers);
   }
 }
 
-export async function onRequestOptions() {
-  return new Response(null, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': 'https://oknstudio.cybersystema.com',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Vary': 'Origin',
-    },
-  });
+export async function onRequestOptions(context) {
+  const { request, env } = context;
+  return new Response(null, { headers: corsHeaders(request, env) });
 }
 
 function corsHeaders(request, env) {
@@ -135,7 +128,7 @@ async function handleAuth(body, env, headers) {
   }
 
   const hash = await sha256(password);
-  if (hash !== storedHash) {
+  if (!(await timeSafeEqual(hash, storedHash))) {
     return respond({ ok: false, error: 'Wrong password' }, 401, headers);
   }
 
@@ -238,7 +231,7 @@ async function handleBatchUpload(body, env, headers, ip) {
       return respond({ ok: false, error: result.error }, 500, headers);
     }
   } catch (e) {
-    return respond({ ok: false, error: 'GitHub commit failed: ' + e.message }, 500, headers);
+    return respond({ ok: false, error: 'Upload failed — please try again' }, 500, headers);
   }
 }
 
@@ -267,8 +260,8 @@ async function handleSingleUpload(body, env, headers, ip) {
     } else {
       return respond({ ok: false, error: commitResult.error }, 500, headers);
     }
-  } catch (e) {
-    return respond({ ok: false, error: 'GitHub commit failed: ' + e.message }, 500, headers);
+  } catch {
+    return respond({ ok: false, error: 'Upload failed — please try again' }, 500, headers);
   }
 }
 
@@ -329,7 +322,7 @@ async function batchCommitToGitHub(env, files, message) {
     });
     if (!blobRes.ok) {
       const err = await blobRes.json().catch(() => ({}));
-      return { ok: false, error: `Blob creation failed for ${file.path}: ${err.message || blobRes.status}` };
+      return { ok: false, error: `Blob creation failed for ${file.path}` };
     }
     const blobData = await blobRes.json();
     treeItems.push({
@@ -347,7 +340,7 @@ async function batchCommitToGitHub(env, files, message) {
   });
   if (!treeRes.ok) {
     const err = await treeRes.json().catch(() => ({}));
-    return { ok: false, error: `Tree creation failed: ${err.message || treeRes.status}` };
+    return { ok: false, error: 'Tree creation failed' };
   }
   const treeData = await treeRes.json();
 
@@ -362,7 +355,7 @@ async function batchCommitToGitHub(env, files, message) {
   });
   if (!newCommitRes.ok) {
     const err = await newCommitRes.json().catch(() => ({}));
-    return { ok: false, error: `Commit creation failed: ${err.message || newCommitRes.status}` };
+    return { ok: false, error: 'Commit creation failed' };
   }
   const newCommitData = await newCommitRes.json();
 
@@ -373,7 +366,7 @@ async function batchCommitToGitHub(env, files, message) {
   });
   if (!updateRes.ok) {
     const err = await updateRes.json().catch(() => ({}));
-    return { ok: false, error: `Ref update failed: ${err.message || updateRes.status}` };
+    return { ok: false, error: 'Ref update failed' };
   }
 
   return { ok: true, sha: newCommitData.sha };
@@ -387,6 +380,16 @@ async function sha256(text) {
   const data = new TextEncoder().encode(text);
   const hash = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function timeSafeEqual(a, b) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode('okns-ts-cmp'),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(a));
+  return crypto.subtle.verify('HMAC', key, sig, enc.encode(b));
 }
 
 async function generateToken(env) {
