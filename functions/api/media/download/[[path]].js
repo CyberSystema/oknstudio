@@ -39,12 +39,15 @@ export async function onRequestGet(context) {
     return Response.json({ error: 'B2 not configured' }, { status: 500 });
   }
 
-  const filePath = (params.path || []).join('/');
-  if (!filePath) {
+  const joinedPath = (params.path || []).join('/');
+  if (!joinedPath) {
     return Response.json({ error: 'No file path specified' }, { status: 400 });
   }
 
-  if (filePath.includes('..') || filePath.startsWith('/')) {
+  let filePath;
+  try {
+    filePath = sanitizeObjectKey(joinedPath);
+  } catch {
     return Response.json({ error: 'Invalid path' }, { status: 400 });
   }
 
@@ -76,7 +79,7 @@ export async function onRequestGet(context) {
 
     const url = new URL(request.url);
     const forceDownload = url.searchParams.has('download');
-    const fileName = filePath.split('/').pop();
+    const fileName = safeFileName(filePath.split('/').pop() || 'download.bin');
 
     const responseHeaders = new Headers();
     responseHeaders.set('Content-Type', contentType);
@@ -98,4 +101,26 @@ export async function onRequestGet(context) {
     console.error('B2 download exception:', err);
     return Response.json({ error: 'B2 connection failed' }, { status: 502 });
   }
+}
+
+function sanitizeObjectKey(rawPath) {
+  const decoded = decodeURIComponent(rawPath);
+  const normalized = decoded.replaceAll('\\\\', '/');
+
+  if (!normalized || normalized.startsWith('/') || normalized.includes('\0')) {
+    throw new Error('Invalid path');
+  }
+
+  const parts = normalized.split('/');
+  for (const part of parts) {
+    if (!part || part === '.' || part === '..') {
+      throw new Error('Invalid path');
+    }
+  }
+
+  return parts.join('/');
+}
+
+function safeFileName(value) {
+  return String(value).replace(/["\\\r\n]/g, '_');
 }

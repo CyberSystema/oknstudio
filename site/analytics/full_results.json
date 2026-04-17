@@ -1,8 +1,78 @@
 {
-  "generated_at": "2026-04-13T01:17:07.251691",
+  "generated_at": "2026-04-16T16:45:55.174419",
+  "meta": {
+    "total_posts": 166,
+    "platforms": [
+      "instagram",
+      "tiktok"
+    ]
+  },
+  "health": {},
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "content",
+      "message": "On Instagram, your best content type is 'Short Video' with 17.5% avg engagement (25 posts). Create more of this."
+    },
+    {
+      "priority": "high",
+      "category": "content",
+      "message": "On TikTok, your best content type is 'Short Video' with 10.3% avg engagement (18 posts). Create more of this."
+    },
+    {
+      "priority": "high",
+      "category": "growth",
+      "message": "Instagram reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
+    },
+    {
+      "priority": "high",
+      "category": "growth",
+      "message": "TikTok reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
+    },
+    {
+      "priority": "high",
+      "category": "content",
+      "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
+    },
+    {
+      "priority": "high",
+      "category": "content",
+      "message": "Viral content on TikTok: Short Video. Create more content in these formats."
+    },
+    {
+      "priority": "medium",
+      "category": "timing",
+      "message": "Hour 6:00 KST shows strong engagement (9 posts). Consider posting around this time."
+    },
+    {
+      "priority": "medium",
+      "category": "timing",
+      "message": "Best performing day is Wednesday. Consider making this your primary posting day."
+    },
+    {
+      "priority": "medium",
+      "category": "engagement",
+      "message": "Comments-to-likes ratio is low. Try asking questions, running polls, or creating discussion-worthy content."
+    },
+    {
+      "priority": "low",
+      "category": "platform",
+      "message": "Instagram is outperforming industry benchmark by 13.7%! Keep up the great work."
+    },
+    {
+      "priority": "low",
+      "category": "platform",
+      "message": "TikTok is outperforming industry benchmark by 7.8%! Keep up the great work."
+    },
+    {
+      "priority": "low",
+      "category": "methodology",
+      "message": "Note: Instagram engagement rate uses reach as denominator; TikTok uses views. Direct rate comparison between platforms should be interpreted with this in mind."
+    }
+  ],
   "analysis": {
     "meta": {
-      "generated_at": "2026-04-13T01:16:43.236523",
+      "generated_at": "2026-04-16T16:45:43.460966",
       "total_posts": 166,
       "platforms": [
         "instagram",
@@ -1267,7 +1337,7 @@
       {
         "priority": "high",
         "category": "content",
-        "message": "Viral content on Instagram: Short Video, Carousel. Create more content in these formats."
+        "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
       },
       {
         "priority": "high",
@@ -2024,7 +2094,7 @@
   "forecast": {
     "horizon_days": 0,
     "method_used": "prophet",
-    "generated_at": "2026-04-13T01:16:43.988982",
+    "generated_at": "2026-04-16T16:45:43.760185",
     "reach": {
       "method": "prophet",
       "historical_weeks": 47,
@@ -2058,7 +2128,7 @@
     "instagram_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-04-13T01:16:44.369823",
+      "generated_at": "2026-04-16T16:45:44.047171",
       "reach": {
         "method": "prophet",
         "historical_weeks": 44,
@@ -2094,7 +2164,7 @@
     "tiktok_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-04-13T01:16:44.815518",
+      "generated_at": "2026-04-16T16:45:44.408602",
       "reach": {
         "method": "prophet",
         "historical_weeks": 8,

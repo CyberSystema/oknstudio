@@ -256,8 +256,18 @@ def run_pipeline(ingest_only=False, report_only=False):
 
     # Save full results as JSON
     try:
+        platforms = sorted(df['platform'].dropna().unique().tolist())
+        recommendations = analysis.get("recommendations", []) if isinstance(analysis, dict) else []
+        health = analysis.get("health", {}) if isinstance(analysis, dict) else {}
+
         full_results = {
             "generated_at": datetime.now().isoformat(),
+            "meta": {
+                "total_posts": int(len(df)),
+                "platforms": platforms,
+            },
+            "health": _serialize(health),
+            "recommendations": _serialize(recommendations),
             "analysis": _serialize(analysis),
             "timing": _serialize(timing_results),
             "scoring": _serialize(scoring_results),

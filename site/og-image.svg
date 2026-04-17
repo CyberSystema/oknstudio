@@ -1,0 +1,306 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1200 630"
+     width="1200" height="630"
+     preserveAspectRatio="xMidYMid slice">
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  OKN Studio — Open Graph Image
+  ═══════════════════════════════════════════════════════════════════
+  Composition mirrors the landing hero:
+    · Top chrome bar: brand left, status right
+    · Left column: kicker + poetic title + tagline
+    · Right column: console frame containing the network mark
+    · Bottom bar: v1.0 / korean
+
+  Safe zone: all critical text within 80px side / 60px top-bottom
+  margins, so platform-side cropping doesn't lose anything essential.
+
+  Vector-native — renders perfectly in browsers. For PNG output used
+  in og:image meta (Twitter/Facebook), run tools/og/build.sh.
+  ═══════════════════════════════════════════════════════════════════
+-->
+
+<defs>
+  <!-- Load brand fonts (renders in browser; falls back gracefully for
+       static rasterisers. The canonical PNG is rendered by Chrome
+       via tools/og/render.html, which guarantees font loading.) -->
+  <style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500&amp;display=swap');
+    .display { font-family: 'Sora', system-ui, sans-serif; }
+    .body    { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+    .mono    { font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .kr      { font-family: 'Noto Sans KR', 'IBM Plex Sans', system-ui, sans-serif; }
+  </style>
+
+  <!-- Fine 48px grid backdrop, masked to fade from center -->
+  <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+    <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#ffffff"
+          stroke-width="1" stroke-opacity="0.018"/>
+  </pattern>
+
+  <!-- Radial mask so the grid fades at the edges, matches site body::before -->
+  <radialGradient id="gridMask" cx="50%" cy="50%" r="60%">
+    <stop offset="0%"  stop-color="#ffffff" stop-opacity="1"/>
+    <stop offset="70%" stop-color="#ffffff" stop-opacity="0.5"/>
+    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+  </radialGradient>
+  <mask id="fadeEdges">
+    <rect width="1200" height="630" fill="url(#gridMask)"/>
+  </mask>
+
+  <!-- Soft signal glow in the top-right, matches site body::after -->
+  <radialGradient id="signalGlow" cx="85%" cy="10%" r="55%">
+    <stop offset="0%"  stop-color="#5eead4" stop-opacity="0.14"/>
+    <stop offset="60%" stop-color="#5eead4" stop-opacity="0.03"/>
+    <stop offset="100%" stop-color="#5eead4" stop-opacity="0"/>
+  </radialGradient>
+
+  <!-- Subtle vertical depth gradient for the base -->
+  <linearGradient id="baseGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#0c1218"/>
+    <stop offset="100%" stop-color="#080d12"/>
+  </linearGradient>
+
+  <!-- Glow filter for the central network node -->
+  <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
+    <feGaussianBlur stdDeviation="5" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+
+  <!-- Top-signal-line gradient for the console -->
+  <linearGradient id="topLine" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0"    stop-color="#5eead4" stop-opacity="0"/>
+    <stop offset="0.5"  stop-color="#5eead4" stop-opacity="1"/>
+    <stop offset="1"    stop-color="#5eead4" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+
+<!-- ══════════════════ BACKDROP ══════════════════ -->
+
+<rect width="1200" height="630" fill="url(#baseGrad)"/>
+<rect width="1200" height="630" fill="url(#grid)" mask="url(#fadeEdges)"/>
+<rect width="1200" height="630" fill="url(#signalGlow)"/>
+
+<!-- ══════════════════ CORNER CROSSHAIRS ══════════════════ -->
+<!-- Broadcast-style corner marks at each corner, teal @ 40% -->
+<g stroke="#5eead4" stroke-width="1.5" fill="none" stroke-opacity="0.45" stroke-linecap="round">
+  <!-- TL -->
+  <path d="M 40 62 L 40 40 L 62 40"/>
+  <circle cx="40" cy="40" r="1.8" fill="#5eead4" stroke="none"/>
+  <!-- TR -->
+  <path d="M 1160 62 L 1160 40 L 1138 40"/>
+  <circle cx="1160" cy="40" r="1.8" fill="#5eead4" stroke="none"/>
+  <!-- BL -->
+  <path d="M 40 568 L 40 590 L 62 590"/>
+  <circle cx="40" cy="590" r="1.8" fill="#5eead4" stroke="none"/>
+  <!-- BR -->
+  <path d="M 1160 568 L 1160 590 L 1138 590"/>
+  <circle cx="1160" cy="590" r="1.8" fill="#5eead4" stroke="none"/>
+</g>
+
+<!-- ══════════════════ TOP CHROME BAR ══════════════════ -->
+
+<!-- Brand mark (left) — same network-cross used site-wide -->
+<g transform="translate(80, 66)">
+  <!-- Network mark, 28×28 -->
+  <g>
+    <line x1="14" y1="3"  x2="14" y2="10" stroke="#5eead4" stroke-width="1.5"/>
+    <line x1="14" y1="18" x2="14" y2="25" stroke="#5eead4" stroke-width="1.5"/>
+    <line x1="3"  y1="14" x2="10" y2="14" stroke="#5eead4" stroke-width="1.5"/>
+    <line x1="18" y1="14" x2="25" y2="14" stroke="#5eead4" stroke-width="1.5"/>
+    <circle cx="14" cy="3"  r="1.8" fill="#5eead4"/>
+    <circle cx="14" cy="25" r="1.8" fill="#5eead4"/>
+    <circle cx="3"  cy="14" r="1.8" fill="#5eead4"/>
+    <circle cx="25" cy="14" r="1.8" fill="#5eead4"/>
+    <circle cx="14" cy="14" r="2.6" fill="#5eead4"/>
+  </g>
+  <!-- Wordmark: OKN / Studio  (mono, letter-spaced) -->
+  <text class="mono" x="42" y="19" font-size="15" font-weight="500"
+        fill="#e8edf2" letter-spacing="0.5">OKN<tspan fill="#2b323a">/</tspan><tspan fill="#5eead4">Studio</tspan></text>
+</g>
+
+<!-- Right: live dot + status -->
+<g transform="translate(1120, 80)">
+  <!-- Live dot with glow -->
+  <circle cx="-314" cy="0" r="8" fill="#5eead4" fill-opacity="0.25"/>
+  <circle cx="-314" cy="0" r="4" fill="#5eead4"/>
+  <!-- Status text -->
+  <text class="mono" x="-68" y="4" font-size="12" font-weight="500"
+    fill="#8b9199" letter-spacing="2.5" text-anchor="end">ALL SYSTEMS OPERATIONAL</text>
+  <text class="mono" x="0" y="4" font-size="12" font-weight="500"
+      fill="#e8edf2" letter-spacing="2" text-anchor="end">v1.0</text>
+</g>
+
+<!-- Top divider -->
+<line x1="80" y1="120" x2="1120" y2="120"
+      stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+
+<!-- ══════════════════ LEFT COLUMN — COPY ══════════════════ -->
+
+<!-- Kicker pill "[ 01 ] SIGNAL STUDIO · ORTHODOX KOREA NETWORK" -->
+<g transform="translate(80, 175)">
+  <!-- Pill background -->
+  <rect width="402" height="26" rx="3" fill="#5eead4" fill-opacity="0.10"
+        stroke="#5eead4" stroke-opacity="0.30" stroke-width="1"/>
+  <!-- Dot on the left -->
+  <circle cx="14" cy="13" r="3" fill="#5eead4"/>
+  <!-- Text -->
+  <text class="mono" x="28" y="17" font-size="11" font-weight="600"
+        fill="#5eead4" letter-spacing="2.4">[ 01 ]  SIGNAL STUDIO  ·  ORTHODOX KOREA NETWORK</text>
+</g>
+
+<!-- Title: three-line display -->
+<g transform="translate(80, 270)">
+  <!-- "Where every" -->
+  <text class="display" x="0" y="0" font-size="72" font-weight="400"
+        fill="#e8edf2" letter-spacing="-2.5">Where every</text>
+  <!-- "signal becomes" -->
+  <text class="display" x="0" y="78" font-size="72" font-weight="400"
+        fill="#e8edf2" letter-spacing="-2.5">signal becomes</text>
+  <!-- "story." — signal teal accent, slight weight bump, soft glow -->
+  <text class="display" x="0" y="156" font-size="72" font-weight="500"
+        fill="#5eead4" letter-spacing="-2.5"
+        filter="url(#nodeGlow)" fill-opacity="0.35">story.</text>
+  <text class="display" x="0" y="156" font-size="72" font-weight="500"
+        fill="#5eead4" letter-spacing="-2.5">story.</text>
+</g>
+
+<!-- Subtag line -->
+<g transform="translate(80, 490)">
+  <!-- Leading rule -->
+  <line x1="0" y1="-6" x2="28" y2="-6"
+        stroke="#5eead4" stroke-width="1" stroke-opacity="0.8"/>
+  <text class="mono" x="40" y="0" font-size="12" font-weight="500"
+        fill="#8b9199" letter-spacing="2">INTEGRATED WORKBENCH  ·  14 ML MODELS  ·  3 LANGUAGES</text>
+</g>
+
+<!-- ══════════════════ RIGHT COLUMN — CONSOLE ══════════════════ -->
+
+<!-- Console frame (x=700, y=160, w=420, h=380) -->
+<g transform="translate(700, 160)">
+  <!-- Frame background -->
+  <rect width="420" height="380" rx="6" fill="#0e141b"
+        stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+
+  <!-- Top 1px signal line -->
+  <rect x="0" y="0" width="420" height="1" fill="url(#topLine)"/>
+
+  <!-- Console bar -->
+  <g>
+    <rect x="0" y="0" width="420" height="36"
+          fill="#ffffff" fill-opacity="0.015"/>
+    <line x1="0" y1="36" x2="420" y2="36"
+          stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    <!-- Dots -->
+    <circle cx="20" cy="18" r="4" fill="#ef4444"/>
+    <circle cx="34" cy="18" r="4" fill="#fbbf24"/>
+    <circle cx="48" cy="18" r="4" fill="#5eead4"/>
+    <!-- Path -->
+    <text class="mono" x="70" y="22" font-size="11" font-weight="500"
+          fill="#8b9199" letter-spacing="1.2">okn-studio :: /network</text>
+    <!-- Status badge REC -->
+    <rect x="362" y="10" width="44" height="16" rx="3"
+          fill="#5eead4" fill-opacity="0.12"
+          stroke="#5eead4" stroke-opacity="0.3" stroke-width="1"/>
+    <circle cx="371" cy="18" r="2" fill="#5eead4"/>
+    <text class="mono" x="379" y="21" font-size="9" font-weight="600"
+          fill="#5eead4" letter-spacing="1.5">REC</text>
+  </g>
+
+  <!-- Corner crosshairs inside the console -->
+  <g stroke="#5eead4" stroke-width="1" fill="none" stroke-opacity="0.55" stroke-linecap="round">
+    <path d="M 14 54 L 14 46 L 22 46"/>
+    <path d="M 406 54 L 406 46 L 398 46"/>
+    <path d="M 14 360 L 14 368 L 22 368"/>
+    <path d="M 406 360 L 406 368 L 398 368"/>
+  </g>
+
+  <!-- HUD readouts (4 corners inside the console) -->
+  <g class="mono" font-size="10" font-weight="500" letter-spacing="1.2" fill="#6b7178">
+    <!-- TL: NODE A1 -->
+    <g transform="translate(32, 58)">
+      <circle cx="0" cy="-3" r="2" fill="#5eead4"/>
+      <text x="8" y="0">NODE  <tspan fill="#5eead4">A1</tspan></text>
+    </g>
+    <!-- TR: SIG +04 -->
+    <text x="388" y="58" text-anchor="end">SIG  <tspan fill="#5eead4">+ 04</tspan></text>
+    <!-- BL: LAT 22ms -->
+    <text x="32" y="362">LAT  <tspan fill="#5eead4">22ms</tspan></text>
+    <!-- BR: SYNC OK -->
+    <g transform="translate(388, 362)">
+      <text text-anchor="end">SYNC  <tspan fill="#5eead4">OK</tspan><tspan dx="6" fill="#5eead4" font-size="14">●</tspan></text>
+    </g>
+  </g>
+
+  <!-- ─── The network mark, large ─── -->
+  <g transform="translate(210, 210)">
+    <!-- Outer rings -->
+    <circle r="75" fill="none" stroke="#5eead4" stroke-opacity="0.12" stroke-width="1"/>
+    <circle r="120" fill="none" stroke="#5eead4" stroke-opacity="0.07" stroke-width="1"/>
+
+    <!-- Connecting lines to outer nodes -->
+    <g stroke="#5eead4" stroke-width="1.4" stroke-linecap="round" stroke-opacity="0.65">
+      <line x1="0" y1="-18" x2="0" y2="-102"/>
+      <line x1="0" y1="18"  x2="0" y2="102"/>
+      <line x1="-18" y1="0" x2="-102" y2="0"/>
+      <line x1="18"  y1="0" x2="102"  y2="0"/>
+    </g>
+
+    <!-- Diagonal ghost stubs -->
+    <g stroke="#5eead4" stroke-width="1" stroke-linecap="round" stroke-opacity="0.2">
+      <line x1="14" y1="-14" x2="55" y2="-55"/>
+      <line x1="-14" y1="14" x2="-55" y2="55"/>
+      <line x1="14" y1="14"  x2="55" y2="55"/>
+      <line x1="-14" y1="-14" x2="-55" y2="-55"/>
+    </g>
+
+    <!-- Outer nodes with halo rings -->
+    <g>
+      <circle cx="0" cy="-108" r="12" fill="none" stroke="#5eead4" stroke-opacity="0.4" stroke-width="1"/>
+      <circle cx="0" cy="-108" r="6" fill="#5eead4"/>
+    </g>
+    <g>
+      <circle cx="0" cy="108" r="12" fill="none" stroke="#5eead4" stroke-opacity="0.4" stroke-width="1"/>
+      <circle cx="0" cy="108" r="6" fill="#5eead4"/>
+    </g>
+    <g>
+      <circle cx="-108" cy="0" r="12" fill="none" stroke="#5eead4" stroke-opacity="0.4" stroke-width="1"/>
+      <circle cx="-108" cy="0" r="6" fill="#5eead4"/>
+    </g>
+    <g>
+      <circle cx="108" cy="0" r="12" fill="none" stroke="#5eead4" stroke-opacity="0.4" stroke-width="1"/>
+      <circle cx="108" cy="0" r="6" fill="#5eead4"/>
+    </g>
+
+    <!-- Center: hub with strong glow -->
+    <circle r="28" fill="none" stroke="#5eead4" stroke-opacity="0.18" stroke-width="1"/>
+    <circle r="18" fill="none" stroke="#5eead4" stroke-opacity="0.3" stroke-width="1"/>
+    <circle r="14" fill="#5eead4" fill-opacity="0.3" filter="url(#nodeGlow)"/>
+    <circle r="11" fill="#5eead4"/>
+    <!-- Inner accent -->
+    <circle r="4" fill="#0e141b"/>
+  </g>
+
+</g>
+
+<!-- ══════════════════ BOTTOM BAR ══════════════════ -->
+
+<line x1="80" y1="540" x2="1120" y2="540"
+      stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+
+<g transform="translate(0, 580)">
+  <!-- Left: version -->
+  <text class="mono" x="80" y="0" font-size="11" font-weight="500"
+        fill="#6b7178" letter-spacing="2">OKN STUDIO  ·  v1.0  ·  2026</text>
+
+  <!-- Center: Korean + description -->
+  <text class="mono" x="600" y="0" font-size="11" font-weight="500"
+        fill="#6b7178" letter-spacing="2" text-anchor="middle">
+    <tspan class="kr" fill="#5eead4" font-size="12">정교회 한국</tspan><tspan dx="10">ORTHODOX KOREA NETWORK</tspan>
+  </text>
+</g>
+
+</svg>

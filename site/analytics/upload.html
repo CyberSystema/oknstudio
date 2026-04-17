@@ -3,223 +3,388 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OKN Analytics — Upload Data</title>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<title>Ingest — OKN Analytics</title>
+<meta name="theme-color" content="#0a0f14">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="mask-icon" href="/favicon.svg" color="#5eead4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════════════════════════
+   OKN STUDIO / Ingest
+   Signal Studio aesthetic
+   ══════════════════════════════════════════════════════ */
+
 *{margin:0;padding:0;box-sizing:border-box}
-html{overflow-x:hidden}
-body{font-family:'Segoe UI','Noto Sans KR',sans-serif;background:#f8f6f0;color:#2c2c2c;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:62px}
-.studio-nav{width:100%;position:fixed;top:0;left:0;right:0;z-index:999}
-.wrap{max-width:560px;width:100%;margin:auto;padding:0}
+html{overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-/* Header */
-.hdr{background:linear-gradient(160deg,#1a3a5c 0%,#1e4a6e 35%,#2a3a5c 60%,#8b1a1a 100%);color:white;padding:36px 32px 28px;border-radius:16px 16px 0 0;text-align:center;position:relative;overflow:hidden}
-.hdr::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(196,149,58,0.08) 0%,transparent 50%);pointer-events:none}
-.hdr h1{font-size:22px;margin-bottom:4px;letter-spacing:0.5px;font-weight:700}
-.hdr p{opacity:0.75;font-size:13px}
-.studio-nav{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#0f2137;font-size:13px}
-.studio-nav a{color:rgba(255,255,255,0.6);text-decoration:none}.studio-nav a:hover{color:#c4953a}
-.sn-home{font-weight:600;color:rgba(255,255,255,0.85) !important;display:flex;align-items:center;gap:4px}
-.sn-home .material-icons{font-size:18px;font-weight:500}
-.sn-sep{color:rgba(255,255,255,0.2)}
-.sn-current{color:rgba(255,255,255,0.4)}
+:root{
+  --bg:#0a0f14;--bg-2:#0e141b;--bg-3:#121821;--bg-4:#1a2230;
+  --signal:#5eead4;--signal-bright:#a7f3d0;--signal-dim:rgba(94,234,212,0.12);
+  --signal-deep:#14b8a6;
+  --info:#60a5fa;--warn:#fbbf24;--danger:#f87171;--purple:#a78bfa;
+  --success:#5eead4;
+  --text:#e8edf2;--text-dim:rgba(232,237,242,0.55);
+  --text-faint:rgba(232,237,242,0.32);--text-ghost:rgba(232,237,242,0.18);
+  --line:rgba(255,255,255,0.06);--line-2:rgba(255,255,255,0.1);
+  --line-signal:rgba(94,234,212,0.25);
+  --surface:rgba(255,255,255,0.025);--surface-2:rgba(255,255,255,0.05);
+  --font-display:'Sora',sans-serif;
+  --font-body:'IBM Plex Sans','Noto Sans KR',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
 
-/* Card */
-.card{background:white;border-radius:0 0 16px 16px;padding:28px 32px 32px;border:1px solid #e8e4dc;border-top:none}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);color:var(--text);
+  min-height:100vh;line-height:1.5;
+  display:flex;flex-direction:column;
+  padding-top:56px;
+}
 
-/* Auth */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%);
+}
+body::after{
+  content:'';position:fixed;
+  top:-300px;right:-300px;
+  width:800px;height:800px;
+  background:radial-gradient(circle,rgba(94,234,212,0.05) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ══ Chrome ══ */
+.chrome{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(10,15,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.chrome-inner{max-width:1200px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);flex-shrink:0}
+.brand svg{width:20px;height:20px}
+.brand .slash{color:var(--text-ghost)}
+.brand .studio{color:var(--signal)}
+.back{display:flex;align-items:center;gap:8px;padding:7px 12px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid transparent;border-radius:3px;transition:all 0.2s;flex-shrink:0}
+.back:hover{color:var(--signal);border-color:var(--line-2);background:var(--surface)}
+.divider{width:1px;height:16px;background:var(--line);flex-shrink:0}
+.path{color:var(--text-faint);letter-spacing:0.06em;font-size:11px}
+.path .slash{color:var(--text-ghost)}
+.path .seg-active{color:var(--signal)}
+.chrome-right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:10px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase}
+
+/* ══ Layout ══ */
+.wrap{flex:1;display:flex;justify-content:center;padding:56px 24px 64px;position:relative;z-index:1}
+.stack{max-width:640px;width:100%}
+
+/* ══ Hero ══ */
+.hero{margin-bottom:32px}
+.hero-kicker{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid var(--line-signal);background:var(--signal-dim);border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--signal);margin-bottom:20px}
+.hero-kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.hero h1{font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4.5vw,44px);letter-spacing:-0.025em;line-height:1.05;color:var(--text);margin-bottom:14px}
+.hero h1 .accent{color:var(--signal);font-weight:500}
+.hero p{font-size:15px;line-height:1.55;color:var(--text-dim);max-width:56ch}
+
+/* ══ Card ══ */
+.card{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:36px 32px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
+.card-tl{position:absolute;top:0;left:0;width:20px;height:20px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.4}
+.card-br{position:absolute;bottom:0;right:0;width:20px;height:20px;border-bottom:1px solid var(--signal);border-right:1px solid var(--signal);opacity:0.4}
+
+/* ══ Auth section ══ */
 .auth-section{text-align:center}
-.auth-section p{color:#888;font-size:14px;margin-bottom:20px}
-.input-wrap{position:relative;margin-bottom:16px}
-.input-wrap input{width:100%;padding:14px 18px;border:2px solid #e0dcd4;border-radius:10px;font-size:15px;outline:none;transition:border 0.2s}
-.input-wrap input:focus{border-color:#1a3a5c}
+.auth-prompt{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.08em;margin-bottom:24px}
 
-/* Upload area */
+.field{margin-bottom:14px;text-align:left}
+.field-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint)}
+.hint{font-family:var(--font-mono);font-size:10px;color:var(--text-ghost);letter-spacing:0.08em}
+
+.input-wrap{position:relative}
+.input-wrap::before{content:'›';position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--signal);font-family:var(--font-mono);font-size:16px;opacity:0.7;pointer-events:none}
+input[type="password"],input[type="text"]{width:100%;padding:13px 14px 13px 34px;border:1px solid var(--line-2);border-radius:3px;background:var(--bg-3);color:var(--text);font-size:14px;font-family:var(--font-mono);outline:none;transition:all 0.2s;letter-spacing:0.04em}
+input[type="password"]:focus,input[type="text"]:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-dim)}
+input::placeholder{color:var(--text-ghost);letter-spacing:0.2em}
+
+/* ══ Buttons ══ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 22px;border:none;border-radius:3px;font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.25s;text-decoration:none;position:relative;overflow:hidden;letter-spacing:0.01em}
+.btn-primary{background:var(--signal);color:var(--bg);font-weight:600;width:100%}
+.btn-primary::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transform:translateX(-100%);transition:transform 0.6s}
+.btn-primary:hover:not(:disabled){background:var(--signal-bright);transform:translateY(-1px);box-shadow:0 8px 24px rgba(94,234,212,0.25)}
+.btn-primary:hover:not(:disabled)::before{transform:translateX(100%)}
+.btn-primary:disabled{background:var(--bg-4);color:var(--text-faint);cursor:not-allowed}
+.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--line-2)}
+.btn-secondary:hover{border-color:var(--signal);color:var(--signal)}
+.btn-back{background:transparent;color:var(--text-faint);font-size:11px;padding:10px;margin-top:12px;width:100%;font-family:var(--font-mono);letter-spacing:0.12em;text-transform:uppercase;border-radius:3px}
+.btn-back:hover{color:var(--signal);background:var(--surface)}
+.btn .arrow{font-family:var(--font-mono);transition:transform 0.25s}
+.btn-primary:hover .arrow{transform:translateX(4px)}
+
+/* ══ Upload section ══ */
 .upload-section{display:none}
 
+/* Step bar */
+.step-bar{display:flex;gap:6px;margin-bottom:24px;position:relative}
+.step{flex:1;position:relative;padding:14px 10px 12px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);text-align:left;background:var(--bg-3);border:1px solid var(--line);border-radius:3px;transition:all 0.3s;display:flex;align-items:center;gap:10px}
+.step.active{color:var(--signal);border-color:var(--line-signal);background:var(--signal-dim)}
+.step.done{color:var(--success);border-color:rgba(94,234,212,0.3);background:rgba(94,234,212,0.06)}
+.step-num{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border:1px solid currentColor;border-radius:50%;font-family:var(--font-mono);font-size:10px;font-weight:500;flex-shrink:0}
+.step.active .step-num{background:var(--signal);color:var(--bg);border-color:var(--signal)}
+.step.done .step-num{background:var(--success);color:var(--bg);border-color:var(--success)}
+.step-label{flex:1}
+
 /* Platform tabs */
-.platform-tabs{display:flex;gap:8px;margin-bottom:20px}
-.ptab{flex:1;padding:12px;border:2px solid #e0dcd4;border-radius:10px;text-align:center;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;background:white}
-.ptab:hover{border-color:#1a3a5c;background:#f5f8fb}
-.ptab.active{border-color:#1a3a5c;background:#1a3a5c;color:white}
-.ptab .icon{font-size:24px;display:block;margin-bottom:4px}
-.ptab-badge{position:absolute;top:-6px;right:-6px;background:#c4953a;color:white;font-size:10px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white}
-.ptab{position:relative}
+.platform-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.ptab{padding:14px 12px;border:1px solid var(--line-2);background:var(--bg-3);border-radius:3px;cursor:pointer;transition:all 0.2s;position:relative;display:flex;align-items:center;gap:12px}
+.ptab:hover{border-color:var(--line-signal);background:var(--surface-2)}
+.ptab.active{border-color:var(--signal);background:var(--signal-dim)}
+.ptab .pt-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--signal);flex-shrink:0;border:1px solid var(--line);border-radius:3px;background:var(--bg-2);transition:all 0.2s}
+.ptab.active .pt-icon{background:var(--signal);color:var(--bg);border-color:var(--signal)}
+.ptab .pt-icon svg{width:16px;height:16px}
+.ptab .pt-body{text-align:left;flex:1;min-width:0}
+.ptab .pt-name{font-family:var(--font-display);font-size:15px;font-weight:500;color:var(--text);letter-spacing:-0.01em;line-height:1.1}
+.ptab .pt-sub{font-family:var(--font-mono);font-size:9px;color:var(--text-faint);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}
+.ptab.active .pt-name{color:var(--signal-bright)}
+.ptab-badge{position:absolute;top:-6px;right:-6px;background:var(--signal);color:var(--bg);font-family:var(--font-mono);font-size:10px;font-weight:600;min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);padding:0 6px}
 
 /* Dropzone */
-.dropzone{border:2px dashed #c4953a;border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:16px;background:#fdfcfa}
-.dropzone:hover,.dropzone.dragover{background:#faf6ee;border-color:#1a3a5c}
-.dropzone .dz-icon{font-size:36px;margin-bottom:8px}
-.dropzone p{color:#888;font-size:14px}
-.dropzone .dz-hint{font-size:11px;color:#aaa;margin-top:8px}
-
-/* Steps */
-.step-bar{display:flex;gap:4px;margin-bottom:20px}
-.step{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#bbb;background:#f5f5f5;transition:all 0.3s}
-.step.active{color:#1a3a5c;background:#e8f0f8}
-.step.done{color:#38a169;background:#f0faf0}
+.dropzone{border:1px dashed var(--line-signal);border-radius:4px;padding:32px 20px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:14px;background:rgba(94,234,212,0.02);position:relative;overflow:hidden}
+.dropzone::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent);opacity:0.3}
+.dropzone:hover,.dropzone.dragover{background:rgba(94,234,212,0.06);border-color:var(--signal);border-style:solid}
+.dz-icon{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0 auto 12px;border:1px solid var(--line-signal);border-radius:3px;background:var(--bg-3);color:var(--signal);transition:all 0.2s}
+.dropzone:hover .dz-icon{background:var(--signal);color:var(--bg);border-color:var(--signal)}
+.dz-icon svg{width:22px;height:22px}
+.dropzone p{font-family:var(--font-body);font-size:14px;color:var(--text);font-weight:500}
+.dropzone p strong{color:var(--signal);font-weight:600}
+.dz-hint{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);margin-top:8px;letter-spacing:0.1em;text-transform:uppercase}
 
 /* File list */
-.file-list{margin-bottom:16px}
-.file-item{display:flex;align-items:center;padding:12px 14px;background:#fafbfc;border:1px solid #eee;border-radius:10px;margin-bottom:8px;font-size:13px;gap:10px;transition:border 0.2s}
-.file-item.ok{border-color:#c6f6d5}
-.file-item.warn{border-color:#fefcbf;background:#fffdf5}
-.file-item.err{border-color:#fed7d7;background:#fff8f8}
-.fi-icon{font-size:20px;flex-shrink:0}
+.file-list{margin-bottom:14px}
+.file-item{display:flex;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:6px;gap:12px;transition:all 0.2s}
+.file-item.ok{border-color:rgba(94,234,212,0.3);background:rgba(94,234,212,0.04)}
+.file-item.warn{border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.04)}
+.file-item.err{border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.04)}
+.fi-icon{flex-shrink:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;font-size:12px;border:1px solid;border-radius:50%}
+.file-item.ok .fi-icon{color:var(--success);border-color:rgba(94,234,212,0.4);background:rgba(94,234,212,0.1)}
+.file-item.warn .fi-icon{color:var(--warn);border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.1)}
+.file-item.err .fi-icon{color:var(--danger);border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.1)}
 .fi-body{flex:1;min-width:0}
-.fi-orig{font-size:12px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fi-detected{font-weight:600;color:#1a3a5c}
-.fi-arrow{color:#c4953a;font-size:11px;margin:0 2px}
-.fi-size{color:#888;font-size:11px}
-.fi-badge{font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;flex-shrink:0}
-.badge-ok{background:#f0faf0;color:#38a169}
-.badge-warn{background:#fffbf0;color:#d69e2e}
-.badge-err{background:#fff5f5;color:#e53e3e}
-.fi-remove{color:#ccc;cursor:pointer;font-size:16px;flex-shrink:0;padding:0 4px;transition:color 0.2s}
-.fi-remove:hover{color:#e53e3e}
-
-/* Warning message */
-.fi-warn-msg{font-size:11px;color:#d69e2e;margin-top:4px}
-.fi-warn-msg button{font-size:11px;color:#1a3a5c;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;padding:0;margin-left:4px}
-
-/* Buttons */
-.btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s}
-.btn-primary{background:#1a3a5c;color:white}.btn-primary:hover{background:#254d73}
-.btn-primary:disabled{background:#bbb;cursor:not-allowed}
-.btn-secondary{background:#f5f5f5;color:#666;margin-top:8px;font-size:13px;padding:10px}.btn-secondary:hover{background:#eee;color:#333}
-.btn-back{background:transparent;color:#888;font-size:13px;margin-top:12px;padding:8px}.btn-back:hover{color:#1a3a5c}
-.btn-row{display:flex;gap:8px;margin-top:12px}.btn-row .btn{flex:1}
+.fi-detected{font-family:var(--font-body);font-size:14px;font-weight:500;color:var(--text);letter-spacing:-0.005em;line-height:1.3}
+.fi-orig{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.02em}
+.fi-arrow{color:var(--signal);margin:0 4px}
+.fi-size{color:var(--signal);margin-left:6px}
+.fi-warn-msg{font-family:var(--font-body);font-size:12px;color:var(--warn);margin-top:4px;line-height:1.4}
+.fi-badge{font-family:var(--font-mono);font-size:9px;padding:3px 8px;border-radius:2px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;flex-shrink:0;border:1px solid}
+.badge-ok{background:rgba(94,234,212,0.1);color:var(--success);border-color:rgba(94,234,212,0.3)}
+.badge-warn{background:rgba(251,191,36,0.1);color:var(--warn);border-color:rgba(251,191,36,0.3)}
+.badge-err{background:rgba(248,113,113,0.1);color:var(--danger);border-color:rgba(248,113,113,0.3)}
+.fi-remove{color:var(--text-faint);cursor:pointer;font-size:16px;flex-shrink:0;padding:4px 8px;transition:color 0.2s;font-family:var(--font-mono)}
+.fi-remove:hover{color:var(--danger)}
 
 /* Status */
-.status{padding:14px 18px;border-radius:10px;margin-bottom:16px;font-size:14px;display:none;line-height:1.5}
-.status.info{display:block;background:#e8f4f8;color:#1a5276;border:1px solid #bee3f8}
-.status.ok{display:block;background:#f0faf0;color:#276749;border:1px solid #c6f6d5}
-.status.err{display:block;background:#fff5f5;color:#c53030;border:1px solid #fed7d7}
-.status.uploading{display:block;background:#fffbf0;color:#975a16;border:1px solid #fefcbf}
+.status{padding:12px 14px;border-radius:3px;margin-bottom:14px;display:none;font-size:13px;line-height:1.5;font-family:var(--font-body);border:1px solid;gap:10px;align-items:flex-start}
+.status.info{display:flex;background:rgba(96,165,250,0.06);color:#93c5fd;border-color:rgba(96,165,250,0.25)}
+.status.ok{display:flex;background:rgba(94,234,212,0.06);color:var(--success);border-color:rgba(94,234,212,0.25)}
+.status.err{display:flex;background:rgba(248,113,113,0.06);color:#fca5a5;border-color:rgba(248,113,113,0.25)}
+.status.uploading{display:flex;background:rgba(251,191,36,0.06);color:var(--warn);border-color:rgba(251,191,36,0.25)}
+.status-icon{flex-shrink:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:600;font-size:11px;border:1px solid currentColor;border-radius:50%;opacity:0.7}
 
 /* Progress */
-.progress-wrap{display:none;margin-bottom:16px}
-.progress-bar{height:6px;background:#e0dcd4;border-radius:3px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,#1a3a5c,#c4953a);border-radius:3px;transition:width 0.3s;width:0%}
-.progress-text{font-size:12px;color:#888;margin-top:6px;text-align:center}
+.progress-wrap{display:none;margin-bottom:14px}
+.progress-bar{height:3px;background:var(--bg-3);border:1px solid var(--line);border-radius:2px;overflow:hidden;position:relative}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--signal-deep),var(--signal));transition:width 0.3s;width:0%;box-shadow:0 0 8px var(--signal)}
+.progress-text{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);margin-top:8px;text-align:center;letter-spacing:0.12em;text-transform:uppercase}
 
-/* Confirm overlay */
-.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+/* ══ Confirm overlay ══ */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,20,0.95);backdrop-filter:blur(16px);z-index:999;align-items:center;justify-content:center;padding:20px}
 .confirm-overlay.show{display:flex}
-.confirm-box{background:white;border-radius:16px;padding:0;max-width:460px;width:100%;max-height:80vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
-.confirm-header{background:linear-gradient(135deg,#1a3a5c,#2a5a8c);padding:20px 24px;color:white}
-.confirm-header h3{font-size:18px;font-weight:700;margin-bottom:2px}
-.confirm-header .cb-sub{color:rgba(255,255,255,0.75);font-size:13px}
-.confirm-body{padding:20px 24px;overflow-y:auto;max-height:calc(80vh - 180px)}
-.confirm-plat{font-weight:600;color:#1a3a5c;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;padding:12px 0 6px;border-bottom:1px solid #eee;margin-bottom:8px}
+.confirm-box{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;max-width:520px;width:100%;max-height:86vh;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.confirm-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
+.confirm-header{padding:28px 28px 20px;border-bottom:1px solid var(--line);text-align:center}
+.confirm-header .kicker{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid var(--line-signal);background:var(--signal-dim);border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--signal);margin-bottom:14px}
+.confirm-header .kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.confirm-header h3{font-family:var(--font-display);font-size:26px;font-weight:500;color:var(--text);letter-spacing:-0.02em;margin-bottom:6px;line-height:1.1}
+.confirm-header h3 .accent{color:var(--signal)}
+.cb-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.06em}
+.cb-sub strong{color:var(--signal);font-weight:500}
+.confirm-body{padding:20px 28px;overflow-y:auto;flex:1}
+.confirm-plat{font-family:var(--font-mono);font-size:10px;color:var(--signal);letter-spacing:0.2em;text-transform:uppercase;padding:14px 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.confirm-plat::before{content:'■';color:var(--signal);font-size:9px}
 .confirm-plat:first-child{padding-top:0}
-.confirm-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8f9fb;border-radius:10px;margin-bottom:6px;font-size:13px;border:1px solid #eef0f4;transition:background 0.15s}
-.confirm-item:hover{background:#eef2f8}
-.ci-icon{font-size:18px;flex-shrink:0}
+.confirm-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:6px}
+.ci-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--signal);flex-shrink:0}
+.ci-icon svg{width:16px;height:16px}
 .ci-body{flex:1;min-width:0}
-.ci-name{font-weight:600;color:#1a3a5c;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ci-dest{font-size:11px;color:#888;display:block;margin-top:1px}
-.confirm-note{display:flex;align-items:flex-start;gap:8px;padding:12px 14px;background:#f0f7ff;border-radius:10px;border:1px solid #d0e3f7;font-size:12px;color:#1a5276;line-height:1.5;margin-top:12px}
-.confirm-note-icon{font-size:16px;flex-shrink:0;margin-top:1px}
-.confirm-footer{padding:16px 24px;background:#fafbfc;border-top:1px solid #eee;display:flex;gap:10px}
-.confirm-footer .btn{flex:1}
+.ci-name{font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--text);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.005em}
+.ci-dest{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);display:block;margin-top:2px;letter-spacing:0.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.confirm-note{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.2);border-radius:3px;font-family:var(--font-body);font-size:12px;color:#93c5fd;line-height:1.5;margin-top:14px}
+.confirm-note-icon{flex-shrink:0;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;border:1px solid currentColor;border-radius:50%;opacity:0.7;margin-top:1px}
+.confirm-footer{padding:16px 28px;border-top:1px solid var(--line);display:flex;gap:10px;background:var(--bg)}
+.confirm-footer .btn{flex:1;margin:0;width:auto}
 
-/* Footer */
-.foot{display:flex;justify-content:center;align-items:center;gap:0.3rem;margin-top:16px;font-size:11px;color:#aaa}
-.foot a{color:#999}
-.foot .separator{color:#aaa;padding:0 0.2rem}
+/* ══ Footer ══ */
+.foot{text-align:center;margin-top:24px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase}
+.foot a{color:var(--signal);text-decoration:none}
+.foot a:hover{color:var(--signal-bright)}
+.foot .sep-dot{color:var(--text-ghost);margin:0 8px}
 
-/* Responsive */
-@media(max-width:560px){
-  body{align-items:flex-start}
-  .wrap{margin:12px}
-  .hdr{padding:28px 20px 22px;border-radius:12px 12px 0 0}.hdr h1{font-size:18px}
-  .card{padding:20px}
-  .dropzone{padding:24px 16px}
-  .platform-tabs{gap:6px}.ptab{padding:10px 8px;font-size:13px}.ptab .icon{font-size:20px}
-  .file-item{flex-wrap:wrap;gap:6px}
-  .confirm-box{border-radius:12px}
-  .confirm-header{padding:16px 20px}
+/* ══ Responsive ══ */
+@media(max-width:640px){
+  .chrome-inner{padding:10px 20px;flex-wrap:wrap}
+  .chrome-right{margin-left:0;order:10;width:100%;justify-content:flex-end}
+  .path{display:none}
+  .wrap{padding:40px 16px 48px}
+  .card{padding:28px 22px}
+  .step-bar{gap:4px}
+  .step{padding:10px 8px;font-size:8px;gap:6px}
+  .step-num{width:18px;height:18px;font-size:9px}
+  .platform-tabs{gap:6px}
+  .ptab{padding:12px 10px}
+  .dropzone{padding:28px 16px}
+  .confirm-box{max-height:92vh}
+  .confirm-header{padding:22px 20px 16px}
+  .confirm-header h3{font-size:22px}
   .confirm-body{padding:16px 20px}
-  .confirm-footer{padding:14px 20px}
+  .confirm-footer{padding:14px 20px;flex-direction:column}
+  .hero h1{font-size:28px}
 }
 </style>
 </head>
 <body>
-<nav class="studio-nav" id="studioNav">
-  <a href="/" class="sn-home"><i class="material-icons">home</i>OKN Studio</a>
-  <span class="sn-sep">›</span>
-  <a href="/analytics/">Analytics</a>
-  <span class="sn-sep">›</span>
-  <span class="sn-current">Upload</span>
-</nav>
-<script>if(new URLSearchParams(window.location.search).has('embed'))document.getElementById('studioNav').style.display='none';</script>
+
+<header class="chrome">
+  <div class="chrome-inner">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
+        <line x1="16" y1="4" x2="16" y2="12"/><line x1="16" y1="20" x2="16" y2="28"/>
+        <line x1="4" y1="16" x2="12" y2="16"/><line x1="20" y1="16" x2="28" y2="16"/>
+        <circle cx="16" cy="4" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="28" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="4" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="28" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"/>
+      </svg>
+      <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+    </div>
+    <div class="divider"></div>
+    <a href="/analytics/" class="back">← Analytics</a>
+    <div class="divider"></div>
+    <span class="path">/analytics<span class="slash">/</span><span class="seg-active">upload</span></span>
+  </div>
+</header>
+
 <div class="wrap">
-  <div class="hdr">
-    <h1>📤 Upload Analytics Data</h1>
-    <p>Upload your weekly CSV exports — files are auto-detected and renamed</p>
-  </div>
-  <div class="card">
+  <div class="stack">
 
-    <!-- AUTH -->
-    <div class="auth-section" id="authSection">
-      <p>Enter the team password to access the upload area</p>
-      <div class="input-wrap">
-        <input type="password" id="passInput" placeholder="Team password" autocomplete="off">
+    <section class="hero">
+      <div class="hero-kicker"><span class="dot"></span>Ingest · Module 03</div>
+      <h1>Upload the <span class="accent">week</span>.</h1>
+      <p>Drop weekly CSV exports below. Files are recognised by their contents, auto-renamed, and committed to the analytics repo in a single atomic push.</p>
+    </section>
+
+    <div class="card">
+      <span class="card-tl"></span>
+      <span class="card-br"></span>
+
+      <!-- AUTH -->
+      <div class="auth-section" id="authSection">
+        <div class="auth-prompt">Enter the team password to continue</div>
+        <div class="field">
+          <div class="field-label">
+            <span class="label">Team Password</span>
+            <span class="hint">required</span>
+          </div>
+          <div class="input-wrap">
+            <input id="passInput" type="password" placeholder="••••••••••" autocomplete="off">
+          </div>
+        </div>
+        <div class="status" id="authStatus"></div>
+        <button class="btn btn-primary" id="authBtn" onclick="authenticate()">
+          Authenticate <span class="arrow">→</span>
+        </button>
       </div>
-      <div class="status" id="authStatus"></div>
-      <button class="btn btn-primary" id="authBtn" onclick="authenticate()">Sign In</button>
+
+      <!-- UPLOAD -->
+      <div class="upload-section" id="uploadSection">
+
+        <!-- Steps -->
+        <div class="step-bar">
+          <div class="step active" id="step1"><span class="step-num">1</span><span class="step-label">Add Files</span></div>
+          <div class="step" id="step2"><span class="step-num">2</span><span class="step-label">Review</span></div>
+          <div class="step" id="step3"><span class="step-num">3</span><span class="step-label">Commit</span></div>
+        </div>
+
+        <!-- Platform tabs -->
+        <div class="platform-tabs">
+          <div class="ptab active" data-platform="instagram" onclick="selectPlatform('instagram',this)">
+            <span class="pt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="4"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+              </svg>
+            </span>
+            <div class="pt-body">
+              <div class="pt-name">Instagram</div>
+              <div class="pt-sub">Content · Audience</div>
+            </div>
+          </div>
+          <div class="ptab" data-platform="tiktok" onclick="selectPlatform('tiktok',this)">
+            <span class="pt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 4 L14 15 A4 4 0 1 1 10 11"/>
+                <path d="M14 4 C14 7 16 9 19 9"/>
+              </svg>
+            </span>
+            <div class="pt-body">
+              <div class="pt-name">TikTok</div>
+              <div class="pt-sub">Videos · Followers</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropzone -->
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+          <div class="dz-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3 L12 15"/>
+              <path d="M7 8 L12 3 L17 8"/>
+              <path d="M4 17 L4 20 L20 20 L20 17"/>
+            </svg>
+          </div>
+          <p>Drop <strong id="dzPlatformName">Instagram</strong> CSVs here — or click to browse</p>
+          <div class="dz-hint">Files auto-detected by content · CSV only</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept=".csv" style="display:none" onchange="handleFiles(this.files)">
+
+        <!-- Detected files -->
+        <div class="file-list" id="fileList"></div>
+
+        <div class="status" id="uploadStatus"></div>
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-text" id="progressText"></div>
+        </div>
+
+        <button class="btn btn-primary" id="uploadBtn" onclick="showConfirm()" disabled>
+          Review &amp; Commit <span class="arrow">→</span>
+        </button>
+        <button class="btn btn-back" onclick="logout()">Sign out</button>
+      </div>
     </div>
 
-    <!-- UPLOAD -->
-    <div class="upload-section" id="uploadSection">
-
-      <!-- Step indicator -->
-      <div class="step-bar">
-        <div class="step active" id="step1">1. Add Files</div>
-        <div class="step" id="step2">2. Review</div>
-        <div class="step" id="step3">3. Upload</div>
-      </div>
-
-      <!-- Platform tabs -->
-      <div class="platform-tabs">
-        <div class="ptab active" data-platform="instagram" onclick="selectPlatform('instagram',this)">
-          <span class="icon">📸</span>Instagram
-        </div>
-        <div class="ptab" data-platform="tiktok" onclick="selectPlatform('tiktok',this)">
-          <span class="icon">🎵</span>TikTok
-        </div>
-      </div>
-
-      <!-- Dropzone -->
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-        <div class="dz-icon">📁</div>
-        <p>Drop your <strong id="dzPlatformName">Instagram</strong> CSV files here</p>
-        <div class="dz-hint">Files are auto-detected by their content — no renaming needed</div>
-      </div>
-      <input type="file" id="fileInput" multiple accept=".csv" style="display:none" onchange="handleFiles(this.files)">
-
-      <!-- Detected files -->
-      <div class="file-list" id="fileList"></div>
-
-      <div class="status" id="uploadStatus"></div>
-      <div class="progress-wrap" id="progressWrap">
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="progress-text" id="progressText"></div>
-      </div>
-
-      <button class="btn btn-primary" id="uploadBtn" onclick="showConfirm()" disabled>Review &amp; Upload</button>
-      <button class="btn btn-back" onclick="logout()">← Sign out</button>
+    <div class="foot">
+      <span id="backReportLink" style="display:none;">
+        <a href="/analytics/report.html">← Back to Report</a>
+        <span class="sep-dot">·</span>
+      </span>
+      <span>OKN Analytics · Ingest</span>
+      <span class="sep-dot">·</span>
+      <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
     </div>
-  </div>
-  <div class="foot">
-    <span id="backReportLink" style="display:none;">
-      <a href="/analytics/report">← Back to Report</a>
-      <span class="separator">•</span>
-    </span>
-    <span>OKN Analytics Pipeline</span>
-    <span class="separator">•</span>
-    <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
+
   </div>
 </div>
 
@@ -227,219 +392,120 @@ body{font-family:'Segoe UI','Noto Sans KR',sans-serif;background:#f8f6f0;color:#
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-box">
     <div class="confirm-header">
-      <h3>📤 Confirm Upload</h3>
-      <div class="cb-sub">The following files will be uploaded to <strong id="confirmPlatform"></strong></div>
+      <div class="kicker"><span class="dot"></span>Commit to Repository</div>
+      <h3>Confirm <span class="accent">upload</span></h3>
+      <div class="cb-sub">Committing for <strong id="confirmPlatform"></strong></div>
     </div>
     <div class="confirm-body">
       <div id="confirmList"></div>
       <div class="confirm-note">
-        <span class="confirm-note-icon">ℹ️</span>
-        <span>All files will be uploaded in a single commit. The analytics pipeline will run automatically and the report will update in approximately 5 minutes.</span>
+        <span class="confirm-note-icon">i</span>
+        <span>All files upload in a single atomic commit. The analytics pipeline runs automatically; the report updates in approximately 5 minutes.</span>
       </div>
     </div>
     <div class="confirm-footer">
       <button class="btn btn-secondary" onclick="hideConfirm()">Cancel</button>
-      <button class="btn btn-primary" id="confirmBtn" onclick="doUpload()">Upload Now</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="doUpload()">
+        Commit now <span class="arrow">→</span>
+      </button>
     </div>
   </div>
 </div>
 
 <script>
 /* ═══════════════════════════════════════
-   FILE DETECTION RULES — SCORE-BASED
-   ═══════════════════════════════════════
-
-   Every rule defines scoring functions that return a confidence number.
-   For each file, ALL rules are evaluated. Highest total score wins.
-   No order dependency. No first-match fragility.
-
-   Scoring guideline:
-     Unique header (only this file has it):  20
-     Specific header combination:            10
-     Generic header (e.g. "date"):            2
-     Row content keyword:                     5
-     Exact filename match:                   15
-     Filename contains keyword:               8
-     Filename contains partial keyword:       4
-*/
+   DETECTION RULES (score-based, unchanged)
+   ═══════════════════════════════════════ */
 
 const DETECT_RULES = [
-  // ── INSTAGRAM ──
-  {
-    targetName: 'content.csv',
-    platform: 'instagram',
-    label: 'Content Export',
+  { targetName: 'content.csv', platform: 'instagram', label: 'Content Export',
     scoreHeaders: (h) => (has(h,'post id') ? 20 : 0) + (has(h,'publish time') ? 20 : 0),
-    scoreFilename: (f) => /^\w{3}-\d{1,2}-\d{4}_\w{3}-\d{1,2}-\d{4}_\d+\.csv$/i.test(f) ? 15 : (eq(f,'content.csv') ? 12 : 0),
-  },
-  {
-    targetName: 'Follows.csv',
-    platform: 'instagram',
-    label: 'Follows',
+    scoreFilename: (f) => /^\w{3}-\d{1,2}-\d{4}_\w{3}-\d{1,2}-\d{4}_\d+\.csv$/i.test(f) ? 15 : (eq(f,'content.csv') ? 12 : 0) },
+  { targetName: 'Follows.csv', platform: 'instagram', label: 'Follows',
     scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (rowHas(rows,'follows') && !rowHas(rows,'follower') ? 10 : 0),
-    scoreFilename: (f) => eq(f,'follows.csv') ? 15 : (inc(f,'follow') && !inc(f,'follower') ? 8 : 0),
-  },
-  {
-    targetName: 'Interactions.csv',
-    platform: 'instagram',
-    label: 'Interactions',
+    scoreFilename: (f) => eq(f,'follows.csv') ? 15 : (inc(f,'follow') && !inc(f,'follower') ? 8 : 0) },
+  { targetName: 'Interactions.csv', platform: 'instagram', label: 'Interactions',
     scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (rowHas(rows,'interaction') ? 10 : 0),
-    scoreFilename: (f) => eq(f,'interactions.csv') ? 15 : (inc(f,'interaction') ? 8 : 0),
-  },
-  {
-    targetName: 'Link clicks.csv',
-    platform: 'instagram',
-    label: 'Link Clicks',
+    scoreFilename: (f) => eq(f,'interactions.csv') ? 15 : (inc(f,'interaction') ? 8 : 0) },
+  { targetName: 'Link clicks.csv', platform: 'instagram', label: 'Link Clicks',
     scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (rowHas(rows,'link click') ? 10 : (rowHas(rows,'link') ? 5 : 0)),
-    scoreFilename: (f) => eq(f,'link clicks.csv') ? 15 : (inc(f,'link') && inc(f,'click') ? 10 : (inc(f,'link_click') || inc(f,'linkclick') ? 8 : 0)),
-  },
-  {
-    targetName: 'Reach.csv',
-    platform: 'instagram',
-    label: 'Reach',
+    scoreFilename: (f) => eq(f,'link clicks.csv') ? 15 : (inc(f,'link') && inc(f,'click') ? 10 : (inc(f,'link_click') || inc(f,'linkclick') ? 8 : 0)) },
+  { targetName: 'Reach.csv', platform: 'instagram', label: 'Reach',
     scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (has(h,'reach') ? 15 : (rowHas(rows,'reach') ? 8 : 0)),
-    scoreFilename: (f) => eq(f,'reach.csv') ? 15 : (inc(f,'reach') ? 8 : 0),
-  },
-  {
-    targetName: 'Views.csv',
-    platform: 'instagram',
-    label: 'Views',
+    scoreFilename: (f) => eq(f,'reach.csv') ? 15 : (inc(f,'reach') ? 8 : 0) },
+  { targetName: 'Views.csv', platform: 'instagram', label: 'Views',
     scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (has(h,'views') && !has(h,'video views') ? 12 : (rowHas(rows,'views') && !rowHas(rows,'video view') ? 5 : 0)),
-    scoreFilename: (f) => eq(f,'views.csv') ? 15 : 0,
-  },
-  {
-    targetName: 'Visits.csv',
-    platform: 'instagram',
-    label: 'Visits',
+    scoreFilename: (f) => eq(f,'views.csv') ? 15 : 0 },
+  { targetName: 'Visits.csv', platform: 'instagram', label: 'Visits',
     scoreHeaders: (h, rows) => (has(h,'date') ? 2 : 0) + (has(h,'visits') ? 15 : (rowHas(rows,'visit') ? 8 : 0)),
-    scoreFilename: (f) => eq(f,'visits.csv') ? 15 : (inc(f,'visit') ? 8 : 0),
-  },
-  {
-    targetName: 'Audience.csv',
-    platform: 'instagram',
-    label: 'Audience',
+    scoreFilename: (f) => eq(f,'visits.csv') ? 15 : (inc(f,'visit') ? 8 : 0) },
+  { targetName: 'Audience.csv', platform: 'instagram', label: 'Audience',
     scoreHeaders: (h) => (has(h,'country') ? 20 : 0) + (has(h,'age') ? 15 : 0) + (has(h,'city') ? 10 : 0),
-    scoreFilename: (f) => eq(f,'audience.csv') ? 15 : (inc(f,'audience') ? 8 : 0),
-  },
-
-  // ── TIKTOK ──
-  {
-    targetName: 'Content.csv',
-    platform: 'tiktok',
-    label: 'Content',
+    scoreFilename: (f) => eq(f,'audience.csv') ? 15 : (inc(f,'audience') ? 8 : 0) },
+  { targetName: 'Content.csv', platform: 'tiktok', label: 'Content',
     scoreHeaders: (h) => (has(h,'video title') ? 20 : 0) + (has(h,'total views') ? 15 : 0) + (has(h,'total likes') ? 10 : 0) + (has(h,'video link') ? 10 : 0) + (has(h,'post time') ? 10 : 0),
-    scoreFilename: (f) => eq(f,'content.csv') ? 10 : 0,
-  },
-  {
-    targetName: 'Overview.csv',
-    platform: 'tiktok',
-    label: 'Overview',
+    scoreFilename: (f) => eq(f,'content.csv') ? 10 : 0 },
+  { targetName: 'Overview.csv', platform: 'tiktok', label: 'Overview',
     scoreHeaders: (h) => (has(h,'date') ? 2 : 0) + (has(h,'video views') ? 20 : 0) + (has(h,'profile views') ? 15 : 0) + (has(h,'likes') ? 5 : 0),
-    scoreFilename: (f) => eq(f,'overview.csv') ? 15 : (inc(f,'overview') ? 8 : 0),
-  },
-  {
-    targetName: 'Viewers.csv',
-    platform: 'tiktok',
-    label: 'Viewers',
+    scoreFilename: (f) => eq(f,'overview.csv') ? 15 : (inc(f,'overview') ? 8 : 0) },
+  { targetName: 'Viewers.csv', platform: 'tiktok', label: 'Viewers',
     scoreHeaders: (h) => (has(h,'date') ? 2 : 0) + (has(h,'viewer') ? 20 : 0) + (!has(h,'video views') && !has(h,'profile views') ? 3 : 0),
-    scoreFilename: (f) => eq(f,'viewers.csv') ? 15 : (inc(f,'viewer') ? 8 : 0),
-  },
-  {
-    targetName: 'FollowerActivity.csv',
-    platform: 'tiktok',
-    label: 'Follower Activity',
+    scoreFilename: (f) => eq(f,'viewers.csv') ? 15 : (inc(f,'viewer') ? 8 : 0) },
+  { targetName: 'FollowerActivity.csv', platform: 'tiktok', label: 'Follower Activity',
     scoreHeaders: (h) => (has(h,'hour') ? 25 : 0),
-    scoreFilename: (f) => eq(f,'followeractivity.csv') ? 15 : (inc(f,'activity') ? 8 : (inc(f,'followeractivity') ? 12 : 0)),
-  },
-  {
-    targetName: 'FollowerHistory.csv',
-    platform: 'tiktok',
-    label: 'Follower History',
+    scoreFilename: (f) => eq(f,'followeractivity.csv') ? 15 : (inc(f,'activity') ? 8 : (inc(f,'followeractivity') ? 12 : 0)) },
+  { targetName: 'FollowerHistory.csv', platform: 'tiktok', label: 'Follower History',
     scoreHeaders: (h) => (has(h,'date') ? 2 : 0) + (has(h,'total followers') ? 25 : (has(h,'followers') && !has(h,'hour') && !has(h,'gender') ? 12 : 0)),
-    scoreFilename: (f) => eq(f,'followerhistory.csv') ? 15 : (inc(f,'followerhistory') ? 12 : (inc(f,'follower') && inc(f,'history') ? 8 : 0)),
-  },
-  {
-    targetName: 'FollowerGender.csv',
-    platform: 'tiktok',
-    label: 'Follower Gender',
+    scoreFilename: (f) => eq(f,'followerhistory.csv') ? 15 : (inc(f,'followerhistory') ? 12 : (inc(f,'follower') && inc(f,'history') ? 8 : 0)) },
+  { targetName: 'FollowerGender.csv', platform: 'tiktok', label: 'Follower Gender',
     scoreHeaders: (h) => (has(h,'gender') ? 25 : 0),
-    scoreFilename: (f) => eq(f,'followergender.csv') ? 15 : (inc(f,'gender') ? 8 : 0),
-  },
-  {
-    targetName: 'FollowerTopTerritories.csv',
-    platform: 'tiktok',
-    label: 'Top Territories',
+    scoreFilename: (f) => eq(f,'followergender.csv') ? 15 : (inc(f,'gender') ? 8 : 0) },
+  { targetName: 'FollowerTopTerritories.csv', platform: 'tiktok', label: 'Top Territories',
     scoreHeaders: (h) => (has(h,'territory') ? 25 : 0) + (has(h,'territories') ? 20 : 0) + (has(h,'region') ? 10 : 0),
-    scoreFilename: (f) => eq(f,'followertopterritories.csv') ? 15 : (inc(f,'territor') ? 8 : 0),
-  },
+    scoreFilename: (f) => eq(f,'followertopterritories.csv') ? 15 : (inc(f,'territor') ? 8 : 0) },
 ];
 
-// Scoring helpers
-function has(headers, text) { return headers.some(h => h.includes(text)); }
-function rowHas(rows, text) { return rows.toLowerCase().includes(text); }
-function inc(filename, text) { return filename.toLowerCase().includes(text.toLowerCase()); }
-function eq(filename, text) { return filename.toLowerCase().trim() === text.toLowerCase().trim(); }
+function has(h, t) { return h.some(x => x.includes(t)); }
+function rowHas(r, t) { return r.toLowerCase().includes(t); }
+function inc(f, t) { return f.toLowerCase().includes(t.toLowerCase()); }
+function eq(f, t) { return f.toLowerCase().trim() === t.toLowerCase().trim(); }
 
-// Minimum score to accept a match
 const MIN_SCORE = 10;
 
-/**
- * Score-based file detection.
- * Evaluates ALL rules, picks the highest-scoring match.
- * Returns { rule, score, platform } or null.
- */
 function detectFile(filename, headers, firstRows) {
   const scores = DETECT_RULES.map(rule => {
     const headerScore = rule.scoreHeaders(headers, firstRows);
     const filenameScore = rule.scoreFilename(filename);
-    return { rule, score: headerScore + filenameScore, headerScore, filenameScore };
+    return { rule, score: headerScore + filenameScore };
   });
-
-  // Sort by score descending
   scores.sort((a, b) => b.score - a.score);
-
   const best = scores[0];
-  const runnerUp = scores[1];
-
   if (!best || best.score < MIN_SCORE) return null;
-
-  return {
-    rule: best.rule,
-    score: best.score,
-    // Flag if the top two scores are very close (ambiguous)
-    ambiguous: runnerUp && runnerUp.score >= MIN_SCORE && (best.score - runnerUp.score) < 5,
-    runnerUp: runnerUp && runnerUp.score >= MIN_SCORE ? runnerUp.rule : null,
-  };
+  return { rule: best.rule, score: best.score };
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 let currentPlatform = 'instagram';
-let allFiles = { instagram: [], tiktok: [] }; // per-platform file lists
+let allFiles = { instagram: [], tiktok: [] };
 let authToken = '';
 
-/* ═══════════════════════════════════════
-   AUTH
-   ═══════════════════════════════════════ */
-
-document.getElementById('passInput').addEventListener('keydown', e => { if(e.key==='Enter') authenticate(); });
+/* ═══ AUTH ═══ */
+document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') authenticate(); });
 
 async function authenticate() {
   const pass = document.getElementById('passInput').value.trim();
   if (!pass) return showAuthStatus('Please enter the password', 'err');
   const btn = document.getElementById('authBtn');
-  btn.disabled = true; btn.textContent = 'Verifying...';
+  btn.disabled = true; btn.innerHTML = 'Verifying…';
   try {
     const res = await fetch('/api/analytics/upload', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({action: 'auth', password: pass})
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'auth', password: pass })
     });
-    // Check if we got HTML back (= function not deployed, 404 page)
     const ct = res.headers.get('content-type') || '';
     if (!ct.includes('json')) {
-      showAuthStatus('Upload API not available (HTTP ' + res.status + '). This usually means the Cloudflare Function is not deployed. Check: 1) functions/api/analytics/upload.js exists in reports/ 2) Cloudflare env vars are set 3) Redeploy the site.', 'err');
-      btn.disabled = false; btn.textContent = 'Sign In';
-      return;
+      showAuthStatus('Upload API unavailable (HTTP ' + res.status + '). The function may not be deployed.', 'err');
+      btn.disabled = false; btn.innerHTML = 'Authenticate <span class="arrow">→</span>'; return;
     }
     const data = await res.json();
     if (data.ok) {
@@ -449,10 +515,10 @@ async function authenticate() {
     } else {
       showAuthStatus(data.error || 'Wrong password', 'err');
     }
-  } catch(e) {
-    showAuthStatus('Cannot connect to /api/analytics/upload — Error: ' + e.message, 'err');
+  } catch (e) {
+    showAuthStatus('Cannot reach /api/analytics/upload: ' + e.message, 'err');
   }
-  btn.disabled = false; btn.textContent = 'Sign In';
+  btn.disabled = false; btn.innerHTML = 'Authenticate <span class="arrow">→</span>';
 }
 
 function logout() {
@@ -468,13 +534,12 @@ function logout() {
 
 function showAuthStatus(msg, type) {
   const el = document.getElementById('authStatus');
-  el.textContent = msg; el.className = 'status ' + type;
+  const icon = type === 'err' ? '!' : type === 'ok' ? '✓' : 'i';
+  renderStatusMessage(el, icon, msg);
+  el.className = 'status ' + type;
 }
 
-/* ═══════════════════════════════════════
-   PLATFORM SELECTION
-   ═══════════════════════════════════════ */
-
+/* ═══ PLATFORM ═══ */
 function selectPlatform(platform, tab) {
   currentPlatform = platform;
   document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
@@ -491,22 +556,13 @@ function updateTabBadges() {
     const count = allFiles[p].filter(f => f.status === 'ok').length;
     let badge = tab.querySelector('.ptab-badge');
     if (count > 0) {
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'ptab-badge';
-        tab.appendChild(badge);
-      }
+      if (!badge) { badge = document.createElement('span'); badge.className = 'ptab-badge'; tab.appendChild(badge); }
       badge.textContent = count;
-    } else if (badge) {
-      badge.remove();
-    }
+    } else if (badge) badge.remove();
   });
 }
 
-/* ═══════════════════════════════════════
-   FILE HANDLING & AUTO-DETECTION
-   ═══════════════════════════════════════ */
-
+/* ═══ FILES ═══ */
 const dz = document.getElementById('dropzone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
@@ -520,64 +576,40 @@ async function readFileHead(file) {
       const lines = text.split('\n');
       const headerLine = (lines[0] || '').replace(/"/g, '').replace(/\ufeff/g, '').trim();
       const headers = headerLine.split(',').map(h => h.trim().toLowerCase());
-      const firstRows = lines.slice(0, 5).join('\n');
-      resolve({headers, firstRows});
+      resolve({ headers, firstRows: lines.slice(0, 5).join('\n') });
     };
-    reader.onerror = () => resolve({headers: [], firstRows: ''});
+    reader.onerror = () => resolve({ headers: [], firstRows: '' });
     reader.readAsText(file.slice(0, 4096));
   });
 }
 
 async function handleFiles(files) {
   const list = allFiles[currentPlatform];
-
   for (const file of files) {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      list.push({file, rule: null, status: 'err', errMsg: 'Not a CSV file'});
-      continue;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      list.push({file, rule: null, status: 'err', errMsg: 'File too large (max 5MB)'});
-      continue;
-    }
-
-    const {headers, firstRows} = await readFileHead(file);
+    if (!file.name.toLowerCase().endsWith('.csv')) { list.push({ file, rule: null, status: 'err', errMsg: 'Not a CSV file' }); continue; }
+    if (file.size > MAX_FILE_SIZE) { list.push({ file, rule: null, status: 'err', errMsg: 'File too large (max 5MB)' }); continue; }
+    const { headers, firstRows } = await readFileHead(file);
     const match = detectFile(file.name, headers, firstRows);
-
     let found;
-
-    if (!match) {
-      // No rule scored above threshold
-      found = {file, rule: null, status: 'err', errMsg: 'Could not identify this file. Make sure it\'s a valid analytics export.'};
-    } else if (match.rule.platform !== currentPlatform) {
-      // Best match belongs to the other platform
+    if (!match) found = { file, rule: null, status: 'err', errMsg: 'Could not identify this file. Make sure it is a valid analytics export.' };
+    else if (match.rule.platform !== currentPlatform) {
       const otherName = match.rule.platform === 'instagram' ? 'Instagram' : 'TikTok';
-      found = {file, rule: match.rule, status: 'warn', warnMsg: `This looks like a ${otherName} file (${match.rule.label}). Switch to the ${otherName} tab to upload it.`};
+      found = { file, rule: match.rule, status: 'warn', warnMsg: `This looks like a ${otherName} file (${match.rule.label}). Switch to the ${otherName} tab.` };
     } else {
-      // Good match on current platform
-      found = {file, rule: match.rule, status: 'ok'};
+      found = { file, rule: match.rule, status: 'ok' };
     }
-
-    // Check duplicate within this platform
     if (found.status === 'ok') {
       const dup = list.find(d => d.rule && d.rule.targetName === found.rule.targetName && d.status === 'ok');
-      if (dup) {
-        found = {file, rule: found.rule, status: 'err', errMsg: `"${found.rule.label}" already added`};
-      }
+      if (dup) found = { file, rule: found.rule, status: 'err', errMsg: `"${found.rule.label}" already added` };
     }
-
     list.push(found);
   }
-
   document.getElementById('fileInput').value = '';
   renderFiles();
   updateStepState();
-};
+}
 
-/* ═══════════════════════════════════════
-   RENDER FILE LIST
-   ═══════════════════════════════════════ */
-
+/* ═══ RENDER ═══ */
 function renderFiles() {
   const list = document.getElementById('fileList');
   list.innerHTML = '';
@@ -586,32 +618,32 @@ function renderFiles() {
   files.forEach((d, i) => {
     const div = document.createElement('div');
     div.className = 'file-item ' + d.status;
-
-    let icon = d.status === 'ok' ? '✅' : d.status === 'warn' ? '⚠️' : '❌';
-    let badge = '', body = '';
-    const sizeStr = d.file.size ? (d.file.size < 1024*1024 ? (d.file.size/1024).toFixed(1)+' KB' : (d.file.size/1024/1024).toFixed(1)+' MB') : '';
-
+    const sizeStr = d.file.size ? (d.file.size < 1024 * 1024 ? (d.file.size / 1024).toFixed(1) + ' KB' : (d.file.size / 1024 / 1024).toFixed(1) + ' MB') : '';
+    let icon = '', badge = '', body = '';
     if (d.status === 'ok') {
-      badge = '<span class="fi-badge badge-ok">Detected</span>';
-      body = `<div class="fi-detected">${d.rule.label}</div>
-              <div class="fi-orig">${d.file.name} <span class="fi-arrow">→</span> ${d.rule.targetName} <span class="fi-size">${sizeStr}</span></div>`;
+      icon = '✓'; badge = '<span class="fi-badge badge-ok">Detected</span>';
+            body = `<div class="fi-detected">${esc(d.rule.label)}</div>
+              <div class="fi-orig">${esc(d.file.name)} <span class="fi-arrow">→</span> ${esc(d.rule.targetName)} <span class="fi-size">${sizeStr}</span></div>`;
     } else if (d.status === 'warn') {
-      badge = '<span class="fi-badge badge-warn">Wrong platform?</span>';
-      body = `<div class="fi-detected">${d.file.name}</div>
-              <div class="fi-warn-msg">${d.warnMsg}</div>`;
+      icon = '!'; badge = '<span class="fi-badge badge-warn">Wrong platform</span>';
+      body = `<div class="fi-detected">${esc(d.file.name)}</div>
+              <div class="fi-warn-msg">${esc(d.warnMsg)}</div>`;
     } else {
-      badge = '<span class="fi-badge badge-err">Error</span>';
-      body = `<div class="fi-detected">${d.file.name}</div>
-              <div class="fi-orig" style="color:#c53030">${d.errMsg}</div>`;
+      icon = '✕'; badge = '<span class="fi-badge badge-err">Error</span>';
+      body = `<div class="fi-detected">${esc(d.file.name)}</div>
+              <div class="fi-orig" style="color:var(--danger)">${esc(d.errMsg)}</div>`;
     }
-
-    div.innerHTML = `<span class="fi-icon">${icon}</span><div class="fi-body">${body}</div>${badge}<span class="fi-remove" onclick="removeFile('${currentPlatform}',${i})">✕</span>`;
+    div.innerHTML = `<span class="fi-icon">${icon}</span><div class="fi-body">${body}</div>${badge}<span class="fi-remove">✕</span>`;
+    const removeButton = div.querySelector('.fi-remove');
+    removeButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      removeFile(currentPlatform, i);
+    });
     list.appendChild(div);
   });
 
   updateTabBadges();
-  const totalOk = allFiles.instagram.filter(f => f.status === 'ok').length + allFiles.tiktok.filter(f => f.status === 'ok').length;
-  document.getElementById('uploadBtn').disabled = totalOk === 0;
+  document.getElementById('uploadBtn').disabled = getTotalOkCount() === 0;
 }
 
 function removeFile(platform, index) {
@@ -630,10 +662,6 @@ function updateStepState() {
   document.getElementById('uploadBtn').disabled = total === 0;
 }
 
-/* ═══════════════════════════════════════
-   STEP BAR
-   ═══════════════════════════════════════ */
-
 function updateSteps(active) {
   for (let i = 1; i <= 3; i++) {
     const el = document.getElementById('step' + i);
@@ -641,107 +669,79 @@ function updateSteps(active) {
   }
 }
 
-/* ═══════════════════════════════════════
-   CONFIRM & UPLOAD
-   ═══════════════════════════════════════ */
-
+/* ═══ CONFIRM & UPLOAD ═══ */
 function showConfirm() {
   if (getTotalOkCount() === 0) return;
-
   const list = document.getElementById('confirmList');
+  const fileIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3 L14 3 L19 8 L19 21 L6 21 Z"/><path d="M14 3 L14 8 L19 8"/></svg>';
   let html = '';
-  let totalFiles = 0;
-
   for (const platform of ['instagram', 'tiktok']) {
     const okFiles = allFiles[platform].filter(f => f.status === 'ok');
-    if (okFiles.length === 0) continue;
-    const pName = platform === 'instagram' ? '📸 Instagram' : '🎵 TikTok';
-    html += `<div class="confirm-plat">${pName} — ${okFiles.length} file(s)</div>`;
-    html += okFiles.map(d =>
-      `<div class="confirm-item">
-        <span class="ci-icon">📄</span>
+    if (!okFiles.length) continue;
+    const pName = platform === 'instagram' ? 'Instagram' : 'TikTok';
+    html += `<div class="confirm-plat">${pName} · ${okFiles.length} file${okFiles.length !== 1 ? 's' : ''}</div>`;
+    html += okFiles.map(d => `
+      <div class="confirm-item">
+        <span class="ci-icon">${fileIcon}</span>
         <div class="ci-body">
-          <span class="ci-name">${d.rule.label}</span>
-          <span class="ci-dest">${d.file.name} → data/${platform}/${d.rule.targetName}</span>
+          <span class="ci-name">${esc(d.rule.label)}</span>
+          <span class="ci-dest">${esc(d.file.name)} → data/${platform}/${esc(d.rule.targetName)}</span>
         </div>
-      </div>`
-    ).join('');
-    totalFiles += okFiles.length;
+      </div>`).join('');
   }
-
   document.getElementById('confirmPlatform').textContent =
-    (allFiles.instagram.some(f => f.status === 'ok') && allFiles.tiktok.some(f => f.status === 'ok'))
-      ? 'Instagram & TikTok'
-      : allFiles.instagram.some(f => f.status === 'ok') ? 'Instagram' : 'TikTok';
-
+    (allFiles.instagram.some(f => f.status === 'ok') && allFiles.tiktok.some(f => f.status === 'ok')) ? 'Instagram & TikTok'
+    : allFiles.instagram.some(f => f.status === 'ok') ? 'Instagram' : 'TikTok';
   list.innerHTML = html;
   document.getElementById('confirmOverlay').classList.add('show');
 }
 
-function hideConfirm() {
-  document.getElementById('confirmOverlay').classList.remove('show');
-}
+function hideConfirm() { document.getElementById('confirmOverlay').classList.remove('show'); }
 
 async function doUpload() {
   hideConfirm();
-
-  // Collect all ok files with their platform
   const toUpload = [];
-  for (const platform of ['instagram', 'tiktok']) {
-    for (const d of allFiles[platform].filter(f => f.status === 'ok')) {
-      toUpload.push({...d, platform});
-    }
-  }
-  if (toUpload.length === 0) return;
-
+  for (const platform of ['instagram', 'tiktok'])
+    for (const d of allFiles[platform].filter(f => f.status === 'ok'))
+      toUpload.push({ ...d, platform });
+  if (!toUpload.length) return;
   const btn = document.getElementById('uploadBtn');
   btn.disabled = true;
-  showUploadStatus('Preparing files...', 'uploading');
+  showUploadStatus('Preparing files…', 'uploading');
   showProgress(true);
   updateSteps(3);
 
-  // Read all files to base64 first
   const files = [];
   for (let i = 0; i < toUpload.length; i++) {
     const d = toUpload[i];
-    updateProgress(i, toUpload.length + 1, `Reading ${d.rule.label}...`);
+    updateProgress(i, toUpload.length + 1, `Reading ${d.rule.label}…`);
     try {
       const content = await readFileBase64(d.file);
       files.push({ platform: d.platform, filename: d.rule.targetName, content });
-    } catch(e) {
-      showUploadStatus(`❌ Failed to read ${d.rule.label}: ${e.message}`, 'err');
-      btn.disabled = false;
-      setTimeout(() => showProgress(false), 1000);
-      return;
+    } catch (e) {
+      showUploadStatus(`Failed to read ${d.rule.label}: ${e.message}`, 'err');
+      btn.disabled = false; setTimeout(() => showProgress(false), 1000); return;
     }
   }
-
-  // Send all files in one request → one commit
-  updateProgress(toUpload.length, toUpload.length + 1, `Uploading ${files.length} files as one commit...`);
+  updateProgress(toUpload.length, toUpload.length + 1, `Committing ${files.length} file${files.length !== 1 ? 's' : ''}…`);
   try {
     const res = await fetch('/api/analytics/upload', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        action: 'upload_batch',
-        token: authToken,
-        files,
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'upload_batch', token: authToken, files })
     });
     const data = await res.json();
     if (data.ok) {
-      updateProgress(1, 1, 'Done!');
-      showUploadStatus(`✅ ${files.length} file(s) uploaded in a single commit! The analytics pipeline will run automatically and the report will update in ~5 minutes.`, 'ok');
+      updateProgress(1, 1, 'Committed');
+      showUploadStatus(`${files.length} file${files.length !== 1 ? 's' : ''} committed. The pipeline will now run; the report updates in approximately 5 minutes.`, 'ok');
       allFiles = { instagram: [], tiktok: [] };
       renderFiles();
       updateSteps(1);
     } else {
-      showUploadStatus(`❌ Upload failed: ${data.error}`, 'err');
+      showUploadStatus(`Upload failed: ${data.error}`, 'err');
     }
-  } catch(e) {
-    showUploadStatus(`❌ Upload failed: ${e.message}`, 'err');
+  } catch (e) {
+    showUploadStatus(`Upload failed: ${e.message}`, 'err');
   }
-
   btn.disabled = false;
   setTimeout(() => showProgress(false), 2000);
 }
@@ -757,24 +757,36 @@ function readFileBase64(file) {
 
 function showUploadStatus(msg, type) {
   const el = document.getElementById('uploadStatus');
-  el.innerHTML = msg; el.className = 'status ' + (type || '');
+  if (!msg) { el.innerHTML = ''; el.className = 'status'; return; }
+  const icon = type === 'err' ? '!' : type === 'ok' ? '✓' : type === 'uploading' ? '●' : 'i';
+  renderStatusMessage(el, icon, msg);
+  el.className = 'status ' + (type || '');
 }
 function showProgress(show) { document.getElementById('progressWrap').style.display = show ? 'block' : 'none'; }
 function updateProgress(current, total, text) {
-  document.getElementById('progressFill').style.width = Math.round((current/total)*100) + '%';
+  document.getElementById('progressFill').style.width = Math.round((current / total) * 100) + '%';
   document.getElementById('progressText').textContent = text;
 }
 
-// Show back-to-report only if report.html exists on the server.
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function renderStatusMessage(el, icon, message) {
+  el.textContent = '';
+  const iconNode = document.createElement('span');
+  iconNode.className = 'status-icon';
+  iconNode.textContent = icon;
+  const textNode = document.createElement('span');
+  textNode.textContent = message;
+  el.appendChild(iconNode);
+  el.appendChild(textNode);
+}
+
 async function ensureBackLink() {
   try {
     const res = await fetch('/analytics/report.html', { method: 'HEAD' });
     if (res.ok) document.getElementById('backReportLink').style.display = 'inline';
-  } catch (err) {
-    // keep hidden when unavailable
-  }
+  } catch {}
 }
-
 ensureBackLink();
 </script>
 </body>

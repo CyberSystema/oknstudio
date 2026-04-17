@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    OKN Studio — Favicon
+    ─────────────────────
+    Signal Studio identity: the network-cross mark
+    matches the brand mark used in every page chrome.
+
+    Four peripheral nodes + one glowing center node,
+    connected by orthogonal signal paths. Reads as both
+    a network graph and, subtly, a cross — without being
+    religious iconography.
+
+    Deep ink rounded square (#0a0f14) ensures visibility
+    against any browser theme (light or dark tabs).
+
+    Optimised for rendering at 16×16, 32×32, 48×48, 180×180.
+  -->
+
+  <!-- Deep ink background — rounded rect matches the site's 6px radii -->
+  <rect width="32" height="32" rx="6" fill="#0a0f14"/>
+
+  <!-- Subtle inner signal edge — reads as a halo at larger sizes,
+       invisible at 16×16 which is the intended graceful degradation -->
+  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="5.25"
+        fill="none" stroke="#5eead4" stroke-opacity="0.14" stroke-width="0.75"/>
+
+  <!-- Connecting arms — thick enough to hold at 16px, with small
+       gaps between arm-ends and nodes so it reads as network (not cross) -->
+  <g stroke="#5eead4" stroke-width="2" stroke-linecap="round">
+    <line x1="16" y1="7"  x2="16" y2="12"/>
+    <line x1="16" y1="20" x2="16" y2="25"/>
+    <line x1="7"  y1="16" x2="12" y2="16"/>
+    <line x1="20" y1="16" x2="25" y2="16"/>
+  </g>
+
+  <!-- Four peripheral nodes — solid teal dots at cardinal points -->
+  <g fill="#5eead4">
+    <circle cx="16" cy="5"  r="2.2"/>
+    <circle cx="16" cy="27" r="2.2"/>
+    <circle cx="5"  cy="16" r="2.2"/>
+    <circle cx="27" cy="16" r="2.2"/>
+  </g>
+
+  <!-- Central hub — the glowing core of the network -->
+  <circle cx="16" cy="16" r="3.5" fill="#5eead4"/>
+
+  <!-- Inner dark pinprick — subtle detail hinting at the "center node with
+       signal passing through". Readable at 32+ but gracefully disappears at 16. -->
+  <circle cx="16" cy="16" r="0.9" fill="#0a0f14"/>
+</svg>

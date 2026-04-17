@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Colophon — OKN Studio</title>
+<meta name="description" content="Design system, typography, palette, and stack — a reference for how OKN Studio is built.">
+<meta name="theme-color" content="#0a0f14">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="mask-icon" href="/favicon.svg" color="#5eead4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════
+   OKN STUDIO / Colophon
+   Design system reference — Signal Studio
+   ══════════════════════════════════════════════════════ */
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0a0f14;--bg-2:#0e141b;--bg-3:#121821;--bg-4:#1a2230;
+  --signal:#5eead4;--signal-bright:#a7f3d0;--signal-dim:rgba(94,234,212,0.12);
+  --signal-deep:#14b8a6;
+  --info:#60a5fa;--warn:#fbbf24;--danger:#f87171;--purple:#a78bfa;
+  --text:#e8edf2;--text-dim:rgba(232,237,242,0.55);
+  --text-faint:rgba(232,237,242,0.32);--text-ghost:rgba(232,237,242,0.18);
+  --line:rgba(255,255,255,0.06);--line-2:rgba(255,255,255,0.1);
+  --line-signal:rgba(94,234,212,0.25);
+  --surface:rgba(255,255,255,0.025);--surface-2:rgba(255,255,255,0.05);
+  --font-display:'Sora',sans-serif;
+  --font-body:'IBM Plex Sans','Noto Sans KR',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.55;font-feature-settings:'ss01'}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%)}
+body::after{content:'';position:fixed;top:-300px;right:-300px;width:900px;height:900px;background:radial-gradient(circle,rgba(94,234,212,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* ══ Chrome ══ */
+.chrome{position:sticky;top:0;z-index:50;background:rgba(10,15,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.chrome-inner{max-width:1200px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);flex-shrink:0}
+.brand svg{width:20px;height:20px}
+.brand .slash{color:var(--text-ghost)}
+.brand .studio{color:var(--signal)}
+.back{display:flex;align-items:center;gap:8px;padding:7px 12px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid transparent;border-radius:3px;transition:all 0.2s;flex-shrink:0}
+.back:hover{color:var(--signal);border-color:var(--line-2);background:var(--surface)}
+.divider{width:1px;height:16px;background:var(--line);flex-shrink:0}
+.path{color:var(--text-faint);letter-spacing:0.06em}
+.path .seg-active{color:var(--signal)}
+.version{margin-left:auto;font-family:var(--font-mono);font-size:10px;letter-spacing:0.14em;color:var(--text-faint);text-transform:uppercase}
+.version .v{color:var(--signal)}
+
+/* ══ Layout ══ */
+.wrap{max-width:1200px;margin:0 auto;padding:72px 40px 80px;position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;gap:72px;align-items:start}
+
+/* ── Sidebar ── */
+.sidenav{position:sticky;top:100px;border-left:1px solid var(--line-signal);padding-left:24px}
+.sidenav h4{font-family:var(--font-mono);font-size:9px;letter-spacing:0.24em;color:var(--signal);text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.sidenav h4::before{content:'■';font-size:9px;color:var(--signal)}
+.sidenav ol{list-style:none;counter-reset:sn}
+.sidenav ol li{counter-increment:sn}
+.sidenav a{display:flex;align-items:baseline;gap:10px;padding:9px 0;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;color:var(--text-faint);text-decoration:none;text-transform:uppercase;transition:color 0.15s;border-bottom:1px solid var(--line)}
+.sidenav li:last-child a{border-bottom:none}
+.sidenav a::before{content:counter(sn,decimal-leading-zero);color:var(--text-ghost);font-size:10px;width:18px;flex-shrink:0}
+.sidenav a:hover{color:var(--text)}
+.sidenav a.active{color:var(--signal)}
+.sidenav a.active::before{color:var(--signal)}
+
+/* ── Content ── */
+.content{min-width:0}
+
+/* Hero */
+.hero{margin-bottom:88px;padding-bottom:48px;border-bottom:1px solid var(--line)}
+.hero-kicker{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid var(--line-signal);background:var(--signal-dim);border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--signal);margin-bottom:28px}
+.hero-kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.hero h1{font-family:var(--font-display);font-size:clamp(56px,8vw,96px);font-weight:400;letter-spacing:-0.035em;line-height:0.95;color:var(--text);margin-bottom:24px}
+.hero h1 .accent{color:var(--signal);font-weight:500}
+.hero .lede{font-size:19px;color:var(--text-dim);line-height:1.6;max-width:56ch;font-weight:300}
+.hero .lede strong{color:var(--text);font-weight:500}
+.hero .lede em{color:var(--signal);font-style:normal}
+
+/* Section */
+section{margin-bottom:96px;scroll-margin-top:96px}
+.sec-num{font-family:var(--font-mono);font-size:11px;letter-spacing:0.2em;color:var(--signal);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-num::before{content:'';width:24px;height:1px;background:var(--signal)}
+.sec-title{font-family:var(--font-display);font-size:clamp(36px,4.5vw,52px);font-weight:400;letter-spacing:-0.025em;line-height:1;color:var(--text);margin-bottom:20px}
+.sec-title .accent{color:var(--signal);font-weight:500}
+.sec-intro{font-size:17px;color:var(--text-dim);line-height:1.6;max-width:56ch;margin-bottom:44px;font-weight:300}
+
+/* Prose */
+.prose p{font-size:17px;line-height:1.65;color:var(--text-dim);margin-bottom:22px;max-width:60ch;font-weight:300}
+.prose p strong{color:var(--text);font-weight:500}
+.prose p em{color:var(--signal);font-style:normal;font-weight:500}
+.prose p code{font-family:var(--font-mono);font-size:0.9em;padding:1px 6px;border-radius:3px;background:var(--surface-2);color:var(--signal);border:1px solid var(--line)}
+
+/* ── Type specimens ── */
+.specimen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.specimen{padding:28px 26px;background:var(--bg-2);border:1px solid var(--line);border-radius:6px;position:relative;overflow:hidden}
+.specimen::before{content:'';position:absolute;top:0;left:0;width:18px;height:18px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.4}
+.specimen-label{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px;margin-bottom:22px;border-bottom:1px solid var(--line)}
+.specimen-role{font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;color:var(--signal);text-transform:uppercase}
+.specimen-name{font-family:var(--font-mono);font-size:10px;letter-spacing:0.05em;color:var(--text-faint);text-transform:uppercase}
+.specimen-aa{font-family:var(--font-display);font-weight:400;font-size:104px;line-height:1;color:var(--text);margin-bottom:18px;letter-spacing:-0.04em}
+.specimen-aa.body{font-family:var(--font-body);font-weight:500}
+.specimen-aa.mono{font-family:var(--font-mono);font-size:88px;font-weight:500;letter-spacing:-0.02em}
+.specimen-sample{font-size:15px;line-height:1.5;color:var(--text-dim);margin-bottom:16px;font-weight:300}
+.specimen-sample.display{font-family:var(--font-display);font-size:18px;font-weight:400;color:var(--text)}
+.specimen-sample.mono{font-family:var(--font-mono);font-size:12px;letter-spacing:0.02em;color:var(--text-dim)}
+.specimen-weights{display:flex;gap:4px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
+.wchip{padding:3px 9px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--text-faint);border:1px solid var(--line-2);border-radius:3px;text-transform:uppercase}
+.wchip.on{color:var(--signal);border-color:var(--line-signal);background:var(--signal-dim)}
+
+/* ── Palette ── */
+.palette-group{margin-bottom:28px}
+.palette-group-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;color:var(--text-faint);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.palette-group-label::before{content:'→';color:var(--signal)}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.swatch{background:var(--bg-2);padding:0}
+.swatch-chip{height:76px;position:relative}
+.swatch-chip::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.18)}
+.swatch-chip .ring{position:absolute;inset:6px;border:1px solid rgba(255,255,255,0.08);pointer-events:none}
+.swatch-info{padding:13px 16px}
+.swatch-name{font-family:var(--font-display);font-size:15px;color:var(--text);font-weight:500;letter-spacing:-0.005em;margin-bottom:2px}
+.swatch-hex{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-faint);text-transform:uppercase}
+.swatch-var{font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;color:var(--signal);margin-top:4px}
+
+/* ── Components ── */
+.demo{padding:28px 28px;background:var(--bg-2);border:1px solid var(--line);border-radius:6px;margin-bottom:14px;position:relative;overflow:hidden}
+.demo::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent);opacity:0.4}
+.demo-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;color:var(--text-faint);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.demo-label::before{content:'◆';color:var(--signal);font-size:8px}
+.demo-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* demo buttons */
+.btn-demo{display:inline-flex;align-items:center;gap:10px;padding:12px 22px;font-family:var(--font-body);font-weight:500;font-size:13px;letter-spacing:0.01em;text-decoration:none;border-radius:3px;cursor:pointer;transition:all 0.2s;border:1px solid transparent}
+.btn-demo .arr{font-family:var(--font-mono);transition:transform 0.2s}
+.btn-demo:hover .arr{transform:translateX(3px)}
+.btn-demo.primary{background:var(--signal);color:var(--bg);font-weight:600}
+.btn-demo.primary:hover{background:var(--signal-bright)}
+.btn-demo.outline{background:transparent;color:var(--signal);border-color:var(--line-signal)}
+.btn-demo.outline:hover{background:var(--signal-dim);color:var(--signal-bright)}
+.btn-demo.ghost{background:transparent;color:var(--text-dim);border-color:var(--line-2)}
+.btn-demo.ghost:hover{color:var(--text);border-color:var(--text-faint)}
+
+/* tags */
+.tag-demo{display:inline-flex;align-items:center;padding:3px 8px;border-radius:2px;font-family:var(--font-mono);font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;border:1px solid transparent}
+.tag-demo.image{background:rgba(96,165,250,0.1);color:var(--info);border-color:rgba(96,165,250,0.2)}
+.tag-demo.video{background:rgba(248,113,113,0.08);color:var(--danger);border-color:rgba(248,113,113,0.2)}
+.tag-demo.audio{background:rgba(167,139,250,0.08);color:var(--purple);border-color:rgba(167,139,250,0.2)}
+.tag-demo.document{background:rgba(94,234,212,0.08);color:var(--signal);border-color:rgba(94,234,212,0.2)}
+.tag-demo.design{background:rgba(251,191,36,0.08);color:var(--warn);border-color:rgba(251,191,36,0.25)}
+.tag-demo.folder{background:var(--signal-dim);color:var(--signal);border-color:var(--line-signal)}
+
+/* status dots */
+.status-demo{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid;border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase}
+.status-demo .dt{width:6px;height:6px;border-radius:50%}
+.status-demo.live{color:var(--signal);border-color:var(--line-signal);background:var(--signal-dim)}
+.status-demo.live .dt{background:var(--signal);box-shadow:0 0 8px var(--signal);animation:pulse 2s ease-in-out infinite}
+.status-demo.warn{color:var(--warn);border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.06)}
+.status-demo.warn .dt{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.status-demo.err{color:var(--danger);border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.05)}
+.status-demo.err .dt{background:var(--danger)}
+.status-demo.idle{color:var(--text-faint);border-color:var(--line-2);background:var(--surface)}
+.status-demo.idle .dt{background:var(--text-faint)}
+
+/* kicker pill */
+.kicker-demo{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid var(--line-signal);background:var(--signal-dim);border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--signal)}
+.kicker-demo .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+
+/* console frame demo */
+.console-demo{width:100%;max-width:380px;background:var(--bg-3);border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+.console-demo::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
+.console-demo-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--line)}
+.console-demo-bar .dots{display:flex;gap:5px;margin-right:6px}
+.console-demo-bar .dots span{width:7px;height:7px;border-radius:50%}
+.console-demo-bar .dots span:nth-child(1){background:#ef4444}
+.console-demo-bar .dots span:nth-child(2){background:var(--warn)}
+.console-demo-bar .dots span:nth-child(3){background:var(--signal)}
+.console-demo-bar .p{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:0.08em}
+.console-demo-body{padding:28px 16px;font-family:var(--font-mono);font-size:11px;color:var(--text-faint);letter-spacing:0.08em;text-align:center}
+.console-demo-body .hd{display:flex;align-items:center;gap:8px;justify-content:center}
+.console-demo-body .d{width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.console-demo-body .v{color:var(--signal)}
+
+/* rule demo */
+.rule-demo{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent);position:relative}
+
+/* ── Stack grid ── */
+.stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.stack-cell{background:var(--bg-2);padding:24px 24px;position:relative}
+.stack-cell::before{content:'';position:absolute;top:0;left:0;width:14px;height:14px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.3}
+.stack-role{font-family:var(--font-mono);font-size:9px;letter-spacing:0.24em;color:var(--signal);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.stack-role .n{color:var(--text-faint)}
+.stack-name{font-family:var(--font-display);font-size:20px;font-weight:500;letter-spacing:-0.015em;color:var(--text);margin-bottom:6px;line-height:1.2}
+.stack-note{font-size:13px;color:var(--text-dim);line-height:1.5}
+
+/* ── Keys table ── */
+.keys{width:100%;border-collapse:collapse;font-family:var(--font-body)}
+.keys td{padding:16px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.keys td:first-child{width:170px;white-space:nowrap}
+.keys tr:last-child td{border-bottom:none}
+.kbd{display:inline-block;padding:4px 9px;background:var(--bg-3);border:1px solid var(--line-2);border-radius:3px;font-family:var(--font-mono);font-size:11px;color:var(--signal);letter-spacing:0.02em;font-weight:500;min-width:22px;text-align:center}
+.kbd + .kbd{margin-left:3px}
+.key-desc{font-size:15px;color:var(--text-dim)}
+.key-desc code{font-family:var(--font-mono);font-size:0.9em;color:var(--signal)}
+
+/* ── Foot ── */
+.foot{margin-top:96px;padding-top:32px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint)}
+.foot a{color:var(--signal);text-decoration:none}
+.foot a:hover{color:var(--signal-bright)}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr;gap:40px;padding:56px 24px 64px}
+  .sidenav{position:static;border-left:none;border-top:1px solid var(--line-signal);padding:20px 0 0 0;display:flex;flex-wrap:wrap;gap:6px}
+  .sidenav h4{width:100%;margin-bottom:10px}
+  .sidenav ol{display:flex;flex-wrap:wrap;gap:6px;counter-reset:sn}
+  .sidenav a{padding:6px 12px;border:1px solid var(--line-2);border-radius:3px;border-bottom:1px solid var(--line-2)}
+}
+@media(max-width:640px){
+  .chrome-inner{padding:10px 20px;flex-wrap:wrap}
+  .version{order:10}
+  .wrap{padding:48px 20px 56px}
+  .hero{margin-bottom:64px;padding-bottom:36px}
+  .hero .lede{font-size:16px}
+  section{margin-bottom:72px}
+  .prose p{font-size:16px}
+  .specimen-aa{font-size:80px}
+  .specimen-aa.mono{font-size:68px}
+  .foot{flex-direction:column;text-align:center}
+  .path{display:none}
+}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="chrome-inner">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
+        <line x1="16" y1="4" x2="16" y2="12"/><line x1="16" y1="20" x2="16" y2="28"/>
+        <line x1="4" y1="16" x2="12" y2="16"/><line x1="20" y1="16" x2="28" y2="16"/>
+        <circle cx="16" cy="4" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="28" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="4" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="28" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"/>
+      </svg>
+      <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+    </div>
+    <div class="divider"></div>
+    <a href="/" class="back">← Studio</a>
+    <div class="divider"></div>
+    <span class="path">/<span class="seg-active">colophon</span></span>
+    <span class="version">DESIGN SYSTEM <span class="v">v3.0</span></span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidenav" aria-label="Colophon sections">
+    <h4>Sections</h4>
+    <ol>
+      <li><a href="#preface" class="active">Preface</a></li>
+      <li><a href="#typefaces">Typefaces</a></li>
+      <li><a href="#palette">Palette</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#shortcuts">Shortcuts</a></li>
+      <li><a href="#credits">Credits</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-kicker"><span class="dot"></span>Colophon · Reference Sheet</div>
+      <h1>About <span class="accent">this system.</span></h1>
+      <p class="lede">
+        A plain record of how OKN Studio is drawn, set, and assembled —
+        <strong>typefaces, palette, components, and infrastructure</strong>. Read it as a reference,
+        or as an appendix to the work. <em>Everything visible on this site lives here, defined once.</em>
+      </p>
+    </div>
+
+    <!-- ═══ 01 · Preface ═══ -->
+    <section id="preface">
+      <div class="sec-num">01 · Preface</div>
+      <h2 class="sec-title">On the <span class="accent">intent</span>.</h2>
+      <div class="prose">
+        <p>
+          OKN Studio is the integrated workbench for the social team of the <strong>Orthodox Metropolis of Korea</strong> &mdash;
+          <em>not a product, not a platform</em>, but a private workshop of <strong>four modules</strong> that fit together:
+          analytics, a media pool, a data-ingest pipeline, and (forthcoming) a liturgical-editorial calendar.
+        </p>
+        <p>
+          The visual language is tech-forward by design. The team's work is digital; the infrastructure underneath is digital;
+          the right aesthetic is one that <strong>respects that</strong>. A broadcast-engineering console meets a modern developer tool &mdash;
+          dark, precise, legible, with a single confident accent.
+        </p>
+        <p>
+          Every module ships with the same vocabulary: a <code>--signal</code> mint-teal for interactive elements, a monospace
+          for labels and paths, a geometric network mark that doubles as the brand. The result is a small surface area &mdash;
+          <em>one system, one voice, one aesthetic</em> &mdash; so each instrument feels like part of the same studio.
+        </p>
+        <p>
+          All static HTML, served from Cloudflare's edge, with a handful of Functions behind for authentication and media proxy.
+          <strong>No build step, no framework, no tracker.</strong> The entire site is smaller than most single hero images on the modern web.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══ 02 · Typefaces ═══ -->
+    <section id="typefaces">
+      <div class="sec-num">02 · Typefaces</div>
+      <h2 class="sec-title">Three <span class="accent">typefaces</span>.</h2>
+      <p class="sec-intro">
+        A geometric sans for display, a humanist grotesque for body and UI, a precise monospace for data and labels.
+        Every typeface is open-source.
+      </p>
+
+      <div class="specimen-grid">
+
+        <div class="specimen">
+          <div class="specimen-label">
+            <span class="specimen-role">Display · Geometric Sans</span>
+            <span class="specimen-name">SORA</span>
+          </div>
+          <div class="specimen-aa">Aa</div>
+          <p class="specimen-sample display">
+            Where every signal <span style="color:var(--signal)">becomes story.</span>
+          </p>
+          <p class="specimen-sample mono">By Rasmus Andersson · SIL OFL</p>
+          <div class="specimen-weights">
+            <span class="wchip">300</span>
+            <span class="wchip on">400</span>
+            <span class="wchip on">500</span>
+            <span class="wchip on">600</span>
+            <span class="wchip">700</span>
+          </div>
+        </div>
+
+        <div class="specimen">
+          <div class="specimen-label">
+            <span class="specimen-role">Body · Humanist Sans</span>
+            <span class="specimen-name">IBM PLEX SANS</span>
+          </div>
+          <div class="specimen-aa body">Aa</div>
+          <p class="specimen-sample">
+            The body copy, the lede paragraphs, the long-form prose. Calm, legible, neutral — and quietly Korean-ready via a Noto Sans KR fallback.
+          </p>
+          <p class="specimen-sample mono">By IBM · SIL OFL</p>
+          <div class="specimen-weights">
+            <span class="wchip">300</span>
+            <span class="wchip on">400</span>
+            <span class="wchip on">500</span>
+            <span class="wchip on">600</span>
+          </div>
+        </div>
+
+        <div class="specimen">
+          <div class="specimen-label">
+            <span class="specimen-role">Marginalia · Mono</span>
+            <span class="specimen-name">IBM PLEX MONO</span>
+          </div>
+          <div class="specimen-aa mono">Aa</div>
+          <p class="specimen-sample mono">
+            01 · STATUS OK · 2026-04-16<br>
+            [ SIGNAL 04 · LAT 22ms · SYNC OK ]
+          </p>
+          <p class="specimen-sample mono" style="margin-top:10px">By IBM · SIL OFL</p>
+          <div class="specimen-weights">
+            <span class="wchip on">400</span>
+            <span class="wchip on">500</span>
+            <span class="wchip on">600</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ 03 · Palette ═══ -->
+    <section id="palette">
+      <div class="sec-num">03 · Palette</div>
+      <h2 class="sec-title">Ink &amp; <span class="accent">signal</span>.</h2>
+      <p class="sec-intro">
+        Four near-black inks, one confident teal signal with highlights, four semantic states, four text tints.
+        Dominant ink; sharp teal accent; semantics only where they're earned.
+      </p>
+
+      <!-- Inks -->
+      <div class="palette-group">
+        <div class="palette-group-label">Ink stack · backgrounds</div>
+        <div class="palette">
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#0a0f14"><span class="ring"></span></div>
+            <div class="swatch-info"><div class="swatch-name">Base</div><div class="swatch-hex">#0a0f14</div><div class="swatch-var">--bg</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#0e141b"><span class="ring"></span></div>
+            <div class="swatch-info"><div class="swatch-name">Lifted</div><div class="swatch-hex">#0e141b</div><div class="swatch-var">--bg-2</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#121821"><span class="ring"></span></div>
+            <div class="swatch-info"><div class="swatch-name">Surface</div><div class="swatch-hex">#121821</div><div class="swatch-var">--bg-3</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#1a2230"><span class="ring"></span></div>
+            <div class="swatch-info"><div class="swatch-name">Deep surface</div><div class="swatch-hex">#1a2230</div><div class="swatch-var">--bg-4</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signal -->
+      <div class="palette-group">
+        <div class="palette-group-label">Signal · primary accent</div>
+        <div class="palette">
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#5eead4"></div>
+            <div class="swatch-info"><div class="swatch-name">Signal</div><div class="swatch-hex">#5eead4</div><div class="swatch-var">--signal</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#a7f3d0"></div>
+            <div class="swatch-info"><div class="swatch-name">Signal, bright</div><div class="swatch-hex">#a7f3d0</div><div class="swatch-var">--signal-bright</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#14b8a6"></div>
+            <div class="swatch-info"><div class="swatch-name">Signal, deep</div><div class="swatch-hex">#14b8a6</div><div class="swatch-var">--signal-deep</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semantic -->
+      <div class="palette-group">
+        <div class="palette-group-label">Semantic · state</div>
+        <div class="palette">
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#60a5fa"></div>
+            <div class="swatch-info"><div class="swatch-name">Info</div><div class="swatch-hex">#60a5fa</div><div class="swatch-var">--info</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#fbbf24"></div>
+            <div class="swatch-info"><div class="swatch-name">Warn</div><div class="swatch-hex">#fbbf24</div><div class="swatch-var">--warn</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#f87171"></div>
+            <div class="swatch-info"><div class="swatch-name">Danger</div><div class="swatch-hex">#f87171</div><div class="swatch-var">--danger</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#a78bfa"></div>
+            <div class="swatch-info"><div class="swatch-name">Purple</div><div class="swatch-hex">#a78bfa</div><div class="swatch-var">--purple</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text tints -->
+      <div class="palette-group">
+        <div class="palette-group-label">Text · four tints over ink</div>
+        <div class="palette">
+          <div class="swatch">
+            <div class="swatch-chip" style="background:#e8edf2"></div>
+            <div class="swatch-info"><div class="swatch-name">Text</div><div class="swatch-hex">#e8edf2 · 100%</div><div class="swatch-var">--text</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:rgba(232,237,242,0.55)"></div>
+            <div class="swatch-info"><div class="swatch-name">Text, dim</div><div class="swatch-hex">55% α</div><div class="swatch-var">--text-dim</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:rgba(232,237,242,0.32)"></div>
+            <div class="swatch-info"><div class="swatch-name">Text, faint</div><div class="swatch-hex">32% α</div><div class="swatch-var">--text-faint</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-chip" style="background:rgba(232,237,242,0.18)"></div>
+            <div class="swatch-info"><div class="swatch-name">Text, ghost</div><div class="swatch-hex">18% α</div><div class="swatch-var">--text-ghost</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 04 · Components ═══ -->
+    <section id="components">
+      <div class="sec-num">04 · Components</div>
+      <h2 class="sec-title">The shared <span class="accent">shapes</span>.</h2>
+      <p class="sec-intro">
+        Buttons, tags, status pills, console frames, signal rules — the re-used primitives that appear across every page.
+      </p>
+
+      <div class="demo">
+        <div class="demo-label">Buttons · primary / outline / ghost</div>
+        <div class="demo-row">
+          <button class="btn-demo primary">Enter Studio <span class="arr">→</span></button>
+          <button class="btn-demo outline">View stack <span class="arr">→</span></button>
+          <button class="btn-demo ghost">Cancel</button>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-label">Status pills · live / warn / err / idle</div>
+        <div class="demo-row">
+          <span class="status-demo live"><span class="dt"></span>Live</span>
+          <span class="status-demo warn"><span class="dt"></span>In Dev</span>
+          <span class="status-demo err"><span class="dt"></span>Offline</span>
+          <span class="status-demo idle"><span class="dt"></span>Queued</span>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-label">Kicker pill · section header badge</div>
+        <div class="demo-row">
+          <span class="kicker-demo"><span class="dot"></span>[ 01 ]&nbsp; SIGNAL STUDIO&nbsp; ·&nbsp; MODULE 04</span>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-label">Media-type tags · by file category</div>
+        <div class="demo-row">
+          <span class="tag-demo image">Image</span>
+          <span class="tag-demo video">Video</span>
+          <span class="tag-demo audio">Audio</span>
+          <span class="tag-demo document">Document</span>
+          <span class="tag-demo design">Design</span>
+          <span class="tag-demo folder">Folder</span>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-label">Console frame · hero visual / UI panels</div>
+        <div class="demo-row">
+          <div class="console-demo">
+            <div class="console-demo-bar">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span class="p">okn-studio :: /demo</span>
+            </div>
+            <div class="console-demo-body">
+              <div class="hd"><span class="d"></span>NODE <span class="v">A1</span> · SYNC <span class="v">OK</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <div class="demo-label">Signal rule · top-of-panel accent</div>
+        <div class="rule-demo"></div>
+      </div>
+    </section>
+
+    <!-- ═══ 05 · Stack ═══ -->
+    <section id="stack">
+      <div class="sec-num">05 · Stack</div>
+      <h2 class="sec-title">Quiet, <span class="accent">verifiable</span> infrastructure.</h2>
+      <p class="sec-intro">
+        No black boxes. Everything OKN Studio touches runs on open protocols and auditable services — cheap to operate,
+        fast to serve, durable to keep.
+      </p>
+
+      <div class="stack-grid">
+
+        <div class="stack-cell">
+          <div class="stack-role"><span class="n">01</span> Runtime · Edge</div>
+          <div class="stack-name">Cloudflare Pages</div>
+          <div class="stack-note">Static HTML served from Cloudflare's global anycast edge. The only runtime that keeps both p95 latency and yearly cost near zero.</div>
+        </div>
+
+        <div class="stack-cell">
+          <div class="stack-role"><span class="n">02</span> Serverless · Auth &amp; API</div>
+          <div class="stack-name">Cloudflare Functions</div>
+          <div class="stack-note">HMAC-signed session cookies, media-proxy endpoints, and the ingest webhook — zero cold-start, co-located with the static.</div>
+        </div>
+
+        <div class="stack-cell">
+          <div class="stack-role"><span class="n">03</span> Storage · Cold</div>
+          <div class="stack-name">Backblaze B2</div>
+          <div class="stack-note">EU-Central region, SSE-B2 at rest, lifecycle trimmed to current versions only. Bandwidth Alliance zeroes the egress.</div>
+        </div>
+
+        <div class="stack-cell">
+          <div class="stack-role"><span class="n">04</span> CI/CD · Automation</div>
+          <div class="stack-name">GitHub Actions</div>
+          <div class="stack-note">Three workflows: analytics pipeline (weekly + push), deploy (on success), bucket-map (nightly to Drive).</div>
+        </div>
+
+        <div class="stack-cell">
+          <div class="stack-role"><span class="n">05</span> Machine Learning</div>
+          <div class="stack-name">Python · sentence-transformers</div>
+          <div class="stack-note">Fourteen scikit-learn and transformer models, anchored on multilingual MiniLM-L12-v2 for 한국어 / English / Ἑλληνικά embedding.</div>
+        </div>
+
+        <div class="stack-cell">
+          <div class="stack-role"><span class="n">06</span> Transport</div>
+          <div class="stack-name">rclone · Cyberduck</div>
+          <div class="stack-note">Operator-grade transfer tooling for the media archive and the weekly bucket-map upload to the team's Google Drive.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ 06 · Shortcuts ═══ -->
+    <section id="shortcuts">
+      <div class="sec-num">06 · Shortcuts</div>
+      <h2 class="sec-title">Keyboard <span class="accent">shortcuts</span>.</h2>
+      <p class="sec-intro">
+        Most already familiar. Every module tries to behave like a professional tool: Esc closes, arrows navigate, slash focuses search.
+      </p>
+
+      <table class="keys">
+        <tr>
+          <td><span class="kbd">S</span></td>
+          <td><span class="key-desc">On the landing page — jumps to the Stack section.</span></td>
+        </tr>
+        <tr>
+          <td><span class="kbd">/</span></td>
+          <td><span class="key-desc">In the Media Pool — focuses the filter field.</span></td>
+        </tr>
+        <tr>
+          <td><span class="kbd">←</span> <span class="kbd">→</span></td>
+          <td><span class="key-desc">Inside the Media Pool preview — step between items.</span></td>
+        </tr>
+        <tr>
+          <td><span class="kbd">Esc</span></td>
+          <td><span class="key-desc">Closes any open preview, modal, or overlay.</span></td>
+        </tr>
+        <tr>
+          <td><span class="kbd">Enter</span></td>
+          <td><span class="key-desc">Submits the password on the authentication page.</span></td>
+        </tr>
+        <tr>
+          <td><span class="kbd">Tab</span></td>
+          <td><span class="key-desc">Walks focusable elements in reading order — everything's keyboard-reachable.</span></td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ═══ 07 · Credits ═══ -->
+    <section id="credits">
+      <div class="sec-num">07 · Credits</div>
+      <h2 class="sec-title">Built, <span class="accent">shipped</span>.</h2>
+      <div class="prose">
+        <p>
+          Engineered and designed by <strong>Nikolaos Pinatsis</strong>, under his practice <em>CyberSystema</em>,
+          from Larissa in central Greece. The work serves the <strong>Orthodox Metropolis of Korea</strong> and its
+          small media team in Seoul.
+        </p>
+        <p>
+          The typography relies on <strong>Sora</strong> by Rasmus Andersson, <strong>IBM Plex Sans</strong> and
+          <strong>IBM Plex Mono</strong> by IBM, and <strong>Noto Sans KR</strong> by Google's Noto project.
+          Every typeface is SIL OFL — thanks are owed to their makers.
+        </p>
+        <p>
+          The broader stack — Cloudflare Pages, Backblaze B2, GitHub Actions, scikit-learn, sentence-transformers,
+          rclone, Cyberduck — is open, well-documented, and built by teams working in public. <em>The shoulders are large
+          and the debt is acknowledged.</em>
+        </p>
+        <p style="color:var(--text-faint);font-size:14px;margin-top:32px">
+          <strong style="color:var(--signal)">OKN / Studio</strong> · v3.0 · Anno 2026<br>
+          Larissa → Seoul · over Cloudflare's edge.
+        </p>
+      </div>
+    </section>
+
+    <!-- Foot -->
+    <div class="foot">
+      <span>OKN Studio · Colophon · v3.0</span>
+      <span><a href="https://github.com/CyberSystema/oknstudio" target="_blank" rel="noopener">GitHub</a></span>
+      <span>by <a href="https://cybersystema.com" target="_blank" rel="noopener">CyberSystema</a></span>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Scroll-spy for sidebar ──
+const links = document.querySelectorAll('.sidenav a');
+const sections = Array.from(links)
+  .map(l => document.querySelector(l.getAttribute('href')))
+  .filter(Boolean);
+
+const setActive = () => {
+  const y = window.scrollY + 150;
+  let current = sections[0];
+  for (const s of sections) if (s.offsetTop <= y) current = s;
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current.id));
+};
+
+window.addEventListener('scroll', setActive, { passive: true });
+setActive();
+
+// Smooth scroll (respects reduced-motion)
+links.forEach(l => l.addEventListener('click', (e) => {
+  e.preventDefault();
+  const target = document.querySelector(l.getAttribute('href'));
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}));
+</script>
+
+</body>
+</html>

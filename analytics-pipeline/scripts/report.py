@@ -139,7 +139,7 @@ TIPS = {
     "cross_platform": "Side-by-side view of all your platforms. Keep in mind: Instagram measures engagement by reach, TikTok by views — so rates aren't directly comparable.",
     "recommendations": "Personalized action items based on everything the pipeline analyzed. Red = urgent, yellow = important, green = nice to know.",
 }
-plt.rcParams.update({"figure.facecolor":"white","axes.facecolor":"#fafafa","axes.edgecolor":"#cccccc","axes.grid":True,"grid.alpha":0.3,"font.family":"sans-serif","font.size":11})
+plt.rcParams.update({"figure.facecolor":"white","axes.facecolor":"#fafafa","axes.edgecolor":"#cccccc","axes.grid":True,"grid.alpha":0.3,"font.family":"sans-serif","font.size":11,"axes.labelcolor":"#333","xtick.color":"#555","ytick.color":"#555"})
 
 
 class ReportGenerator:
@@ -454,91 +454,257 @@ class ReportGenerator:
         return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{BRANDING['report_title']}</title>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<meta name="theme-color" content="#0a0f14">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*{{margin:0;padding:0;box-sizing:border-box}}html{{overflow-x:hidden}}body{{font-family:{BRANDING['font_family']};background:{BRANDING['bg_color']};color:{BRANDING['text_color']};line-height:1.6;overflow-x:hidden;width:100%}}.container{{max-width:1100px;margin:0 auto;padding:24px;width:100%}}
-.header{{background:linear-gradient(160deg,{BRANDING['primary_color']} 0%,#1e4a6e 35%,#2a3a5c 60%,{BRANDING['accent_color']} 100%);color:white;padding:48px 40px 36px;border-radius:20px;margin-bottom:32px;text-align:center;position:relative;overflow:hidden}}
-.header::before{{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(196,149,58,0.08) 0%,transparent 50%);pointer-events:none}}
-.header-logo-wrap{{display:inline-block;padding:6px;border-radius:50%;background:linear-gradient(135deg,rgba(196,149,58,0.6),rgba(255,255,255,0.2));margin-bottom:20px}}
-.header-logo{{width:140px;height:140px;border-radius:50%;display:block;object-fit:cover;border:3px solid rgba(255,255,255,0.25)}}
-.header h1{{font-size:28px;margin-bottom:6px;letter-spacing:0.5px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.15)}}
-.header .sub{{opacity:0.85;font-size:13px;margin-bottom:16px;letter-spacing:0.2px}}
-.header-divider{{width:60px;height:2px;background:linear-gradient(90deg,transparent,{BRANDING['secondary_color']},transparent);margin:0 auto 16px;border-radius:1px}}
-.health{{display:inline-block;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);padding:11px 26px;border-radius:30px;font-size:15px}}
-.header-meta{{opacity:0.55;font-size:11px;margin-top:14px;letter-spacing:0.3px}}
-.pblock{{margin-bottom:40px}}.phead{{background:white;padding:20px 28px;border-radius:12px 12px 0 0;border-bottom:3px solid;display:flex;align-items:center;gap:12px}}.phead h2{{font-size:22px;margin:0}}
-.section{{background:white;border-radius:12px;padding:28px;margin-bottom:24px;border:1px solid #eee}}.section h2{{color:{BRANDING['primary_color']};font-size:20px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid {BRANDING['secondary_color']}}}.section h3{{color:{BRANDING['primary_color']};font-size:16px;margin:20px 0 12px 0}}
-.sub-s{{background:#fafafa;border-radius:10px;padding:20px;margin-bottom:16px}}
-.kpis{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}}.kpi{{background:#fafafa;padding:14px;border-radius:10px;text-align:center}}.kpi .v{{display:block;font-size:20px;font-weight:bold;color:{BRANDING['primary_color']}}}.kpi .l{{display:block;font-size:10px;color:#888;text-transform:uppercase}}
-.chart-img{{width:100%;max-width:100%;height:auto;border-radius:8px;margin:12px 0}}
-table{{width:100%;border-collapse:collapse;font-size:14px;table-layout:auto}}th,td{{padding:10px 14px;text-align:left;border-bottom:1px solid #eee;word-wrap:break-word}}th{{background:#f5f5f5;font-weight:600;color:{BRANDING['primary_color']}}}tr:hover{{background:#fafafa}}
-a{{color:{BRANDING['primary_color']};text-decoration:none}}a:hover{{text-decoration:underline}}
-.rec-item{{padding:14px 18px;border-radius:8px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px}}.rec-high{{background:#fff0f0;border-left:4px solid #e53e3e}}.rec-medium{{background:#fffbf0;border-left:4px solid #d69e2e}}.rec-low{{background:#f0fff0;border-left:4px solid #38a169}}.rec-icon{{font-size:18px;flex-shrink:0}}.rec-text{{font-size:14px}}
-.ml{{display:inline-block;background:#e8f4f8;color:#1a5276;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-left:6px}}
-.dr{{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}}.dr .k{{font-weight:500}}.dr .val{{color:{BRANDING['primary_color']};font-weight:600}}
-.no-data{{color:#999;font-style:italic;padding:20px;text-align:center}}.footer{{text-align:center;padding:24px;color:#999;font-size:12px}}
-.cross{{background:linear-gradient(180deg,#f0f4f8,#fff);border:2px solid {BRANDING['primary_color']}20}}
-.powered-badge{{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:5px 14px;border-radius:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:0.5px}}
-.powered-badge a{{color:rgba(255,255,255,0.75);text-decoration:none;display:inline-flex;align-items:center;gap:5px}}.powered-badge a:hover{{color:white;text-decoration:underline}}
-.cs-logo-sm{{width:16px;height:16px;border-radius:3px;vertical-align:middle}}
-.built-by{{text-align:center;padding:28px 20px;margin-bottom:8px;border-radius:12px;background:linear-gradient(135deg,#f8f6f0,#eef2f7);border:1px solid #e0e0e0}}
-.cs-logo{{width:48px;height:48px;border-radius:10px;margin-bottom:8px}}
-.built-by-label{{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}}.built-by-name{{font-size:16px;font-weight:600;color:{BRANDING['primary_color']}}}.built-by-name a{{color:{BRANDING['primary_color']};text-decoration:none}}.built-by-name a:hover{{text-decoration:underline}}.built-by-tagline{{font-size:12px;color:#888;margin-top:4px}}
-.summary{{background:white;border-radius:16px;padding:32px;margin-bottom:32px;border:2px solid {BRANDING['secondary_color']}30}}
-.summary h2{{color:{BRANDING['primary_color']};font-size:22px;margin-bottom:4px}}.summary-sub{{color:#888;font-size:13px;margin-bottom:20px}}
-.summary-pulse{{font-size:16px;line-height:1.7;padding:16px 20px;border-radius:12px;margin-bottom:20px}}
-.summary-pulse.good{{background:#f0faf0;border-left:4px solid #38a169}}.summary-pulse.ok{{background:#fffbf0;border-left:4px solid #d69e2e}}.summary-pulse.bad{{background:#fff5f5;border-left:4px solid #e53e3e}}
-.summary-grid{{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:20px}}
-.summary-card{{padding:18px;border-radius:12px;background:#fafbfc;border:1px solid #eee}}
-.summary-card h3{{font-size:14px;color:{BRANDING['primary_color']};margin-bottom:10px}}.summary-card ul{{list-style:none;padding:0}}.summary-card li{{padding:6px 0;font-size:14px;color:#444;border-bottom:1px solid #f4f4f4}}.summary-card li:last-child{{border:none}}
-.summary-actions{{background:linear-gradient(135deg,{BRANDING['primary_color']}08,{BRANDING['secondary_color']}10);padding:18px 20px;border-radius:12px;border:1px solid {BRANDING['primary_color']}15}}
-.summary-actions h3{{font-size:14px;color:{BRANDING['primary_color']};margin-bottom:10px}}.summary-actions ol{{padding-left:20px;margin:0}}.summary-actions li{{padding:5px 0;font-size:14px;color:#333}}
-.tip-wrap{{position:relative;display:inline}}.tip-icon{{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:{BRANDING['primary_color']}18;color:{BRANDING['primary_color']};font-size:11px;font-weight:700;cursor:help;margin-left:6px;vertical-align:middle;transition:all 0.2s}}.tip-icon:hover{{background:{BRANDING['primary_color']};color:white}}
-.tip-bubble{{display:none;position:fixed;width:260px;max-width:85vw;padding:12px 16px;background:#1a2a3a;color:#e8e8e8;font-size:13px;font-weight:400;line-height:1.5;border-radius:10px;z-index:9999;pointer-events:none}}
-/* ══════ RESPONSIVE ══════ */
+/* ═══ OKN Studio / Report — Signal Studio dark mode ═══ */
+*{{margin:0;padding:0;box-sizing:border-box}}
+html{{overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}}
+:root{{
+  --bg:{BRANDING['bg_color']};
+  --bg-2:#0e141b;
+  --bg-3:#121821;
+  --bg-4:#1a2230;
+  --signal:{BRANDING['primary_color']};
+  --signal-bright:#a7f3d0;
+  --signal-dim:rgba(94,234,212,0.12);
+  --info:{BRANDING['secondary_color']};
+  --warn:#fbbf24;
+  --danger:{BRANDING['accent_color']};
+  --text:{BRANDING['text_color']};
+  --text-dim:rgba(232,237,242,0.55);
+  --text-faint:rgba(232,237,242,0.32);
+  --text-ghost:rgba(232,237,242,0.18);
+  --line:rgba(255,255,255,0.06);
+  --line-2:rgba(255,255,255,0.1);
+  --line-signal:rgba(94,234,212,0.25);
+  --surface:rgba(255,255,255,0.025);
+  --font-display:'Sora','IBM Plex Sans',sans-serif;
+  --font-body:{BRANDING['font_family']};
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}}
+body{{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;width:100%;overflow-x:hidden}}
+body::before{{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;-webkit-mask-image:radial-gradient(ellipse 70% 85% at 50% 40%,#000 30%,transparent 100%);mask-image:radial-gradient(ellipse 70% 85% at 50% 40%,#000 30%,transparent 100%)}}
+body::after{{content:'';position:fixed;top:-200px;right:-300px;width:800px;height:800px;background:radial-gradient(circle,rgba(94,234,212,0.05) 0%,transparent 60%);pointer-events:none;z-index:0}}
+.container{{max-width:1100px;margin:0 auto;padding:32px 24px;width:100%;position:relative;z-index:1}}
+
+/* ══ Header — Signal Studio hero ══ */
+.header{{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:44px 40px 32px;margin-bottom:28px;text-align:center;position:relative;overflow:hidden}}
+.header::before{{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}}
+.header::after{{content:'';position:absolute;top:0;left:0;width:20px;height:20px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.4}}
+.header-logo-wrap{{display:inline-block;padding:3px;border-radius:50%;border:1px solid var(--line-signal);background:var(--signal-dim);margin-bottom:18px}}
+.header-logo{{width:112px;height:112px;border-radius:50%;display:block;object-fit:cover}}
+.header h1{{font-family:var(--font-display);font-size:28px;font-weight:500;margin-bottom:10px;letter-spacing:-0.02em;color:var(--text);line-height:1.15}}
+.header .sub{{color:var(--text-dim);font-size:13px;margin-bottom:14px;letter-spacing:0.02em;line-height:1.55}}
+.header .sub a{{color:var(--text);border-bottom:1px dotted var(--text-faint)}}
+.header-divider{{width:56px;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent);margin:0 auto 18px}}
+.health{{display:inline-flex;align-items:center;gap:10px;background:var(--signal-dim);border:1px solid var(--line-signal);padding:10px 22px;border-radius:3px;font-size:14px;color:var(--signal);letter-spacing:0.02em;font-weight:500}}
+.health strong{{color:var(--signal-bright);font-weight:600}}
+.header-meta{{color:var(--text-faint);font-size:10px;margin-top:14px;letter-spacing:0.14em;text-transform:uppercase;font-family:var(--font-mono)}}
+
+/* ══ Platform blocks ══ */
+.pblock{{margin-bottom:32px}}
+.phead{{background:var(--bg-2);padding:18px 26px;border-radius:6px 6px 0 0;border:1px solid var(--line);border-bottom:2px solid;display:flex;align-items:center;gap:14px}}
+.phead h2{{font-family:var(--font-display);font-size:22px;font-weight:500;color:var(--text);letter-spacing:-0.015em;margin:0;line-height:1}}
+
+/* ══ Sections ══ */
+.section{{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:26px 28px;margin-bottom:18px;position:relative}}
+.section::before{{content:'';position:absolute;top:0;left:0;width:16px;height:16px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.35}}
+.section h2{{color:var(--signal);font-family:var(--font-display);font-size:20px;font-weight:500;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line-signal);letter-spacing:-0.015em;line-height:1.2}}
+.section h3{{color:var(--text);font-family:var(--font-display);font-size:16px;font-weight:500;margin:20px 0 12px 0;letter-spacing:-0.01em;line-height:1.3}}
+.sub-s{{background:var(--bg-3);border:1px solid var(--line);border-radius:4px;padding:18px 20px;margin-bottom:14px}}
+
+/* ══ KPIs ══ */
+.kpis{{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;margin-bottom:16px}}
+.kpi{{background:var(--bg-2);padding:16px 14px;text-align:center;position:relative}}
+.kpi::before{{content:'';position:absolute;top:0;left:0;width:10px;height:10px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.3}}
+.kpi .v{{display:block;font-family:var(--font-display);font-size:22px;font-weight:500;color:var(--text);letter-spacing:-0.02em;line-height:1.15}}
+.kpi .l{{display:block;font-family:var(--font-mono);font-size:9px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.12em;margin-top:6px;line-height:1.4}}
+
+/* ══ Charts ══ */
+.chart-img{{width:100%;max-width:100%;height:auto;border-radius:4px;margin:12px 0;border:1px solid var(--line);background:white}}
+
+/* ══ Tables ══ */
+table{{width:100%;border-collapse:collapse;font-size:13px;font-family:var(--font-body)}}
+th,td{{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);word-wrap:break-word;color:var(--text-dim)}}
+th{{background:var(--bg-3);font-weight:600;color:var(--signal);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase}}
+tr:hover td{{background:var(--surface);color:var(--text)}}
+
+a{{color:var(--signal);text-decoration:none;transition:color 0.15s}}
+a:hover{{color:var(--signal-bright);text-decoration:underline}}
+
+/* ══ Recommendations ══ */
+.rec-item{{padding:14px 18px;border-radius:4px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;border:1px solid}}
+.rec-high{{background:rgba(248,113,113,0.06);border-color:rgba(248,113,113,0.25);color:var(--text)}}
+.rec-medium{{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);color:var(--text)}}
+.rec-low{{background:rgba(94,234,212,0.06);border-color:var(--line-signal);color:var(--text)}}
+.rec-icon{{font-size:18px;flex-shrink:0}}
+.rec-text{{font-size:14px;line-height:1.55;color:var(--text-dim)}}
+.rec-text strong{{color:var(--text)}}
+
+.ml{{display:inline-block;background:var(--signal-dim);color:var(--signal);padding:3px 8px;border-radius:2px;font-size:9px;font-weight:600;margin-left:6px;font-family:var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;border:1px solid var(--line-signal)}}
+
+.dr{{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);gap:12px;align-items:baseline}}
+.dr:last-child{{border-bottom:none}}
+.dr .k{{font-weight:500;color:var(--text-dim);font-size:13px;line-height:1.4}}
+.dr .val{{color:var(--signal);font-weight:600;font-family:var(--font-mono);font-size:12px;letter-spacing:0.02em;white-space:nowrap}}
+
+.no-data{{color:var(--text-faint);font-style:italic;padding:20px;text-align:center}}
+.footer{{text-align:center;padding:28px 20px;color:var(--text-faint);font-size:10px;font-family:var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;line-height:1.8}}
+.footer br{{display:none}}
+
+.cross{{background:var(--bg-2);border:1px solid var(--line-signal)}}
+
+/* ══ Powered / Built by ══ */
+.powered-badge{{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:5px 12px;border-radius:3px;background:var(--signal-dim);border:1px solid var(--line-signal);font-size:10px;color:var(--signal);letter-spacing:0.14em;text-transform:uppercase;font-family:var(--font-mono)}}
+.powered-badge a{{color:var(--signal);text-decoration:none;display:inline-flex;align-items:center;gap:6px}}
+.powered-badge a:hover{{color:var(--signal-bright);text-decoration:none}}
+.cs-logo-sm{{width:14px;height:14px;border-radius:2px;vertical-align:middle;filter:brightness(1.3)}}
+
+.built-by{{text-align:center;padding:28px 22px;margin-bottom:8px;border-radius:6px;background:var(--bg-2);border:1px solid var(--line);position:relative}}
+.built-by::before{{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent);opacity:0.5}}
+.cs-logo{{width:44px;height:44px;border-radius:6px;margin-bottom:10px;filter:brightness(1.2)}}
+.built-by-label{{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.18em;margin-bottom:6px;font-family:var(--font-mono)}}
+.built-by-name{{font-size:16px;font-weight:500;color:var(--text);font-family:var(--font-display);letter-spacing:-0.005em}}
+.built-by-name a{{color:var(--signal);text-decoration:none}}
+.built-by-name a:hover{{text-decoration:underline;color:var(--signal-bright)}}
+.built-by-tagline{{font-size:12px;color:var(--text-dim);margin-top:6px}}
+
+/* ══ Summary ══ */
+.summary{{background:var(--bg-2);border-radius:6px;padding:32px;margin-bottom:28px;border:1px solid var(--line-signal);position:relative;overflow:hidden}}
+.summary::before{{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}}
+.summary::after{{content:'';position:absolute;top:0;right:0;width:16px;height:16px;border-top:1px solid var(--signal);border-right:1px solid var(--signal);opacity:0.4}}
+.summary h2{{color:var(--signal);font-family:var(--font-display);font-size:22px;font-weight:500;margin-bottom:4px;letter-spacing:-0.015em}}
+.summary-sub{{color:var(--text-faint);font-size:11px;margin-bottom:20px;font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase}}
+
+.summary-pulse{{font-size:15px;line-height:1.65;padding:16px 20px;border-radius:4px;margin-bottom:20px;border:1px solid}}
+.summary-pulse.good{{background:rgba(94,234,212,0.06);border-color:var(--line-signal);color:var(--text)}}
+.summary-pulse.ok{{background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);color:var(--text)}}
+.summary-pulse.bad{{background:rgba(248,113,113,0.06);border-color:rgba(248,113,113,0.25);color:var(--text)}}
+
+.summary-grid{{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:14px}}
+.summary-card{{padding:18px;border-radius:4px;background:var(--bg-3);border:1px solid var(--line)}}
+.summary-card h3{{font-family:var(--font-display);font-size:14px;color:var(--signal);margin-bottom:10px;font-weight:500;letter-spacing:-0.005em;display:flex;align-items:center;gap:6px}}
+.summary-card ul{{list-style:none;padding:0}}
+.summary-card li{{padding:7px 0;font-size:13px;color:var(--text-dim);border-bottom:1px solid var(--line);line-height:1.5}}
+.summary-card li:last-child{{border:none;padding-bottom:0}}
+.summary-card li strong{{color:var(--text);font-weight:600}}
+
+.summary-actions{{background:var(--signal-dim);border:1px solid var(--line-signal)}}
+.summary-actions h3{{color:var(--signal)}}
+.summary-actions ol{{padding-left:22px;margin:0}}
+.summary-actions li{{padding:6px 0;font-size:13px;color:var(--text-dim);line-height:1.55;border:none}}
+.summary-actions li strong{{color:var(--signal-bright);font-weight:600}}
+
+/* ══ Tooltip ══ */
+.tip-wrap{{position:relative;display:inline}}
+.tip-icon{{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--signal-dim);color:var(--signal);font-size:10px;font-weight:700;cursor:help;margin-left:6px;vertical-align:middle;transition:all 0.2s;border:1px solid var(--line-signal);font-family:var(--font-mono)}}
+.tip-icon:hover{{background:var(--signal);color:var(--bg);border-color:var(--signal)}}
+.tip-bubble{{display:none;position:fixed;width:260px;max-width:85vw;padding:12px 16px;background:var(--bg-3);color:var(--text);font-size:13px;font-weight:400;line-height:1.5;border-radius:4px;z-index:9999;pointer-events:none;border:1px solid var(--line-signal);box-shadow:0 12px 32px rgba(0,0,0,0.6)}}
+
+/* ══ Inline card surfaces (for ML sub-elements) ══ */
+.inner-card{{margin:8px 0;padding:12px 14px;background:var(--bg-4);border:1px solid var(--line);border-radius:4px}}
+.inner-card strong{{color:var(--text);font-weight:600}}
+
+/* ══ Progress bar for topics ══ */
+.topic-bar{{background:var(--bg-4);border-radius:2px;height:6px;overflow:hidden;border:1px solid var(--line)}}
+.topic-bar-fill{{height:100%;background:linear-gradient(90deg,var(--signal-deep,var(--signal)),var(--signal));border-radius:2px}}
+
+/* ══ Responsive ══ */
 @media(max-width:768px){{
-.container{{padding:12px}}
-.header{{padding:32px 20px 28px;border-radius:14px;margin-bottom:20px}}.header-logo-wrap{{margin-bottom:14px}}.header-logo{{width:100px;height:100px}}.header h1{{font-size:20px}}.header .sub{{font-size:11px;margin-bottom:12px}}.health{{padding:8px 16px;font-size:13px}}.header-meta{{font-size:10px}}
-.summary{{padding:20px;margin-bottom:20px}}.summary h2{{font-size:18px}}.summary-grid{{grid-template-columns:1fr;gap:14px}}.summary-pulse{{font-size:14px;padding:12px 16px}}.summary-card{{padding:14px}}.summary-card li{{font-size:13px}}
-.phead{{padding:14px 18px}}.phead h2{{font-size:18px}}.phead span:first-child{{font-size:22px !important}}
-.section{{padding:18px;margin-bottom:16px;border-radius:10px;overflow:hidden}}.section h2{{font-size:17px;margin-bottom:14px;padding-bottom:10px}}.section h3{{font-size:14px;margin:14px 0 8px 0}}
-.sub-s{{padding:14px;margin-bottom:12px;overflow:hidden}}
-.kpis{{grid-template-columns:repeat(2,1fr);gap:8px}}.kpi{{padding:10px}}.kpi .v{{font-size:16px}}.kpi .l{{font-size:9px}}
-.chart-img{{border-radius:6px;margin:8px 0}}
-table{{font-size:12px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}}th,td{{padding:8px 10px}}
-.dr{{flex-wrap:wrap;gap:2px;padding:6px 0}}.dr .k{{font-size:13px;flex:1;min-width:0}}.dr .val{{font-size:13px;text-align:right;flex-shrink:0}}
-.rec-item{{padding:10px 14px}}.rec-text{{font-size:13px}}
-.built-by{{padding:20px 16px}}.built-by-name{{font-size:14px}}
-.footer{{padding:16px;font-size:11px}}
-.cross table{{min-width:600px}}
-.powered-badge{{margin-top:10px;font-size:9px;padding:4px 10px}}
+  .container{{padding:16px 12px}}
+  .header{{padding:28px 20px;border-radius:6px;margin-bottom:20px}}
+  .header-logo{{width:88px;height:88px}}
+  .header h1{{font-size:20px}}
+  .header .sub{{font-size:11px;margin-bottom:12px}}
+  .health{{padding:8px 16px;font-size:12px}}
+  .header-meta{{font-size:9px}}
+  .summary{{padding:22px;margin-bottom:20px}}
+  .summary h2{{font-size:18px}}
+  .summary-grid{{grid-template-columns:1fr;gap:12px}}
+  .summary-pulse{{font-size:14px;padding:12px 16px}}
+  .summary-card{{padding:14px}}
+  .summary-card li{{font-size:12px}}
+  .phead{{padding:14px 18px}}
+  .phead h2{{font-size:18px}}
+  .phead span:first-child{{font-size:22px !important}}
+  .section{{padding:18px;margin-bottom:14px}}
+  .section h2{{font-size:17px;margin-bottom:14px;padding-bottom:10px}}
+  .section h3{{font-size:14px;margin:14px 0 8px}}
+  .sub-s{{padding:14px;margin-bottom:12px}}
+  .kpis{{grid-template-columns:repeat(2,1fr)}}
+  .kpi{{padding:12px 10px}}
+  .kpi .v{{font-size:18px}}
+  .kpi .l{{font-size:8px}}
+  table{{font-size:12px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}}
+  th,td{{padding:8px 10px}}
+  .dr{{flex-wrap:wrap;gap:4px}}
+  .dr .k,.dr .val{{font-size:12px}}
+  .rec-item{{padding:12px 14px}}
+  .rec-text{{font-size:13px}}
+  .built-by{{padding:22px 16px}}
+  .built-by-name{{font-size:14px}}
+  .footer{{padding:20px 16px;font-size:9px}}
+  .cross table{{min-width:600px}}
 }}
 @media(max-width:480px){{
-.container{{padding:8px}}
-.header{{padding:24px 16px 22px;border-radius:12px}}.header-logo{{width:80px;height:80px}}.header h1{{font-size:17px}}.header .sub{{font-size:10px}}
-.kpis{{grid-template-columns:repeat(2,1fr);gap:6px}}.kpi .v{{font-size:15px}}
-.summary{{padding:16px}}.summary h2{{font-size:16px}}.summary-card h3{{font-size:13px}}.summary-card li{{font-size:12px;padding:5px 0}}.summary-actions li{{font-size:12px}}
-.section{{padding:14px}}.section h2{{font-size:15px}}.section h3{{font-size:13px}}
-.phead{{padding:12px 14px}}.phead h2{{font-size:16px}}
-.sub-s{{padding:12px}}
-.dr .k,.dr .val{{font-size:12px}}
-table{{font-size:11px}}th,td{{padding:6px 8px}}
+  .container{{padding:12px 8px}}
+  .header{{padding:22px 14px}}
+  .header-logo{{width:72px;height:72px}}
+  .header h1{{font-size:18px}}
+  .kpis{{grid-template-columns:1fr 1fr;gap:1px}}
+  .kpi .v{{font-size:16px}}
+  .summary{{padding:18px}}
+  .summary h2{{font-size:16px}}
+  .section{{padding:14px}}
+  .section h2{{font-size:15px}}
+  .sub-s{{padding:12px}}
+  table{{font-size:11px}}
+  th,td{{padding:6px 8px}}
 }}
 </style></head><body>
 <nav class="studio-nav" id="studioNav">
-<a href="/" class="sn-home"><i class="material-icons">home</i>OKN Studio</a>
-<span class="sn-sep">›</span>
-<a href="/analytics/">Analytics</a>
-<span class="sn-sep">›</span>
-<span class="sn-current">Report</span>
+  <a href="/" class="sn-home">
+    <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <line x1="14" y1="3" x2="14" y2="10"/><line x1="14" y1="18" x2="14" y2="25"/>
+      <line x1="3" y1="14" x2="10" y2="14"/><line x1="18" y1="14" x2="25" y2="14"/>
+      <circle cx="14" cy="3" r="1.8" fill="currentColor" stroke="none"/>
+      <circle cx="14" cy="25" r="1.8" fill="currentColor" stroke="none"/>
+      <circle cx="3" cy="14" r="1.8" fill="currentColor" stroke="none"/>
+      <circle cx="25" cy="14" r="1.8" fill="currentColor" stroke="none"/>
+      <circle cx="14" cy="14" r="2.6" fill="currentColor" stroke="none"/>
+    </svg>
+    <span>OKN<span class="sn-slash">/</span><span class="sn-studio">Studio</span></span>
+  </a>
+  <span class="sn-sep">›</span>
+  <a href="/analytics/">Analytics</a>
+  <span class="sn-sep">›</span>
+  <span class="sn-current">Report</span>
+  <span class="sn-ver">v3.0</span>
 </nav>
 <style>
-.studio-nav{{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#0f2137;font-family:'Segoe UI',sans-serif;font-size:13px;position:sticky;top:0;z-index:999}}
-.studio-nav a{{color:rgba(255,255,255,0.6);text-decoration:none}}.studio-nav a:hover{{color:#c4953a}}
-.sn-home{{font-weight:600;color:rgba(255,255,255,0.85) !important;display:flex;align-items:center;gap:4px}}
-.sn-home .material-icons{{font-size:18px;font-weight:500}}
-.sn-sep{{color:rgba(255,255,255,0.2)}}
-.sn-current{{color:rgba(255,255,255,0.4)}}
+.studio-nav{{display:flex;align-items:center;gap:10px;padding:12px 24px;background:rgba(10,15,20,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.06em;position:sticky;top:0;z-index:999}}
+.studio-nav a{{color:rgba(232,237,242,0.55);text-decoration:none;transition:color 0.15s}}
+.studio-nav a:hover{{color:#5eead4;text-decoration:none}}
+.sn-home{{color:#e8edf2 !important;display:flex;align-items:center;gap:10px;font-weight:500;flex-shrink:0}}
+.sn-home svg{{width:18px;height:18px;color:#5eead4}}
+.sn-home:hover{{color:#e8edf2 !important}}
+.sn-slash{{color:rgba(232,237,242,0.18);margin:0 1px}}
+.sn-studio{{color:#5eead4}}
+.sn-sep{{color:rgba(232,237,242,0.18)}}
+.sn-current{{color:#5eead4;letter-spacing:0.1em}}
+.sn-ver{{margin-left:auto;color:rgba(232,237,242,0.32);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:3px 9px;border:1px solid rgba(255,255,255,0.06);border-radius:3px;background:rgba(255,255,255,0.02)}}
+@media(max-width:560px){{
+  .studio-nav{{padding:10px 16px;gap:8px}}
+  .sn-sep:first-of-type{{display:none}}
+  .studio-nav a[href="/analytics/"]{{display:none}}
+  .sn-ver{{display:none}}
+}}
 </style>
 <script>if(new URLSearchParams(window.location.search).has('embed'))document.getElementById('studioNav').style.display='none';</script>
 <div class="container">
@@ -546,11 +712,11 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
 {f'<div class="header-logo-wrap">{logo_html}</div>' if logo_html else ''}
 <h1>{BRANDING['report_title']}</h1>
 <div class="header-divider"></div>
-<div class="sub">Generated: {now.strftime('%B %d, %Y at %H:%M')} KST by <a href="https://cybersystema.com" target="_blank" style="color:rgba(255,255,255,0.85);text-decoration:none;border-bottom:1px dotted rgba(255,255,255,0.4)">CyberSystema</a> &nbsp;•&nbsp; Data through: {meta.get('date_range',{}).get('latest','N/A')[:10]} &nbsp;•&nbsp; {meta.get('total_posts',0)} posts across {len(meta.get('platforms',[]))} platforms</div>
+<div class="sub">Generated: {now.strftime('%B %d, %Y at %H:%M')} KST by <a href="https://cybersystema.com" target="_blank">CyberSystema</a> &nbsp;·&nbsp; Data through: {meta.get('date_range',{}).get('latest','N/A')[:10]} &nbsp;·&nbsp; {meta.get('total_posts',0)} posts across {len(meta.get('platforms',[]))} platforms</div>
 <div class="health">{health.get('emoji','📊')} Growth: <strong>{health.get('status','unknown').replace('_',' ').title()}</strong> — {health.get('message','Collecting data...')}</div>
-<div class="header-meta">Active since December 2025 &nbsp;•&nbsp; TikTok since January 6, 2026 &nbsp;•&nbsp; All times in KST</div>
+<div class="header-meta">Active since December 2025 &nbsp;·&nbsp; TikTok since January 6, 2026 &nbsp;·&nbsp; All times in KST</div>
 <div class="powered-badge">Powered by <a href="https://cybersystema.com" target="_blank">{cs_logo_small} CyberSystema</a></div>
-<div style="margin-top:8px"><a href="/analytics/upload" style="color:rgba(255,255,255,0.5);font-size:11px;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,0.3)">📤 Upload New Data</a></div>
+<div style="margin-top:10px"><a href="/analytics/upload" style="color:var(--text-faint);font-size:10px;font-family:var(--font-mono);letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line);padding:5px 12px;border-radius:3px;display:inline-flex;align-items:center;gap:6px">↑ Upload New Data</a></div>
 </div>
 {summary_html}
 {platform_html}
@@ -739,7 +905,7 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
                 if title:
                     working.append(f'Our post "{_safe(title)}" went viral on {pname} ({v["multiplier"]}x above average)')
 
-        working_html = "<ul>" + "".join(f"<li>{w}</li>" for w in working[:6]) + "</ul>" if working else '<p style="color:#888">Not enough data yet — keep posting!</p>'
+        working_html = "<ul>" + "".join(f"<li>{w}</li>" for w in working[:6]) + "</ul>" if working else '<p style="color:var(--text-faint);font-style:italic">Not enough data yet — keep posting!</p>'
 
         # ── 4. WHAT NEEDS ATTENTION ──
         attention = []
@@ -767,7 +933,7 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
                 pname = PLATFORMS.get(plat, {}).get("name", plat)
                 attention.append(f"{pname} engagement is below the industry average — our content strategy on this platform needs a refresh")
 
-        attention_html = "<ul>" + "".join(f"<li>{a}</li>" for a in attention[:5]) + "</ul>" if attention else '<p style="color:#888">Nothing urgent — keep up the good work!</p>'
+        attention_html = "<ul>" + "".join(f"<li>{a}</li>" for a in attention[:5]) + "</ul>" if attention else '<p style="color:var(--text-faint);font-style:italic">Nothing urgent — keep up the good work!</p>'
 
         # ── 5. THIS WEEK'S ACTIONS ──
         actions = []
@@ -870,8 +1036,8 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
 
         return f"""<div class="pblock">
 <div class="phead" style="border-color:{pc}"><span style="font-size:28px">{pico}</span><h2>{pn}</h2>
-<span style="color:#999;font-size:13px;margin-left:auto">{len(pdf)} posts</span></div>
-<div class="section" style="border-radius:0 0 12px 12px;border-top:none">
+<span style="color:var(--text-faint);font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.14em;text-transform:uppercase;margin-left:auto">{len(pdf)} posts</span></div>
+<div class="section" style="border-radius:0 0 6px 6px;border-top:none;margin-top:-1px">
 {kpis}
 <h3>🎬 Content Performance {_tip(TIPS["content_perf"])}</h3>{self._ci(f'{plat}_content')}
 <h3>💬 Engagement Mix {_tip(TIPS["engagement_mix"])}</h3>{self._ci(f'{plat}_eng_pie')}
@@ -908,13 +1074,13 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
                 link = o.get("permalink","")
                 title = _safe(str(o.get('title','') or '')[:50])
                 cell = f'<a href="{link}" target="_blank">{title}</a>' if link else title
-                over_rows += f'<tr><td>{cell}</td><td>{o["actual"]:.1%}</td><td>{o["predicted"]:.1%}</td><td style="color:green">+{o["surplus"]:.1%}</td></tr>'
+                over_rows += f'<tr><td>{cell}</td><td>{o["actual"]:.1%}</td><td>{o["predicted"]:.1%}</td><td style="color:var(--signal);font-family:var(--font-mono);font-weight:600">+{o["surplus"]:.1%}</td></tr>'
             under_rows = ""
             for u in nn.get("underperformers",[])[:3]:
                 link = u.get("permalink","")
                 title = _safe(str(u.get('title','') or '')[:50])
                 cell = f'<a href="{link}" target="_blank">{title}</a>' if link else title
-                under_rows += f'<tr><td>{cell}</td><td>{u["actual"]:.1%}</td><td>{u["predicted"]:.1%}</td><td style="color:red">{u["deficit"]:.1%}</td></tr>'
+                under_rows += f'<tr><td>{cell}</td><td>{u["actual"]:.1%}</td><td>{u["predicted"]:.1%}</td><td style="color:var(--danger);font-family:var(--font-mono);font-weight:600">{u["deficit"]:.1%}</td></tr>'
             parts.append(f"""<div class="sub-s"><h3>🧠 Engagement Predictor {_tip(TIPS["predictor"])}</h3>
 <p>{accuracy_text}</p>
 <p style="margin-top:12px">Posts that <strong>outperformed</strong> expectations:</p>
@@ -928,7 +1094,7 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             cl_html = ""
             for c in cl.get("clusters", []):
                 label = c.get("label", "Cluster")
-                cl_html += f'<div style="margin:8px 0;padding:12px;background:white;border-radius:8px"><strong>{label}</strong> — {c["size"]} posts, {c["avg_engagement_rate"]:.1%} avg engagement</div>'
+                cl_html += f'<div class="inner-card"><strong>{label}</strong> — {c["size"]} posts, {c["avg_engagement_rate"]:.1%} avg engagement</div>'
             parts.append(f'<div class="sub-s"><h3>🎯 Content Performance Tiers {_tip(TIPS["tiers"])}</h3>{self._ci(f"{plat}_clusters")}{cl_html}</div>')
 
         # NLP
@@ -937,7 +1103,7 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             terms=nlp.get("top_engagement_terms",[])[:6]
             t_html = ""
             for t in terms:
-                color = "green" if t["engagement_lift"] > 0 else "red"
+                color = "var(--signal)" if t["engagement_lift"] > 0 else "var(--danger)"
                 t_html += f'<div class="dr"><span class="k">&quot;{_safe(t["term"])}&quot; ({t["posts_with_term"]} posts)</span><span class="val" style="color:{color}">{t["engagement_lift"]:+.0%} lift</span></div>'
             parts.append(f'<div class="sub-s"><h3>📝 Caption &amp; Hashtag Analysis {_tip(TIPS["caption_nlp"])}</h3>{self._ci(f"{plat}_nlp")}{t_html}</div>')
 
@@ -966,16 +1132,16 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             f_html = ""
             for ft in fatigue.get("content_types", []):
                 icon = "📉" if ft["trend"] == "declining" else "📈" if ft["trend"] == "growing" else "➡️"
-                color = "red" if ft["trend"] == "declining" else "green" if ft["trend"] == "growing" else "#888"
+                color = "var(--danger)" if ft["trend"] == "declining" else "var(--signal)" if ft["trend"] == "growing" else "var(--text-faint)"
                 ct_name = _friendly_content_type(ft["content_type"])
                 f_html += f'<div class="dr"><span class="k">{icon} {ct_name} ({ft["post_count"]} posts)</span><span class="val" style="color:{color}">{ft["change_pct"]:+.1f}% recent vs older</span></div>'
             alert = ""
             if fatigued:
                 types = ", ".join(_friendly_content_type(f["content_type"]) for f in fatigued)
-                alert = f'<p style="color:red;font-weight:500">⚠️ Audience fatigue detected for: {types}. Consider reducing frequency or refreshing the format.</p>'
+                alert = f'<p style="color:var(--danger);font-weight:500;margin-bottom:10px">⚠️ Audience fatigue detected for: {types}. Consider reducing frequency or refreshing the format.</p>'
             if growing:
                 types = ", ".join(_friendly_content_type(g["content_type"]) for g in growing)
-                alert += f'<p style="color:green;font-weight:500">🚀 Growing engagement for: {types}. Double down on these.</p>'
+                alert += f'<p style="color:var(--signal);font-weight:500;margin-bottom:10px">🚀 Growing engagement for: {types}. Double down on these.</p>'
             parts.append(f'<div class="sub-s"><h3>🔄 Content Freshness {_tip(TIPS["freshness"])}</h3>{alert}{f_html}</div>')
 
         # Posting Cadence
@@ -996,15 +1162,15 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             score = momentum["total_score"]
             verdict = momentum["verdict"]
             bd = momentum.get("breakdown", {})
-            # Color based on score
+            # Color based on score (Signal Studio semantic tokens)
             if score >= 60:
-                score_color = "green"
+                score_color = "var(--signal)"
             elif score >= 35:
-                score_color = BRANDING["secondary_color"]
+                score_color = "var(--warn)"
             else:
-                score_color = "red"
-            m_html = f'<div style="text-align:center;margin:16px 0"><span style="font-size:48px;font-weight:bold;color:{score_color}">{score:.0f}</span><span style="font-size:16px;color:#888">/100</span></div>'
-            m_html += f'<p style="text-align:center;color:#666;margin-bottom:16px">{_safe(verdict)}</p>'
+                score_color = "var(--danger)"
+            m_html = f'<div style="text-align:center;margin:16px 0;padding:20px;background:var(--bg-4);border:1px solid var(--line);border-radius:4px"><span style="font-family:var(--font-display);font-size:56px;font-weight:500;color:{score_color};letter-spacing:-0.03em">{score:.0f}</span><span style="font-family:var(--font-mono);font-size:14px;color:var(--text-faint);margin-left:4px">/100</span></div>'
+            m_html += f'<p style="text-align:center;color:var(--text-dim);margin-bottom:16px;font-size:14px">{_safe(verdict)}</p>'
             m_html += f'<div class="dr"><span class="k">Engagement Trend</span><span class="val">{bd.get("engagement_trend",0):.0f}/25</span></div>'
             m_html += f'<div class="dr"><span class="k">Posting Consistency</span><span class="val">{bd.get("posting_consistency",0):.0f}/25</span></div>'
             m_html += f'<div class="dr"><span class="k">Reach Growth</span><span class="val">{bd.get("reach_growth",0):.0f}/25</span></div>'
@@ -1017,12 +1183,12 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             rca_html = ""
             viral_exp = rca.get("viral_explanations", [])
             if viral_exp:
-                rca_html += '<p><strong>Why these posts went viral:</strong></p>'
+                rca_html += '<p style="color:var(--text);margin-bottom:10px"><strong>Why these posts went viral:</strong></p>'
                 for v in viral_exp[:2]:
                     title = _safe(str(v.get('title','') or '')[:50])
                     link = v.get("permalink", "")
                     cell = f'<a href="{link}" target="_blank">{title}</a>' if link else title
-                    rca_html += f'<div style="margin:8px 0;padding:12px;background:white;border-radius:8px"><strong>{cell}</strong> (actual: {v["actual_rate"]:.1%}, expected: {v["predicted_rate"]:.1%})<br>'
+                    rca_html += f'<div class="inner-card"><strong>{cell}</strong> <span style="color:var(--text-faint);font-size:12px;font-family:var(--font-mono)">(actual: {v["actual_rate"]:.1%}, expected: {v["predicted_rate"]:.1%})</span><br>'
                     # Deduplicate emb_ features into one "Caption Content" entry
                     seen_caption = False
                     emb_total = sum(abs(w["contribution_pct"]) for w in v.get("why", []) if w["feature"].startswith("emb_"))
@@ -1032,22 +1198,22 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
                                 continue
                             seen_caption = True
                             arrow = "↑" if emb_total > 0 else "↓"
-                            color = "green" if emb_total > 0 else "red"
-                            rca_html += f'<span style="color:{color};margin-right:12px">{arrow} Caption Content: {emb_total:+.1f}%</span>'
+                            color = "var(--signal)" if emb_total > 0 else "var(--danger)"
+                            rca_html += f'<span style="color:{color};margin-right:12px;font-family:var(--font-mono);font-size:12px">{arrow} Caption Content: {emb_total:+.1f}%</span>'
                         else:
                             arrow = "↑" if w["direction"] == "positive" else "↓"
-                            color = "green" if w["direction"] == "positive" else "red"
-                            rca_html += f'<span style="color:{color};margin-right:12px">{arrow} {_friendly_feature(w["feature"])}: {w["contribution_pct"]:+.1f}%</span>'
+                            color = "var(--signal)" if w["direction"] == "positive" else "var(--danger)"
+                            rca_html += f'<span style="color:{color};margin-right:12px;font-family:var(--font-mono);font-size:12px">{arrow} {_friendly_feature(w["feature"])}: {w["contribution_pct"]:+.1f}%</span>'
                     rca_html += '</div>'
 
             flop_exp = rca.get("flop_explanations", [])
             if flop_exp:
-                rca_html += '<p style="margin-top:12px"><strong>Why these posts underperformed:</strong></p>'
+                rca_html += '<p style="margin-top:16px;color:var(--text);margin-bottom:10px"><strong>Why these posts underperformed:</strong></p>'
                 for v in flop_exp[:2]:
                     title = _safe(str(v.get('title','') or '')[:50])
                     link = v.get("permalink", "")
                     cell = f'<a href="{link}" target="_blank">{title}</a>' if link else title
-                    rca_html += f'<div style="margin:8px 0;padding:12px;background:white;border-radius:8px"><strong>{cell}</strong> (actual: {v["actual_rate"]:.1%}, expected: {v["predicted_rate"]:.1%})<br>'
+                    rca_html += f'<div class="inner-card"><strong>{cell}</strong> <span style="color:var(--text-faint);font-size:12px;font-family:var(--font-mono)">(actual: {v["actual_rate"]:.1%}, expected: {v["predicted_rate"]:.1%})</span><br>'
                     seen_caption = False
                     emb_total = sum(w["contribution_pct"] for w in v.get("why", []) if w["feature"].startswith("emb_"))
                     for w in v.get("why", [])[:4]:
@@ -1056,12 +1222,12 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
                                 continue
                             seen_caption = True
                             arrow = "↑" if emb_total > 0 else "↓"
-                            color = "green" if emb_total > 0 else "red"
-                            rca_html += f'<span style="color:{color};margin-right:12px">{arrow} Caption Content: {emb_total:+.1f}%</span>'
+                            color = "var(--signal)" if emb_total > 0 else "var(--danger)"
+                            rca_html += f'<span style="color:{color};margin-right:12px;font-family:var(--font-mono);font-size:12px">{arrow} Caption Content: {emb_total:+.1f}%</span>'
                         else:
                             arrow = "↑" if w["direction"] == "positive" else "↓"
-                            color = "green" if w["direction"] == "positive" else "red"
-                            rca_html += f'<span style="color:{color};margin-right:12px">{arrow} {_friendly_feature(w["feature"])}: {w["contribution_pct"]:+.1f}%</span>'
+                            color = "var(--signal)" if w["direction"] == "positive" else "var(--danger)"
+                            rca_html += f'<span style="color:{color};margin-right:12px;font-family:var(--font-mono);font-size:12px">{arrow} {_friendly_feature(w["feature"])}: {w["contribution_pct"]:+.1f}%</span>'
                     rca_html += '</div>'
 
             if rca_html:
@@ -1075,10 +1241,10 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
                 kw = ", ".join(t.get("keywords", [])[:4]) or "—"
                 eng_pct = t["avg_engagement_rate"]
                 bar_w = min(100, max(5, int(eng_pct * 500)))
-                t_html += f'<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span><strong>{_safe(t.get("representative_post","")[:45])}</strong> ({t["post_count"]} posts)</span><span style="color:{BRANDING["primary_color"]};font-weight:600">{eng_pct:.1%}</span></div>'
-                t_html += f'<div style="background:#eee;border-radius:4px;height:8px"><div style="width:{bar_w}%;height:100%;background:{BRANDING["secondary_color"]};border-radius:4px"></div></div>'
-                t_html += f'<div style="font-size:11px;color:#888;margin-top:2px">Keywords: {_safe(kw)}</div></div>'
-            parts.append(f'<div class="sub-s"><h3>📑 Content Topics {_tip(TIPS["topics"])}</h3><p style="color:#666;font-size:13px;margin-bottom:12px">Posts grouped by meaning — works across English, Korean &amp; Greek</p>{t_html}</div>')
+                t_html += f'<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;gap:10px"><span style="color:var(--text-dim)"><strong style="color:var(--text)">{_safe(t.get("representative_post","")[:45])}</strong> <span style="color:var(--text-faint);font-family:var(--font-mono);font-size:11px">({t["post_count"]} posts)</span></span><span style="color:var(--signal);font-weight:600;font-family:var(--font-mono)">{eng_pct:.1%}</span></div>'
+                t_html += f'<div class="topic-bar"><div class="topic-bar-fill" style="width:{bar_w}%"></div></div>'
+                t_html += f'<div style="font-size:11px;color:var(--text-faint);margin-top:4px;font-family:var(--font-mono);letter-spacing:0.04em">Keywords: {_safe(kw)}</div></div>'
+            parts.append(f'<div class="sub-s"><h3>📑 Content Topics {_tip(TIPS["topics"])}</h3><p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">Posts grouped by meaning — works across English, Korean &amp; Greek</p>{t_html}</div>')
 
         # Similar Post Predictor
         similar = ml.get("similar_posts", {})
@@ -1087,17 +1253,17 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             s_html += f'<div class="dr"><span class="k">How similar is your content</span><span class="val">{similar["median_similarity"]:.0%} average overlap</span></div>'
             recent = similar.get("recent_predictions", [])
             if recent:
-                s_html += '<p style="margin-top:14px;font-weight:600;font-size:13px">Recent posts — predicted vs actual:</p>'
+                s_html += '<p style="margin-top:14px;font-weight:600;font-size:13px;color:var(--text)">Recent posts — predicted vs actual:</p>'
                 for rp in recent[:4]:
                     actual = rp["actual_rate"]
                     predicted = rp["predicted_rate"]
                     diff = actual - predicted
-                    diff_color = "green" if diff > 0 else "red" if diff < -0.02 else "#888"
+                    diff_color = "var(--signal)" if diff > 0 else "var(--danger)" if diff < -0.02 else "var(--text-faint)"
                     sim_titles = ", ".join(f'"{_safe(t[:25])}"' for t in rp.get("similar_to", [])[:2])
-                    s_html += f'<div style="margin:8px 0;padding:10px;background:white;border-radius:8px;font-size:13px">'
+                    s_html += f'<div class="inner-card" style="font-size:13px">'
                     s_html += f'<strong>{_safe(rp["title"][:45])}</strong><br>'
-                    s_html += f'Expected: {predicted:.1%} → Actual: {actual:.1%} <span style="color:{diff_color}">({diff:+.1%})</span><br>'
-                    s_html += f'<span style="color:#999;font-size:11px">Similar to: {sim_titles} ({rp["similarity"]:.0%} match)</span></div>'
+                    s_html += f'<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:12px">Expected: {predicted:.1%} → Actual: {actual:.1%}</span> <span style="color:{diff_color};font-family:var(--font-mono);font-size:12px">({diff:+.1%})</span><br>'
+                    s_html += f'<span style="color:var(--text-faint);font-size:11px;font-family:var(--font-mono)">Similar to: {sim_titles} ({rp["similarity"]:.0%} match)</span></div>'
             parts.append(f'<div class="sub-s"><h3>🔮 Similar Post Predictions {_tip(TIPS["similar_posts"])}</h3>{s_html}</div>')
 
         # Hashtag Clusters
@@ -1108,13 +1274,13 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             for cl in htclusters.get("clusters", [])[:5]:
                 tags = " ".join(cl.get("top_hashtags", [])[:4])
                 eng = cl["avg_engagement_rate"]
-                h_html += f'<div style="margin:8px 0;padding:10px;background:white;border-radius:8px">'
-                h_html += f'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px"><strong>{_safe(cl.get("label",""))}</strong> ({cl["total_posts"]} posts)</span><span style="color:{BRANDING["primary_color"]};font-weight:600">{eng:.1%}</span></div>'
-                h_html += f'<div style="font-size:12px;color:#666;margin-top:4px">{_safe(tags)}</div></div>'
+                h_html += f'<div class="inner-card">'
+                h_html += f'<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:13px;color:var(--text-dim)"><strong style="color:var(--text)">{_safe(cl.get("label",""))}</strong> <span style="color:var(--text-faint);font-family:var(--font-mono);font-size:11px">({cl["total_posts"]} posts)</span></span><span style="color:var(--signal);font-weight:600;font-family:var(--font-mono)">{eng:.1%}</span></div>'
+                h_html += f'<div style="font-size:12px;color:var(--text-faint);margin-top:6px;font-family:var(--font-mono);letter-spacing:0.02em">{_safe(tags)}</div></div>'
             # Top individual hashtags
             top_ht = htclusters.get("top_individual_hashtags", [])
             if top_ht:
-                h_html += '<p style="margin-top:12px;font-weight:600;font-size:13px">Top performing hashtags:</p>'
+                h_html += '<p style="margin-top:14px;font-weight:600;font-size:13px;color:var(--text)">Top performing hashtags:</p>'
                 for ht in top_ht[:6]:
                     h_html += f'<div class="dr"><span class="k">{_safe(ht["tag"])} ({ht["post_count"]} posts)</span><span class="val">{ht["avg_engagement"]:.1%}</span></div>'
             parts.append(f'<div class="sub-s"><h3>#️⃣ Hashtag Strategy {_tip(TIPS["hashtag_strategy"])}</h3>{h_html}</div>')
@@ -1164,10 +1330,10 @@ table{{font-size:11px}}th,td{{padding:6px 8px}}
             pn = PLATFORMS.get(p, {}).get("name", p)
             pico = PLATFORMS.get(p, {}).get("icon", "")
             vs = d.get("vs_benchmark", 0)
-            vs_color = "green" if vs > 0 else "red"
-            rows += f'<tr><td>{pico} {pn}</td><td>{d.get("total_posts",0)}</td><td>{d.get("total_reach",0):,}</td><td>{d.get("total_engagement",0):,}</td><td>{d.get("avg_engagement_rate",0):.1%}</td><td>{d.get("benchmark_engagement",0):.1%}</td><td style="color:{vs_color}">{vs:+.1%}</td></tr>'
+            vs_color = "var(--signal)" if vs > 0 else "var(--danger)"
+            rows += f'<tr><td>{pico} {pn}</td><td>{d.get("total_posts",0)}</td><td>{d.get("total_reach",0):,}</td><td>{d.get("total_engagement",0):,}</td><td>{d.get("avg_engagement_rate",0):.1%}</td><td>{d.get("benchmark_engagement",0):.1%}</td><td style="color:{vs_color};font-family:var(--font-mono);font-weight:600">{vs:+.1%}</td></tr>'
         return f"""<div class="section cross"><h2>🔄 Cross-Platform Comparison {_tip(TIPS["cross_platform"])}</h2>
-<p style="color:#888;font-size:13px;margin-bottom:16px">⚠️ <strong>Note:</strong> Instagram rate = interactions ÷ reach. TikTok rate = interactions ÷ views. Different denominators — not directly comparable.</p>
+<p style="color:var(--text-faint);font-size:13px;margin-bottom:16px">⚠️ <strong style="color:var(--text-dim)">Note:</strong> Instagram rate = interactions ÷ reach. TikTok rate = interactions ÷ views. Different denominators — not directly comparable.</p>
 {self._ci("cross")}
 <table><tr><th>Platform</th><th>Posts</th><th>Reach</th><th>Engagement</th><th>Avg Rate</th><th>Benchmark</th><th>vs Bench</th></tr>{rows}</table></div>"""
 

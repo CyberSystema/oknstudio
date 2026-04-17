@@ -3,64 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>OKN Analytics</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<title>Analytics — OKN Studio</title>
+<meta name="theme-color" content="#0a0f14">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="mask-icon" href="/favicon.svg" color="#5eead4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:#f8f6f0;color:#2c2c2c;min-height:100vh;display:flex;flex-direction:column}
-.studio-nav{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#0f2137;font-size:13px}
-.studio-nav a{color:rgba(255,255,255,0.6);text-decoration:none}.studio-nav a:hover{color:#c4953a}
-.sn-home{font-weight:600;color:rgba(255,255,255,0.85) !important;display:flex;align-items:center;gap:4px}
-.sn-home .material-icons{font-size:18px;font-weight:500}
-.sn-sep{color:rgba(255,255,255,0.2)}
-.sn-current{color:rgba(255,255,255,0.4)}
-.main{flex:1;display:flex;align-items:center;justify-content:center}
-.wrap{text-align:center;padding:40px 32px;max-width:420px;width:100%}
-.logo-wrap{display:inline-block;padding:5px;border-radius:50%;background:linear-gradient(135deg,rgba(196,149,58,0.5),rgba(255,255,255,0.2));margin-bottom:24px}
-.logo{width:110px;height:110px;border-radius:50%;display:block;object-fit:cover;border:3px solid rgba(26,58,92,0.15)}
-h1{font-family:'Cormorant Garamond',serif;font-size:28px;color:#1a3a5c;margin-bottom:4px;font-weight:700}
-.sub{color:#888;font-size:14px;margin-bottom:32px}
-.buttons{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
-.btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 24px;border-radius:12px;text-decoration:none;font-size:16px;font-weight:600;transition:all 0.2s;border:2px solid transparent}
-.btn-report{background:#1a3a5c;color:white}
-.btn-report:hover{background:#254d73;transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,58,92,0.25)}
-.btn-upload{background:white;color:#1a3a5c;border-color:#e0dcd4}
-.btn-upload:hover{border-color:#1a3a5c;background:#f5f8fb;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
-.btn .icon{font-size:20px}
-.btn .label{display:flex;flex-direction:column;align-items:flex-start;line-height:1.3}
-.btn .label small{font-size:11px;font-weight:400;opacity:0.7}
-.foot{font-size:11px;color:#aaa}
-.foot a{color:#999;text-decoration:none}.foot a:hover{text-decoration:underline}
-@media(max-width:480px){.wrap{padding:32px 20px}h1{font-size:24px}.logo{width:90px;height:90px}.btn{padding:14px 20px;font-size:15px}}
+:root{
+  --bg:#0a0f14;--bg-2:#0e141b;--bg-3:#121821;
+  --signal:#5eead4;--signal-bright:#a7f3d0;--signal-dim:rgba(94,234,212,0.12);
+  --signal-deep:#14b8a6;
+  --info:#60a5fa;--warn:#fbbf24;--danger:#f87171;
+  --text:#e8edf2;--text-dim:rgba(232,237,242,0.55);
+  --text-faint:rgba(232,237,242,0.32);--text-ghost:rgba(232,237,242,0.18);
+  --line:rgba(255,255,255,0.06);--line-2:rgba(255,255,255,0.1);
+  --line-signal:rgba(94,234,212,0.2);
+  --surface:rgba(255,255,255,0.025);--surface-2:rgba(255,255,255,0.05);
+  --font-display:'Sora',sans-serif;
+  --font-body:'IBM Plex Sans','Noto Sans KR',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%)}
+body::after{content:'';position:fixed;top:-300px;right:-300px;width:900px;height:900px;background:radial-gradient(circle,rgba(94,234,212,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* Chrome */
+.chrome{position:sticky;top:0;z-index:50;background:rgba(10,15,20,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.chrome-inner{max-width:1200px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:20px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text)}
+.brand svg{width:20px;height:20px}
+.brand .slash{color:var(--text-ghost)}
+.brand .studio{color:var(--signal)}
+.back{display:flex;align-items:center;gap:8px;padding:7px 12px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid transparent;border-radius:3px;transition:all 0.2s}
+.back:hover{color:var(--signal);border-color:var(--line-2);background:var(--surface)}
+.divider{width:1px;height:16px;background:var(--line)}
+.path{color:var(--text-faint);letter-spacing:0.06em}
+.path .slash{color:var(--text-ghost)}
+.path .seg-active{color:var(--signal)}
+.chrome-right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:10px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase}
+.status-live{display:flex;align-items:center;gap:8px;color:var(--signal)}
+.status-live .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 8px var(--signal);animation:pulse 2s ease-in-out infinite}
+
+/* Main */
+.main{flex:1;position:relative;z-index:1;padding:80px 32px 64px;max-width:1200px;margin:0 auto;width:100%}
+
+/* Hero */
+.hero{margin-bottom:72px}
+.hero-kicker{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid var(--line-signal);background:var(--signal-dim);border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--signal);margin-bottom:24px}
+.hero-kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.hero h1{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,6vw,72px);letter-spacing:-0.03em;line-height:0.95;color:var(--text);margin-bottom:24px}
+.hero h1 .accent{color:var(--signal);font-weight:500}
+.hero p{font-size:17px;line-height:1.6;color:var(--text-dim);max-width:60ch;font-weight:300}
+.hero p em{color:var(--signal);font-style:normal}
+
+/* Panels grid */
+.panels{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:72px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:32px;position:relative;overflow:hidden;transition:all 0.3s}
+.panel::before{content:'';position:absolute;top:0;left:0;width:20px;height:20px;border-top:1px solid var(--signal);border-left:1px solid var(--signal);opacity:0.4}
+
+.panel-primary{text-decoration:none;color:inherit;min-height:280px;display:flex;flex-direction:column}
+.panel-primary::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% 90%,var(--signal-dim),transparent 50%);opacity:0;transition:opacity 0.3s;pointer-events:none}
+.panel-primary:hover{border-color:var(--line-signal);background:var(--surface-2);transform:translateY(-2px)}
+.panel-primary:hover::after{opacity:1}
+
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
+.panel-icon{width:44px;height:44px;border:1px solid var(--line-2);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--signal);background:var(--bg-2);transition:all 0.3s}
+.panel-icon svg{width:22px;height:22px}
+.panel-primary:hover .panel-icon{border-color:var(--signal);background:var(--signal-dim)}
+.panel-tag{font-family:var(--font-mono);font-size:10px;padding:4px 10px;border:1px solid var(--line-signal);background:var(--signal-dim);color:var(--signal);letter-spacing:0.15em;text-transform:uppercase;border-radius:3px;display:inline-flex;align-items:center;gap:6px}
+.panel-tag .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal)}
+
+.panel-name{font-family:var(--font-display);font-weight:500;font-size:32px;letter-spacing:-0.02em;line-height:1.05;color:var(--text);margin-bottom:12px}
+.panel-desc{font-size:14px;line-height:1.55;color:var(--text-dim);margin-bottom:auto;max-width:42ch}
+.panel-foot{margin-top:24px;padding-top:20px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:11px;letter-spacing:0.05em}
+.panel-path{color:var(--text-faint)}
+.panel-path::before{content:'→ ';color:var(--text-ghost)}
+.panel-go{color:var(--signal);display:flex;align-items:center;gap:6px;transition:transform 0.25s}
+.panel-primary:hover .panel-go{transform:translateX(4px)}
+
+.panel-secondary{padding:24px;display:flex;flex-direction:column;gap:16px}
+.sec-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;color:var(--text-faint);text-transform:uppercase;padding-bottom:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'■';color:var(--signal);font-size:10px}
+.sec-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.sec-item:last-child{border-bottom:none}
+.sec-item-label{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);letter-spacing:0.1em;text-transform:uppercase}
+.sec-item-value{font-family:var(--font-display);font-size:18px;font-weight:500;color:var(--text)}
+.sec-item-value .unit{font-family:var(--font-mono);font-size:10px;color:var(--signal);margin-left:4px;text-transform:uppercase;letter-spacing:0.1em}
+
+/* Upload CTA */
+.upload-cta{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;gap:24px;text-decoration:none;color:inherit;transition:all 0.3s;position:relative;overflow:hidden}
+.upload-cta::before{content:'';position:absolute;top:0;right:0;bottom:0;width:200px;background:radial-gradient(circle at 100% 50%,var(--signal-dim),transparent 70%);opacity:0;transition:opacity 0.3s}
+.upload-cta:hover{border-color:var(--line-signal);background:var(--surface-2);transform:translateY(-2px)}
+.upload-cta:hover::before{opacity:1}
+.uc-body{display:flex;align-items:center;gap:20px;position:relative;z-index:1}
+.uc-icon{width:44px;height:44px;border:1px solid var(--line-2);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--signal);background:var(--bg-2);flex-shrink:0}
+.uc-icon svg{width:22px;height:22px}
+.upload-cta:hover .uc-icon{border-color:var(--signal);background:var(--signal-dim)}
+.uc-text h3{font-family:var(--font-display);font-weight:500;font-size:20px;color:var(--text);margin-bottom:4px;letter-spacing:-0.01em}
+.uc-text p{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);letter-spacing:0.05em}
+.uc-action{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--signal);letter-spacing:0.12em;text-transform:uppercase;position:relative;z-index:1}
+.uc-arrow{transition:transform 0.25s}
+.upload-cta:hover .uc-arrow{transform:translateX(4px)}
+
+/* Footer */
+.footer{position:relative;z-index:1;padding:24px 32px;border-top:1px solid var(--line);background:var(--bg-2)}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase}
+.footer a{color:var(--signal);text-decoration:none}
+.footer a:hover{color:var(--signal-bright)}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+@media(max-width:900px){.panels{grid-template-columns:1fr}}
+@media(max-width:640px){
+  .chrome-inner{padding:10px 20px;flex-wrap:wrap}
+  .chrome-right{margin-left:0;order:10;width:100%;justify-content:flex-end}
+  .path{display:none}
+  .main{padding:56px 20px 48px}
+  .hero{margin-bottom:48px}
+  .panels{margin-bottom:48px}
+  .panel,.panel-secondary{padding:24px}
+  .upload-cta{flex-direction:column;align-items:flex-start;padding:24px}
+  .footer-inner{flex-direction:column;gap:8px;text-align:center}
+}
 </style>
 </head>
 <body>
-<nav class="studio-nav" id="studioNav">
-  <a href="/" class="sn-home"><i class="material-icons">home</i>OKN Studio</a>
-  <span class="sn-sep">›</span>
-  <span class="sn-current">Analytics</span>
-</nav>
-<script>if(new URLSearchParams(window.location.search).has('embed'))document.getElementById('studioNav').style.display='none';</script>
-<div class="main">
-  <div class="wrap">
-    <div class="logo-wrap"><img src="/assets/okn_logo.png" alt="OKN" class="logo"></div>
-    <h1>OKN Analytics</h1>
-    <div class="sub">Social media intelligence for the Orthodox Korea Network</div>
-    <div class="buttons">
-      <a href="/analytics/report" class="btn btn-report">
-        <span class="icon">📊</span>
-        <span class="label">View Report<small>Latest analytics &amp; insights</small></span>
-      </a>
-      <a href="/analytics/upload" class="btn btn-upload">
-        <span class="icon">📤</span>
-        <span class="label">Upload Data<small>Add new CSV exports</small></span>
-      </a>
+
+<header class="chrome">
+  <div class="chrome-inner">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
+        <line x1="16" y1="4" x2="16" y2="12"/><line x1="16" y1="20" x2="16" y2="28"/>
+        <line x1="4" y1="16" x2="12" y2="16"/><line x1="20" y1="16" x2="28" y2="16"/>
+        <circle cx="16" cy="4" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="28" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="4" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="28" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"/>
+      </svg>
+      <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
     </div>
-    <div class="foot">
-      Powered by <a href="https://cybersystema.com" target="_blank">CyberSystema</a>
+    <div class="divider"></div>
+    <a href="/" class="back">← Studio</a>
+    <div class="divider"></div>
+    <span class="path">/<span class="slash"></span><span class="seg-active">analytics</span></span>
+    <div class="chrome-right">
+      <span class="status-live"><span class="dot"></span>Pipeline OK</span>
     </div>
   </div>
-</div>
+</header>
+
+<main class="main">
+
+  <section class="hero">
+    <div class="hero-kicker"><span class="dot"></span>Module 01 · Analytics</div>
+    <h1>Read every post. <span class="accent">Every week.</span></h1>
+    <p>Fourteen machine-learning models parse the complete output of the OKN social accounts across Instagram and TikTok, in <em>Korean, English, and Greek</em>—compiled into one continuously updated intelligence report.</p>
+  </section>
+
+  <section class="panels">
+
+    <!-- LATEST REPORT -->
+    <a href="report.html" class="panel panel-primary">
+      <div class="panel-head">
+        <div class="panel-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="3" width="16" height="18" rx="1.5"/>
+            <path d="M8 8 L16 8"/>
+            <path d="M8 12 L16 12"/>
+            <path d="M8 16 L12 16"/>
+          </svg>
+        </div>
+        <div class="panel-tag"><span class="dot"></span>Ready</div>
+      </div>
+      <h2 class="panel-name">Latest Report</h2>
+      <p class="panel-desc">The current intelligence brief—health score, top recommendations, platform breakdown, and content-level insights, drawn from the last pipeline run.</p>
+      <div class="panel-foot">
+        <span class="panel-path">analytics/report</span>
+        <span class="panel-go">Open Report <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- META SIDEBAR -->
+    <div class="panel panel-secondary">
+      <div class="sec-label">Pipeline State</div>
+      <div class="sec-item">
+        <span class="sec-item-label">Models</span>
+        <span class="sec-item-value">14<span class="unit">active</span></span>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item-label">Languages</span>
+        <span class="sec-item-value">03<span class="unit">ml</span></span>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item-label">Cadence</span>
+        <span class="sec-item-value">Weekly<span class="unit">Mon · 09 KST</span></span>
+      </div>
+      <div class="sec-item">
+        <span class="sec-item-label">Runtime</span>
+        <span class="sec-item-value">~2<span class="unit">min</span></span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- UPLOAD CTA -->
+  <a href="upload.html" class="upload-cta">
+    <div class="uc-body">
+      <div class="uc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 L12 15"/>
+          <path d="M7 8 L12 3 L17 8"/>
+          <path d="M4 17 L4 20 L20 20 L20 17"/>
+        </svg>
+      </div>
+      <div class="uc-text">
+        <h3>Upload weekly CSVs</h3>
+        <p>Drop exports · auto-detected · committed atomically</p>
+      </div>
+    </div>
+    <div class="uc-action">
+      Open Ingest <span class="uc-arrow">→</span>
+    </div>
+  </a>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>OKN Studio · Analytics</span>
+    <span>by <a href="https://cybersystema.com" target="_blank">CyberSystema</a></span>
+  </div>
+</footer>
+
+<script>
+// Hide chrome when embedded
+if (new URLSearchParams(window.location.search).has('embed')) {
+  document.querySelector('.chrome').style.display = 'none';
+}
+</script>
 </body>
 </html>

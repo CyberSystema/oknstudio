@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Calendar — OKN Studio</title>
+<meta name="description" content="Liturgical calendar and editorial schedule in one continuous timeline — in development.">
+<meta name="theme-color" content="#0a0f14">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="mask-icon" href="/favicon.svg" color="#5eead4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════
+   OKN STUDIO / Calendar
+   Module 04 · In Development
+   Signal Studio aesthetic
+   ══════════════════════════════════════════════════════ */
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0a0f14;--bg-2:#0e141b;--bg-3:#121821;--bg-4:#1a2230;
+  --signal:#5eead4;--signal-bright:#a7f3d0;--signal-dim:rgba(94,234,212,0.12);
+  --signal-deep:#14b8a6;
+  --info:#60a5fa;--warn:#fbbf24;--danger:#f87171;--purple:#a78bfa;
+  --text:#e8edf2;--text-dim:rgba(232,237,242,0.55);
+  --text-faint:rgba(232,237,242,0.32);--text-ghost:rgba(232,237,242,0.18);
+  --line:rgba(255,255,255,0.06);--line-2:rgba(255,255,255,0.1);
+  --line-signal:rgba(94,234,212,0.25);
+  --surface:rgba(255,255,255,0.025);--surface-2:rgba(255,255,255,0.05);
+  --font-display:'Sora',sans-serif;
+  --font-body:'IBM Plex Sans','Noto Sans KR',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%)}
+body::after{content:'';position:fixed;top:-300px;right:-300px;width:900px;height:900px;background:radial-gradient(circle,rgba(94,234,212,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* ══ Chrome ══ */
+.chrome{position:sticky;top:0;z-index:50;background:rgba(10,15,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.chrome-inner{max-width:1200px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;gap:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);flex-shrink:0}
+.brand svg{width:20px;height:20px}
+.brand .slash{color:var(--text-ghost)}
+.brand .studio{color:var(--signal)}
+.back{display:flex;align-items:center;gap:8px;padding:7px 12px;text-decoration:none;color:var(--text-dim);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid transparent;border-radius:3px;transition:all 0.2s;flex-shrink:0}
+.back:hover{color:var(--signal);border-color:var(--line-2);background:var(--surface)}
+.divider{width:1px;height:16px;background:var(--line);flex-shrink:0}
+.path{color:var(--text-faint);letter-spacing:0.06em}
+.path .seg-active{color:var(--signal)}
+.dev-badge{margin-left:auto;display:flex;align-items:center;gap:8px;padding:4px 10px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.16em;color:var(--warn);border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.06);border-radius:3px;text-transform:uppercase}
+.dev-badge .dot{width:5px;height:5px;border-radius:50%;background:var(--warn);box-shadow:0 0 6px var(--warn)}
+
+/* ══ Main ══ */
+.wrap{flex:1;padding:72px 32px;max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:1}
+
+/* ══ Hero ══ */
+.hero{text-align:left;margin-bottom:72px;max-width:640px}
+.kicker{display:inline-flex;align-items:center;gap:10px;padding:5px 12px;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.08);border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--warn);margin-bottom:28px}
+.kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.hero h1{font-family:var(--font-display);font-size:clamp(48px,6.5vw,80px);font-weight:400;letter-spacing:-0.03em;line-height:0.98;color:var(--text);margin-bottom:20px}
+.hero h1 .accent{color:var(--signal);font-weight:500}
+.hero p{font-size:17px;line-height:1.6;color:var(--text-dim);font-weight:300;max-width:56ch}
+.hero p em{color:var(--signal);font-style:normal}
+
+/* ══ Split: mock + features ══ */
+.split{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:start;margin-bottom:96px}
+
+/* ── Mock calendar: console frame ── */
+.month{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+.month::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
+
+.month-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgba(255,255,255,0.015);border-bottom:1px solid var(--line);height:36px}
+.month-dots{display:flex;gap:6px;margin-right:8px}
+.month-dots span{width:8px;height:8px;border-radius:50%}
+.month-dots span:nth-child(1){background:#ef4444}
+.month-dots span:nth-child(2){background:var(--warn)}
+.month-dots span:nth-child(3){background:var(--signal)}
+.month-path{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.08em;font-weight:500}
+.month-ro{margin-left:auto;display:flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--line-2);background:rgba(255,255,255,0.03);border-radius:3px;font-family:var(--font-mono);font-size:9px;color:var(--text-faint);letter-spacing:0.18em}
+
+.month-body{padding:20px}
+
+.month-head{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--line);
+}
+.month-title{font-family:var(--font-display);font-size:28px;font-weight:500;letter-spacing:-0.02em;color:var(--text);line-height:1}
+.month-title .accent{color:var(--signal);font-weight:500}
+.month-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;color:var(--text-faint);text-transform:uppercase;text-align:right}
+.month-sub .kr{font-family:'Noto Sans KR',sans-serif;color:var(--signal);font-size:11px;letter-spacing:0.04em;display:block;margin-bottom:3px}
+
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-family:var(--font-mono)}
+.dow{padding:8px 0;text-align:center;font-size:9px;letter-spacing:0.2em;color:var(--text-faint);text-transform:uppercase;font-weight:500}
+.day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);border:1px solid transparent;border-radius:3px;position:relative;font-size:12px;font-weight:500;transition:all 0.15s}
+.day:hover{border-color:var(--line-2);background:var(--surface)}
+.day.out{color:var(--text-ghost);opacity:0.5}
+.day.out:hover{background:none;border-color:transparent}
+.day.feast{color:var(--warn);font-weight:600}
+.day.feast::after{content:'';position:absolute;bottom:4px;width:4px;height:4px;background:var(--warn);border-radius:50%;box-shadow:0 0 4px var(--warn)}
+.day.event{color:var(--info);font-weight:600}
+.day.event::after{content:'';position:absolute;bottom:4px;width:4px;height:4px;background:var(--info);border-radius:50%}
+.day.today{color:var(--bg);background:var(--signal);font-weight:700;box-shadow:0 0 0 1px var(--signal),0 0 16px rgba(94,234,212,0.4)}
+
+.legend{display:flex;gap:18px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint)}
+.legend-dot{width:6px;height:6px;border-radius:50%}
+.legend-dot.today{background:var(--signal);box-shadow:0 0 6px var(--signal)}
+.legend-dot.feast{background:var(--warn);box-shadow:0 0 5px var(--warn)}
+.legend-dot.event{background:var(--info)}
+
+/* ── Features list ── */
+.features-head{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:16px;margin-bottom:28px;border-bottom:1px solid var(--line)}
+.features-title{font-family:var(--font-display);font-size:28px;font-weight:500;letter-spacing:-0.02em;color:var(--text);line-height:1}
+.features-title .accent{color:var(--signal);font-weight:500}
+.features-meta{font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;color:var(--text-faint);text-transform:uppercase}
+
+.feature{display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:start;padding:18px 0;border-bottom:1px solid var(--line)}
+.feature:last-child{border-bottom:none}
+
+.feature-idx{font-family:var(--font-mono);font-size:11px;letter-spacing:0.15em;color:var(--signal);padding-top:3px}
+.feature-body h3{font-family:var(--font-display);font-size:18px;font-weight:500;color:var(--text);letter-spacing:-0.01em;margin-bottom:6px;line-height:1.2}
+.feature-body p{font-size:14px;color:var(--text-dim);line-height:1.55;max-width:38ch}
+.feature-status{font-family:var(--font-mono);font-size:9px;letter-spacing:0.15em;color:var(--text-faint);text-transform:uppercase;padding:3px 8px;border:1px solid var(--line-2);border-radius:3px;background:var(--surface);white-space:nowrap}
+
+/* ══ Roadmap ══ */
+.roadmap{margin-bottom:80px;background:var(--bg-2);border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+.roadmap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
+
+.roadmap-bar{display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid var(--line);background:var(--bg-3)}
+.roadmap-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.18em;color:var(--signal);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.roadmap-label::before{content:'■';font-size:9px}
+.roadmap-meta{margin-left:auto;font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;color:var(--text-faint);text-transform:uppercase}
+
+.stages{display:grid;grid-template-columns:repeat(3,1fr);position:relative}
+.stages::before{content:'';position:absolute;top:58px;left:16%;right:16%;height:1px;background:var(--line);z-index:0}
+.stage{position:relative;z-index:1;padding:36px 28px;border-right:1px solid var(--line)}
+.stage:last-child{border-right:none}
+
+.stage-node{width:32px;height:32px;margin-bottom:18px;border-radius:50%;background:var(--bg-3);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-faint);font-weight:600;position:relative}
+.stage.done .stage-node{background:rgba(94,234,212,0.08);border-color:var(--line-signal);color:var(--signal)}
+.stage.current .stage-node{background:var(--signal);color:var(--bg);border-color:var(--signal);box-shadow:0 0 0 4px rgba(94,234,212,0.15),0 0 16px rgba(94,234,212,0.3)}
+
+.stage-when{font-family:var(--font-mono);font-size:9px;letter-spacing:0.18em;color:var(--text-faint);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.stage.done .stage-when{color:var(--signal)}
+.stage.done .stage-when::before{content:'✓';color:var(--signal)}
+.stage.current .stage-when{color:var(--signal)}
+.stage.current .stage-when::before{content:'●';color:var(--signal);font-size:8px;animation:pulse 2s ease-in-out infinite}
+
+.stage-what{font-family:var(--font-display);font-size:20px;font-weight:500;color:var(--text);letter-spacing:-0.01em;margin-bottom:8px;line-height:1.15}
+.stage-note{font-size:13px;color:var(--text-dim);line-height:1.5}
+
+/* ══ Invitation ══ */
+.invite{text-align:center;padding:64px 32px 56px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative}
+.invite-mark{width:48px;height:48px;margin:0 auto 20px;border:1px solid var(--line-signal);background:var(--signal-dim);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--signal)}
+.invite-mark svg{width:22px;height:22px}
+.invite h2{font-family:var(--font-display);font-size:32px;font-weight:400;color:var(--text);letter-spacing:-0.025em;margin-bottom:14px;line-height:1.1}
+.invite h2 .accent{color:var(--signal);font-weight:500}
+.invite p{font-size:15px;color:var(--text-dim);max-width:52ch;margin:0 auto 32px;line-height:1.6}
+.invite-cta{display:inline-flex;align-items:center;gap:10px;padding:13px 26px;background:var(--signal);color:var(--bg);font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:0.02em;text-decoration:none;border-radius:3px;transition:all 0.25s}
+.invite-cta:hover{background:var(--signal-bright);transform:translateY(-1px);box-shadow:0 8px 24px rgba(94,234,212,0.25)}
+.invite-cta .arrow{font-family:var(--font-mono);transition:transform 0.25s}
+.invite-cta:hover .arrow{transform:translateX(-4px)}
+
+/* ══ Foot ══ */
+.foot{text-align:center;margin-top:48px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;color:var(--text-faint);text-transform:uppercase}
+.foot .sep-dot{color:var(--text-ghost);margin:0 8px}
+.foot a{color:var(--signal);text-decoration:none}
+.foot a:hover{color:var(--signal-bright)}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ══ Responsive ══ */
+@media(max-width:900px){
+  .split{grid-template-columns:1fr;gap:48px}
+  .stages{grid-template-columns:1fr}
+  .stages::before{display:none}
+  .stage{border-right:none;border-bottom:1px solid var(--line)}
+  .stage:last-child{border-bottom:none}
+}
+@media(max-width:640px){
+  .chrome-inner{padding:10px 20px;flex-wrap:wrap}
+  .dev-badge{margin-left:auto;font-size:9px}
+  .wrap{padding:48px 20px}
+  .hero{margin-bottom:48px}
+  .hero h1{font-size:40px}
+  .month-body{padding:16px}
+  .feature{grid-template-columns:40px 1fr;row-gap:8px}
+  .feature-status{grid-column:1/-1;justify-self:start}
+  .stage{padding:24px 20px}
+  .path{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="chrome-inner">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
+        <line x1="16" y1="4" x2="16" y2="12"/><line x1="16" y1="20" x2="16" y2="28"/>
+        <line x1="4" y1="16" x2="12" y2="16"/><line x1="20" y1="16" x2="28" y2="16"/>
+        <circle cx="16" cy="4" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="28" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="4" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="28" cy="16" r="2" fill="#5eead4" stroke="none"/>
+        <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"/>
+      </svg>
+      <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+    </div>
+    <div class="divider"></div>
+    <a href="/" class="back">← Studio</a>
+    <div class="divider"></div>
+    <span class="path">/<span class="seg-active">calendar</span></span>
+    <span class="dev-badge"><span class="dot"></span>In Development</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="kicker"><span class="dot"></span>Module 04 · In Development · Q2 2026</div>
+    <h1>Liturgical year.<br><span class="accent">Editorial year.</span><br>One timeline.</h1>
+    <p>Feast days, fasts, and content deadlines rendered as a single continuous schedule — with <em>Korean feast names</em>, <em>Greek liturgical dates</em>, and iCal subscription for the team's personal calendars.</p>
+  </section>
+
+  <!-- ══ SPLIT: MOCK + FEATURES ══ -->
+  <section class="split">
+
+    <!-- Mock calendar (console-framed) -->
+    <div class="month" aria-label="Mockup of the calendar interface">
+      <div class="month-bar">
+        <div class="month-dots"><span></span><span></span><span></span></div>
+        <span class="month-path">calendar :: /2026/04</span>
+        <span class="month-ro">READ-ONLY</span>
+      </div>
+
+      <div class="month-body">
+        <div class="month-head">
+          <div class="month-title">April <span class="accent">2026</span></div>
+          <div class="month-sub">
+            <span class="kr">사순절 · 부활절</span>
+            LENT · PASCHA
+          </div>
+        </div>
+
+        <div class="month-grid" role="grid">
+          <div class="dow">Su</div><div class="dow">Mo</div><div class="dow">Tu</div>
+          <div class="dow">We</div><div class="dow">Th</div><div class="dow">Fr</div><div class="dow">Sa</div>
+
+          <!-- Week 1 -->
+          <div class="day out">30</div><div class="day out">31</div>
+          <div class="day">1</div><div class="day">2</div><div class="day event">3</div>
+          <div class="day">4</div><div class="day">5</div>
+
+          <!-- Week 2 -->
+          <div class="day">6</div><div class="day feast">7</div><div class="day">8</div>
+          <div class="day">9</div><div class="day event">10</div>
+          <div class="day">11</div><div class="day">12</div>
+
+          <!-- Week 3 — 16 is today -->
+          <div class="day">13</div><div class="day">14</div><div class="day">15</div>
+          <div class="day today">16</div><div class="day event">17</div>
+          <div class="day">18</div><div class="day feast">19</div>
+
+          <!-- Week 4 -->
+          <div class="day">20</div><div class="day">21</div><div class="day">22</div>
+          <div class="day">23</div><div class="day event">24</div>
+          <div class="day feast">25</div><div class="day">26</div>
+
+          <!-- Week 5 -->
+          <div class="day">27</div><div class="day">28</div><div class="day">29</div>
+          <div class="day">30</div>
+          <div class="day out">1</div><div class="day out">2</div><div class="day out">3</div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot today"></span>Today</div>
+          <div class="legend-item"><span class="legend-dot feast"></span>Feast day</div>
+          <div class="legend-item"><span class="legend-dot event"></span>Editorial</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div>
+      <div class="features-head">
+        <h2 class="features-title">Scope <span class="accent">[draft]</span></h2>
+        <span class="features-meta">v0.1 · spec</span>
+      </div>
+
+      <div class="feature">
+        <div class="feature-idx">01</div>
+        <div class="feature-body">
+          <h3>Liturgical calendar</h3>
+          <p>The full cycle of feasts, fasts, and saints' days — Julian and Gregorian, Korean names alongside Greek.</p>
+        </div>
+        <span class="feature-status">specced</span>
+      </div>
+
+      <div class="feature">
+        <div class="feature-idx">02</div>
+        <div class="feature-body">
+          <h3>Editorial scheduling</h3>
+          <p>Content deadlines, shoot days, publishing windows — overlaid on the liturgical year.</p>
+        </div>
+        <span class="feature-status">specced</span>
+      </div>
+
+      <div class="feature">
+        <div class="feature-idx">03</div>
+        <div class="feature-body">
+          <h3>Reminders &amp; archive hints</h3>
+          <p>When a feast approaches, a quiet notice of the post to prepare — and of archive material already at hand.</p>
+        </div>
+        <span class="feature-status">proposed</span>
+      </div>
+
+      <div class="feature">
+        <div class="feature-idx">04</div>
+        <div class="feature-body">
+          <h3>iCal feed</h3>
+          <p>A subscription URL for iOS, Google, and Outlook — so the Studio travels with the team.</p>
+        </div>
+        <span class="feature-status">proposed</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ROADMAP ══ -->
+  <section class="roadmap">
+    <div class="roadmap-bar">
+      <span class="roadmap-label">Pipeline</span>
+      <span class="roadmap-meta">3 stages · loose ETA</span>
+    </div>
+
+    <div class="stages">
+      <div class="stage done">
+        <div class="stage-node">01</div>
+        <div class="stage-when">Drafted</div>
+        <div class="stage-what">Design language</div>
+        <div class="stage-note">Visual system agreed and applied — this very page demonstrates it.</div>
+      </div>
+
+      <div class="stage current">
+        <div class="stage-node">02</div>
+        <div class="stage-when">Current</div>
+        <div class="stage-what">Data architecture</div>
+        <div class="stage-note">Calendar source of truth, feast database, Julian/Gregorian sync rules — under design.</div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-node">03</div>
+        <div class="stage-when">Queued</div>
+        <div class="stage-what">Interface &amp; feed</div>
+        <div class="stage-note">Month view, editorial overlay, and iCal subscription endpoint.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ INVITATION ══ -->
+  <section class="invite">
+    <div class="invite-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="16" rx="1.5"/>
+        <path d="M3 10 L21 10"/>
+        <path d="M8 3 L8 7"/>
+        <path d="M16 3 L16 7"/>
+      </svg>
+    </div>
+    <h2>In the <span class="accent">meantime</span>.</h2>
+    <p>The three live modules — Analytics, Media Pool, and Ingest — are already at work. Step into the Studio and use what is ready.</p>
+    <a href="/" class="invite-cta">
+      <span class="arrow">←</span>
+      Return to Studio
+    </a>
+  </section>
+
+  <div class="foot">
+    <span>OKN Studio · Calendar</span>
+    <span class="sep-dot">·</span>
+    <span>Module 04 · v0.1</span>
+    <span class="sep-dot">·</span>
+    <span>by <a href="https://cybersystema.com" target="_blank" rel="noopener">CyberSystema</a></span>
+  </div>
+
+</div>
+
+</body>
+</html>

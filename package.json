@@ -2,6 +2,10 @@
   "name": "oknstudio",
   "private": true,
   "description": "OKN Studio — Orthodox Korea Network digital workspace",
+  "scripts": {
+    "og:status": "node tools/og/generate-status.mjs",
+    "og:build": "./tools/og/build.sh"
+  },
   "dependencies": {
     "aws4fetch": "^1.0.20"
   }

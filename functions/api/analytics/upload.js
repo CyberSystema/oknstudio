@@ -37,6 +37,8 @@ for (const [platform, files] of Object.entries(ALLOWED)) {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_BATCH_SIZE = 15;
+const MAX_TOTAL_UPLOAD_SIZE = 20 * 1024 * 1024;
+const MAX_REQUEST_BODY_SIZE = 24 * 1024 * 1024;
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000;
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000;
@@ -48,11 +50,16 @@ const rateLimits = new Map();
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const headers = corsHeaders();
+  const headers = corsHeaders(request, env);
 
   try {
+    const contentLength = Number(request.headers.get('Content-Length') || '0');
+    if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BODY_SIZE) {
+      return respond({ ok: false, error: 'Request body too large' }, 413, headers);
+    }
+
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (isRateLimited(ip)) {
+    if (await isRateLimited(ip, env)) {
       return respond({ ok: false, error: 'Too many requests. Try again later.' }, 429, headers);
     }
 
@@ -74,15 +81,37 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestOptions() {
-  return new Response(null, { headers: corsHeaders() });
+  return new Response(null, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': 'https://oknstudio.cybersystema.com',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Vary': 'Origin',
+    },
+  });
 }
 
-function corsHeaders() {
+function corsHeaders(request, env) {
+  const origin = request.headers.get('Origin') || '';
+  const configuredOrigins = (env.UPLOAD_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  let allowOrigin = 'https://oknstudio.cybersystema.com';
+  if (configuredOrigins.includes('*')) {
+    allowOrigin = '*';
+  } else if (origin && (configuredOrigins.includes(origin) || origin === allowOrigin)) {
+    allowOrigin = origin;
+  }
+
   return {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
   };
 }
 
@@ -139,8 +168,16 @@ function validateFile(platform, filename, content) {
   }
 
   try {
-    const decoded = atob(content.slice(0, 1000));
-    if (!decoded.includes(',') && !decoded.includes('\t') && !decoded.includes('\n')) {
+    const decoded = atob(content);
+    const sample = decoded.slice(0, 20000);
+    const lines = sample.split(/\r?\n/).filter(Boolean);
+    const header = lines[0] || '';
+
+    if (lines.length < 2) {
+      return { ok: false, error: `${correctName} appears to be empty or header-only` };
+    }
+
+    if (!header.includes(',') && !header.includes('\t')) {
       return { ok: false, error: `${correctName} does not appear to be a valid CSV` };
     }
   } catch (e) {
@@ -167,6 +204,14 @@ async function handleBatchUpload(body, env, headers, ip) {
     return respond({ ok: false, error: `Too many files (max ${MAX_BATCH_SIZE})` }, 400, headers);
   }
 
+  const totalBytes = files.reduce((sum, file) => {
+    if (!file || typeof file.content !== 'string') return sum;
+    return sum + Math.floor((file.content.length * 3) / 4);
+  }, 0);
+  if (totalBytes > MAX_TOTAL_UPLOAD_SIZE) {
+    return respond({ ok: false, error: 'Total upload size exceeds 20MB limit' }, 413, headers);
+  }
+
   // Validate every file before touching GitHub
   const validated = [];
   for (const f of files) {
@@ -187,7 +232,7 @@ async function handleBatchUpload(body, env, headers, ip) {
 
     const result = await batchCommitToGitHub(env, validated, message);
     if (result.ok) {
-      recordRateLimit(ip);
+      await recordRateLimit(ip, env);
       return respond({ ok: true, files: validated.length, commit: result.sha }, 200, headers);
     } else {
       return respond({ ok: false, error: result.error }, 500, headers);
@@ -217,7 +262,7 @@ async function handleSingleUpload(body, env, headers, ip) {
     const message = `📤 Update analytics data (${dateStr})\n\n${result.correctName} (${body.platform})`;
     const commitResult = await batchCommitToGitHub(env, [{ path: result.path, content: body.content }], message);
     if (commitResult.ok) {
-      recordRateLimit(ip);
+      await recordRateLimit(ip, env);
       return respond({ ok: true, path: result.path }, 200, headers);
     } else {
       return respond({ ok: false, error: commitResult.error }, 500, headers);
@@ -345,7 +390,7 @@ async function sha256(text) {
 }
 
 async function generateToken(env) {
-  const secret = env.TOKEN_SECRET || 'okn-default-secret';
+  const secret = getRequiredTokenSecret(env);
   const payload = Date.now().toString();
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
@@ -356,10 +401,17 @@ async function verifyToken(token, env) {
   if (!token || typeof token !== 'string') return false;
   const parts = token.split('.');
   if (parts.length !== 2) return false;
-  const timestamp = parseInt(parts[0]);
-  if (isNaN(timestamp) || Date.now() - timestamp > TOKEN_EXPIRY_MS) return false;
+  const timestamp = Number(parts[0]);
+  if (!Number.isSafeInteger(timestamp)) return false;
+  if (timestamp > Date.now()) return false;
+  if (Date.now() - timestamp > TOKEN_EXPIRY_MS) return false;
 
-  const secret = env.TOKEN_SECRET || 'okn-default-secret';
+  let secret;
+  try {
+    secret = getRequiredTokenSecret(env);
+  } catch {
+    return false;
+  }
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(parts[0]));
   const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -370,7 +422,15 @@ async function verifyToken(token, env) {
 // RATE LIMITING
 // ══════════════════════════════════════
 
-function isRateLimited(ip) {
+async function isRateLimited(ip, env) {
+  if (env.RATE_LIMIT_KV) {
+    const payload = await env.RATE_LIMIT_KV.get(`upload_rl:${ip}`, { type: 'json' });
+    if (!payload) return false;
+    const now = Date.now();
+    if (now - payload.start > RATE_LIMIT_WINDOW) return false;
+    return payload.count >= RATE_LIMIT_MAX;
+  }
+
   const now = Date.now();
   const record = rateLimits.get(ip);
   if (!record) return false;
@@ -378,7 +438,21 @@ function isRateLimited(ip) {
   return record.count >= RATE_LIMIT_MAX;
 }
 
-function recordRateLimit(ip) {
+async function recordRateLimit(ip, env) {
+  if (env.RATE_LIMIT_KV) {
+    const key = `upload_rl:${ip}`;
+    const now = Date.now();
+    const record = await env.RATE_LIMIT_KV.get(key, { type: 'json' });
+    let next;
+    if (!record || now - record.start > RATE_LIMIT_WINDOW) {
+      next = { start: now, count: 1 };
+    } else {
+      next = { start: record.start, count: record.count + 1 };
+    }
+    await env.RATE_LIMIT_KV.put(key, JSON.stringify(next), { expirationTtl: Math.ceil(RATE_LIMIT_WINDOW / 1000) + 60 });
+    return;
+  }
+
   const now = Date.now();
   const record = rateLimits.get(ip);
   if (!record || now - record.start > RATE_LIMIT_WINDOW) {
@@ -386,4 +460,12 @@ function recordRateLimit(ip) {
   } else {
     record.count++;
   }
+}
+
+function getRequiredTokenSecret(env) {
+  const secret = (env.TOKEN_SECRET || '').trim();
+  if (!secret) {
+    throw new Error('TOKEN_SECRET not configured');
+  }
+  return secret;
 }
