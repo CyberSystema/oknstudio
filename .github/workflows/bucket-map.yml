@@ -48,39 +48,48 @@ jobs:
           curl -fsSL https://rclone.org/install.sh | sudo bash
           echo "rclone $(rclone version --check | head -1 || rclone version | head -1)"
 
-      - name: 🔑 Configure B2 remote
+      - name: 🔑 Configure rclone remotes (non-interactive)
         env:
           B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
           B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
-        run: |
-          rclone config create b2-okn b2 \
-            account "$B2_KEY_ID" \
-            key "$B2_APP_KEY"
-
-      - name: 🔑 Configure Google Drive remote
-        env:
           RCLONE_GDRIVE_TOKEN: ${{ secrets.RCLONE_GDRIVE_TOKEN }}
           GDRIVE_REMOTE: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive-okn' }}
         run: |
-          rclone config create "$GDRIVE_REMOTE" drive \
-            scope drive \
-            token "$RCLONE_GDRIVE_TOKEN" \
-            shared_with_me true \
-            skip_gdocs true \
-            skip_shortcuts true \
-            skip_dangling_shortcuts true \
-            list_chunk 1000 \
-            disable_http2 true
+          # Write the rclone config file directly.
+          # Using `rclone config create` for Drive triggers an interactive OAuth browser
+          # flow even when a token is supplied — it hangs in CI. Writing the config file
+          # directly is the standard non-interactive pattern for headless environments.
+          mkdir -p ~/.config/rclone
+
+          cat > ~/.config/rclone/rclone.conf << RCLONE_EOF
+          [b2-okn]
+          type = b2
+          account = ${B2_KEY_ID}
+          key = ${B2_APP_KEY}
+
+          [${GDRIVE_REMOTE}]
+          type = drive
+          scope = drive
+          token = ${RCLONE_GDRIVE_TOKEN}
+          shared_with_me = true
+          skip_gdocs = true
+          skip_shortcuts = true
+          skip_dangling_shortcuts = true
+          list_chunk = 1000
+          disable_http2 = true
+          RCLONE_EOF
+
+          # Strip leading whitespace (heredoc indentation)
+          sed -i 's/^          //' ~/.config/rclone/rclone.conf
+
+          echo "✅ rclone config written"
+          rclone listremotes
 
       - name: ✅ Verify remotes
         env:
           B2_BUCKET: ${{ secrets.B2_BUCKET }}
           GDRIVE_REMOTE: ${{ vars.GDRIVE_REMOTE_NAME || 'gdrive-okn' }}
         run: |
-          echo "Configured remotes:"
-          rclone listremotes
-
-          echo ""
           echo "Testing B2 access..."
           timeout 45s rclone lsd "b2-okn:${B2_BUCKET}" --max-depth 1 && echo "✅ B2 OK" || echo "❌ B2 failed or timed out"
 
