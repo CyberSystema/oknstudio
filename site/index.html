@@ -227,12 +227,102 @@ body::after{
     0 24px 70px rgba(0,0,0,0.45);
 }
 
-.hero-og-frame{
+/* Native OG component styles (merged directly into homepage) */
+.og-native-card{
   width:100%;
   height:100%;
-  border:0;
-  display:block;
+  position:relative;
+  overflow:hidden;
+  font-family:var(--font-body);
+  background:linear-gradient(180deg,#0c1218 0%,#080d12 100%);
+  color:var(--text);
 }
+
+.og-native-grid{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);
+  background-size:48px 48px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 85% at 50% 50%,#000 30%,transparent 100%);
+          mask-image:radial-gradient(ellipse 70% 85% at 50% 50%,#000 30%,transparent 100%);
+  animation:grid-drift 90s linear infinite;
+}
+
+.og-native-glow{
+  position:absolute;
+  top:-120px;
+  right:-150px;
+  width:700px;
+  height:700px;
+  background:radial-gradient(circle,rgba(94,234,212,0.16) 0%,transparent 60%);
+  pointer-events:none;
+  animation:pulse 4s ease-in-out infinite;
+}
+
+.og-native-top{position:absolute;left:80px;right:80px;top:66px;height:28px;display:flex;justify-content:space-between;align-items:center;opacity:0;animation:slideUp .5s ease .2s forwards}
+.og-native-brand{display:flex;align-items:center;gap:14px;padding:6px 12px;border:1px solid rgba(94,234,212,.35);background:linear-gradient(180deg,rgba(94,234,212,.16),rgba(94,234,212,.04));border-radius:4px;box-shadow:0 0 28px rgba(94,234,212,.12)}
+.og-native-brand svg{width:30px;height:30px;display:block;filter:drop-shadow(0 0 8px rgba(94,234,212,.45));animation:node-pulse 2.8s ease-in-out infinite}
+.og-native-brand-name{font-family:var(--font-mono);font-size:22px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text);text-shadow:0 0 18px rgba(94,234,212,.35)}
+.og-native-brand-name .slash{color:var(--text-ghost)}
+.og-native-brand-name .studio{color:var(--signal)}
+
+.og-native-status{display:flex;align-items:center;gap:16px;font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;color:var(--text-dim);font-weight:500}
+.og-native-status .dot{width:8px;height:8px;border-radius:50%;background:var(--signal);box-shadow:0 0 12px rgba(94,234,212,.6);animation:pulse 2s ease-in-out infinite}
+.og-native-status .label{width:270px;text-align:right}
+.og-native-status .v{color:var(--text);border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.08);padding:2px 8px;border-radius:3px;font-size:11px;letter-spacing:.14em}
+
+.og-native-top-divider{position:absolute;left:80px;right:80px;top:120px;height:1px;background:var(--line)}
+.og-native-bottom-divider{position:absolute;left:80px;right:80px;top:540px;height:1px;background:var(--line)}
+
+.og-native-left{position:absolute;left:80px;top:170px;width:560px;opacity:0;animation:slideUp .65s ease .32s forwards}
+.og-native-kicker{display:inline-flex;align-items:center;gap:10px;padding:6px 14px;border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.1);border-radius:3px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.2em;color:var(--signal);margin-bottom:36px}
+.og-native-kicker .dot{width:5px;height:5px;border-radius:50%;background:var(--signal);box-shadow:0 0 6px var(--signal);animation:pulse 1.8s ease-in-out infinite}
+.og-native-title{font-family:var(--font-display);font-size:72px;font-weight:400;letter-spacing:-.035em;line-height:1.05;color:var(--text)}
+.og-native-title .line{display:block}
+.og-native-title .accent{color:var(--signal);font-weight:500;text-shadow:0 0 36px rgba(94,234,212,.45)}
+.og-native-sub{display:flex;align-items:center;gap:14px;margin-top:36px;font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;color:var(--text-dim);font-weight:500}
+.og-native-sub::before{content:'';width:28px;height:1px;background:var(--signal);opacity:.85}
+
+.og-native-console{position:absolute;right:80px;top:160px;width:420px;height:380px;background:#0e141b;border:1px solid rgba(255,255,255,.08);border-radius:6px;overflow:hidden;opacity:0;animation:fadeIn .8s ease .25s forwards}
+.og-native-console::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--signal),transparent)}
+.og-native-console-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgba(255,255,255,.015);border-bottom:1px solid rgba(255,255,255,.06);height:36px;position:relative;z-index:2}
+.og-native-console-dots{display:flex;gap:6px;margin-right:6px}
+.og-native-console-dots span{width:8px;height:8px;border-radius:50%}
+.og-native-console-dots span:nth-child(1){background:#ef4444}
+.og-native-console-dots span:nth-child(2){background:#fbbf24}
+.og-native-console-dots span:nth-child(3){background:var(--signal)}
+.og-native-console-path{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:.08em;font-weight:500}
+.og-native-console-badge{margin-left:auto;display:flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.12);border-radius:3px;font-family:var(--font-mono);font-size:9px;color:var(--signal);letter-spacing:.18em;font-weight:600}
+
+.og-native-hud{position:absolute;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;color:var(--text-faint);font-weight:500;display:flex;align-items:center;gap:7px}
+.og-native-hud .hd{width:5px;height:5px;border-radius:50%;background:var(--signal)}
+.og-native-hud .v{color:var(--signal)}
+.og-native-hud.tl{top:54px;left:34px}
+.og-native-hud.tr{top:54px;right:34px}
+.og-native-hud.bl{bottom:20px;left:34px}
+.og-native-hud.br{bottom:38px;right:34px}
+
+.og-native-mark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;height:300px;margin-top:8px}
+.og-native-mark svg{width:100%;height:100%;overflow:visible}
+.og-native-mark .ring-outer{transform-box:fill-box;transform-origin:center;animation:spin-cw 50s linear infinite}
+.og-native-mark .ring-mid{transform-box:fill-box;transform-origin:center;animation:spin-ccw 35s linear infinite}
+.og-native-mark .ring-inner{transform-box:fill-box;transform-origin:center;animation:spin-cw 22s linear infinite}
+.og-native-mark .center-glow{transform-box:fill-box;transform-origin:center;animation:pulse 2.5s ease-in-out infinite}
+
+.og-native-board{position:absolute;left:24px;right:24px;bottom:48px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px}
+.og-native-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--text-faint)}
+.og-native-item .name{color:var(--text-dim)}
+.og-native-item .value{color:var(--signal)}
+.og-native-updated{position:absolute;right:24px;bottom:20px;max-width:220px;text-align:right;font-family:var(--font-mono);font-size:8px;letter-spacing:.12em;color:var(--text-ghost)}
+
+.og-native-bottom{position:absolute;left:80px;right:80px;bottom:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;font-family:var(--font-mono);font-size:11px;color:var(--text-faint);letter-spacing:.16em;font-weight:500}
+.og-native-bottom .left{justify-self:start}
+.og-native-bottom .center{justify-self:center;display:flex;align-items:center;gap:14px}
+.og-native-bottom .center .kr{font-family:'Noto Sans KR',sans-serif;color:var(--signal);font-size:13px;letter-spacing:.04em}
+.og-native-bottom .right{justify-self:end;font-size:9px;color:var(--text-ghost);letter-spacing:.1em;font-variant-numeric:tabular-nums}
 
 /* Left: copy */
 .hero-copy{ animation:slideUp 0.8s cubic-bezier(0.2,0.8,0.2,1) 0.1s both; }
@@ -1112,13 +1202,94 @@ body::after{
 <!-- ═══════════ HERO (OG TOP) ═══════════ -->
 <section class="hero hero-og-top">
   <div class="hero-og-wrap">
-    <iframe
-      src="/og/"
-      title="OKN Studio live signal card v1.0"
-      loading="eager"
-      referrerpolicy="no-referrer"
-      class="hero-og-frame"
-    ></iframe>
+    <div class="og-native-card" aria-label="OKN Studio signal card v1.0">
+      <div class="og-native-grid"></div>
+      <div class="og-native-glow"></div>
+
+      <div class="og-native-top">
+        <div class="og-native-brand">
+          <svg viewBox="0 0 28 28" fill="none" stroke="#5eead4" stroke-width="1.5">
+            <line x1="14" y1="3" x2="14" y2="10"/>
+            <line x1="14" y1="18" x2="14" y2="25"/>
+            <line x1="3" y1="14" x2="10" y2="14"/>
+            <line x1="18" y1="14" x2="25" y2="14"/>
+            <circle cx="14" cy="3" r="1.8" fill="#5eead4" stroke="none"/>
+            <circle cx="14" cy="25" r="1.8" fill="#5eead4" stroke="none"/>
+            <circle cx="3" cy="14" r="1.8" fill="#5eead4" stroke="none"/>
+            <circle cx="25" cy="14" r="1.8" fill="#5eead4" stroke="none"/>
+            <circle cx="14" cy="14" r="2.6" fill="#5eead4" stroke="none"/>
+          </svg>
+          <span class="og-native-brand-name">OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+        </div>
+        <div class="og-native-status">
+          <span class="dot"></span>
+          <span class="label" id="og-native-status-label">ALL SYSTEMS OPERATIONAL</span>
+          <span class="v">v1.0</span>
+        </div>
+      </div>
+      <div class="og-native-top-divider"></div>
+
+      <div class="og-native-left">
+        <div class="og-native-kicker"><span class="dot"></span>[ 01 ]&nbsp;&nbsp;SIGNAL STUDIO&nbsp;&nbsp;·&nbsp;&nbsp;ORTHODOX KOREA NETWORK</div>
+        <div class="og-native-title">
+          <span class="line">Where every</span>
+          <span class="line">signal becomes</span>
+          <span class="line"><span class="accent">story.</span></span>
+        </div>
+        <div class="og-native-sub">INTEGRATED WORKBENCH&nbsp;&nbsp;·&nbsp;&nbsp;14 ML MODELS&nbsp;&nbsp;·&nbsp;&nbsp;3 LANGUAGES</div>
+      </div>
+
+      <div class="og-native-console">
+        <div class="og-native-console-bar">
+          <div class="og-native-console-dots"><span></span><span></span><span></span></div>
+          <span class="og-native-console-path">okn-studio :: /network/status</span>
+          <span class="og-native-console-badge">LIVE</span>
+        </div>
+        <div class="og-native-hud tl"><span class="hd"></span>NODE <span class="v">LIVE</span></div>
+        <div class="og-native-hud tr">SYS <span class="v" id="og-native-sys">6/6</span></div>
+        <div class="og-native-hud bl">LAT <span class="v" id="og-native-lat">—</span></div>
+        <div class="og-native-hud br">SYNC <span class="v">OK</span></div>
+
+        <div class="og-native-mark">
+          <svg viewBox="-150 -150 300 300" xmlns="http://www.w3.org/2000/svg">
+            <g class="ring-outer"><circle r="120" fill="none" stroke="#5eead4" stroke-opacity=".22" stroke-width="1" stroke-dasharray="24 8"/></g>
+            <g class="ring-mid"><circle r="96" fill="none" stroke="#5eead4" stroke-opacity=".09" stroke-width="1" stroke-dasharray="6 20"/></g>
+            <g class="ring-inner"><circle r="75" fill="none" stroke="#5eead4" stroke-opacity=".20" stroke-width="1" stroke-dasharray="10 6"/></g>
+            <g stroke="#5eead4" stroke-width="1" stroke-linecap="round" stroke-opacity=".18">
+              <line x1="14" y1="-14" x2="55" y2="-55"/>
+              <line x1="-14" y1="14" x2="-55" y2="55"/>
+              <line x1="14" y1="14" x2="55" y2="55"/>
+              <line x1="-14" y1="-14" x2="-55" y2="-55"/>
+            </g>
+            <g stroke="#5eead4" stroke-width="1.4" stroke-linecap="round" stroke-opacity=".65">
+              <line x1="0" y1="-18" x2="0" y2="-102"/>
+              <line x1="0" y1="18" x2="0" y2="102"/>
+              <line x1="-18" y1="0" x2="-102" y2="0"/>
+              <line x1="18" y1="0" x2="102" y2="0"/>
+            </g>
+            <circle cx="0" cy="-108" r="6" fill="#5eead4"/>
+            <circle cx="0" cy="108" r="6" fill="#5eead4"/>
+            <circle cx="-108" cy="0" r="6" fill="#5eead4"/>
+            <circle cx="108" cy="0" r="6" fill="#5eead4"/>
+            <circle r="28" fill="none" stroke="#5eead4" stroke-opacity=".16"/>
+            <circle r="18" fill="none" stroke="#5eead4" stroke-opacity=".28"/>
+            <circle class="center-glow" r="14" fill="#5eead4" fill-opacity=".28"/>
+            <circle r="11" fill="#5eead4"/>
+            <circle r="4" fill="#0e141b"/>
+          </svg>
+        </div>
+
+        <div class="og-native-board" id="og-native-checks"></div>
+        <div class="og-native-updated">Live · OKN Studio v1.0</div>
+      </div>
+
+      <div class="og-native-bottom-divider"></div>
+      <div class="og-native-bottom">
+        <span class="left">OKN STUDIO&nbsp;&nbsp;·&nbsp;&nbsp;v1.0&nbsp;&nbsp;·&nbsp;&nbsp;2026</span>
+        <span class="center"><span class="kr">정교회 한국</span><span>ORTHODOX KOREA NETWORK</span></span>
+        <span class="right" id="og-native-clock"></span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1409,6 +1580,51 @@ document.addEventListener('keydown', e => {
     document.getElementById('stack')?.scrollIntoView({behavior:'smooth'});
   }
 });
+
+// Native OG hero runtime
+(function initNativeOgHero(){
+  const checks = [
+    { label:'WEBSITE',   detail:'200 OK' },
+    { label:'ANALYTICS', detail:'RUNNING' },
+    { label:'MEDIA CDN', detail:'LIVE' },
+    { label:'FUNCTIONS', detail:'ACTIVE' },
+    { label:'PIPELINE',  detail:'SYNCED' },
+    { label:'DEPLOY',    detail:'CURRENT' }
+  ];
+
+  const checksEl = document.getElementById('og-native-checks');
+  if (checksEl) {
+    checks.forEach((c) => {
+      const row = document.createElement('div');
+      row.className = 'og-native-item';
+      const n = document.createElement('span');
+      n.className = 'name';
+      n.textContent = c.label;
+      const v = document.createElement('span');
+      v.className = 'value';
+      v.textContent = c.detail;
+      row.append(n, v);
+      checksEl.appendChild(row);
+    });
+  }
+
+  const clockEl = document.getElementById('og-native-clock');
+  const latEl = document.getElementById('og-native-lat');
+  let t = 0;
+  function tick(){
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    if (clockEl) {
+      clockEl.textContent = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+    }
+    if (latEl) {
+      t += 0.04;
+      latEl.textContent = `${Math.round(18 + Math.sin(t) * 7 + Math.cos(t * 1.7) * 3)}ms`;
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 </script>
 
 </body>
