@@ -33,7 +33,7 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     name: 🗂️ Generate Bucket Map
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
