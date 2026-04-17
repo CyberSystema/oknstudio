@@ -120,13 +120,27 @@ async function verifyAuthCookie(token, env) {
   } catch {
     return false;
   }
+
+  const sigBytes = hexToBytes(parts[1]);
+  if (!sigBytes) return false;
+
+  // Use crypto.subtle.verify for constant-time HMAC comparison
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
   );
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(parts[0]));
-  const expected = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return expected === parts[1];
+  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(parts[0]));
+}
+
+function hexToBytes(hex) {
+  if (!hex || hex.length % 2 !== 0) return null;
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    const n = parseInt(hex.slice(i, i + 2), 16);
+    if (isNaN(n)) return null;
+    bytes[i / 2] = n;
+  }
+  return bytes;
 }
 
 async function sha256(text) {

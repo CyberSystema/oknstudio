@@ -140,45 +140,45 @@ jobs:
 
           if [ -f "site/analytics/full_results.json" ]; then
             python << 'PYEOF' >> $GITHUB_STEP_SUMMARY
-            import json
-            import sys
+          import json
+          import sys
 
-            try:
-              with open('site/analytics/full_results.json', encoding='utf-8') as f:
-                data = json.load(f)
-            except Exception as exc:
-              print(f'⚠️ Could not read results file: {exc}')
-              sys.exit(0)
+          try:
+            with open('site/analytics/full_results.json', encoding='utf-8') as f:
+              data = json.load(f)
+          except Exception as exc:
+            print(f'⚠️ Could not read results file: {exc}')
+            sys.exit(0)
 
-            meta = data.get('meta') or {}
-            health = data.get('health') or {}
-            recs = data.get('recommendations') or []
+          meta = data.get('meta') or {}
+          health = data.get('health') or {}
+          recs = data.get('recommendations') or []
 
-            platforms = meta.get('platforms') or []
-            platforms_text = ', '.join(platforms) if platforms else 'n/a'
+          platforms = meta.get('platforms') or []
+          platforms_text = ', '.join(platforms) if platforms else 'n/a'
 
-            status = str(health.get('status', 'unknown')).replace('_', ' ').title()
-            emoji = health.get('emoji', '📊')
+          status = str(health.get('status', 'unknown')).replace('_', ' ').title()
+          emoji = health.get('emoji', '📊')
 
-            print('| Metric | Value |')
-            print('|--------|-------|')
-            print(f'| Posts | **{meta.get("total_posts", "?")}** |')
-            print(f'| Platforms | {platforms_text} |')
-            print(f'| Health | {emoji} {status} |')
+          print('| Metric | Value |')
+          print('|--------|-------|')
+          print(f'| Posts | **{meta.get("total_posts", "?")}** |')
+          print(f'| Platforms | {platforms_text} |')
+          print(f'| Health | {emoji} {status} |')
+          print()
+
+          if recs:
+            print('### 💡 Top Recommendations')
             print()
-
-            if recs:
-              print('### 💡 Top Recommendations')
-              print()
-              icons = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}
-              for rec in recs[:5]:
-                if isinstance(rec, dict):
-                  icon = icons.get(rec.get('priority', ''), '⚪')
-                  message = rec.get('message', 'No message provided')
-                else:
-                  icon = '⚪'
-                  message = str(rec)
-                print(f'- {icon} {message}')
+            icons = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}
+            for rec in recs[:5]:
+              if isinstance(rec, dict):
+                icon = icons.get(rec.get('priority', ''), '⚪')
+                message = rec.get('message', 'No message provided')
+              else:
+                icon = '⚪'
+                message = str(rec)
+              print(f'- {icon} {message}')
           PYEOF
           else
             echo "⚠️ No results file — check pipeline logs" >> $GITHUB_STEP_SUMMARY

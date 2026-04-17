@@ -121,12 +121,17 @@ def build_tree(entries):
         node["total_size"] += size
         node["file_count"] += 1
 
-        # Propagate size up to root
-        ancestor = root
-        ancestor["total_size"] += size
-        ancestor["file_count"] += 1
-        for p in dir_parts:
-            ancestor = ancestor["children"][p]
+        # Propagate size up through root and all intermediate ancestors.
+        # The direct parent (node) is already updated above; skip it by
+        # iterating only dir_parts[:-1] (all but the last segment).
+        if dir_parts:
+            ancestor = root
+            ancestor["total_size"] += size
+            ancestor["file_count"] += 1
+            for p in dir_parts[:-1]:
+                ancestor = ancestor["children"][p]
+                ancestor["total_size"] += size
+                ancestor["file_count"] += 1
 
     return root
 
