@@ -33,7 +33,8 @@ B2_REMOTE = os.environ.get("B2_REMOTE", "b2-okn")
 B2_BUCKET = os.environ.get("B2_BUCKET", "okn-media-archive")
 GDRIVE_REMOTE = os.environ.get("GDRIVE_REMOTE_NAME", "gdrive")
 GDRIVE_FOLDER = os.environ.get("GDRIVE_FOLDER", "OKN Media Archive")
-MAP_FILENAME = "bucket-map.html"
+MAP_FILENAME_HTML = "bucket-map.html"
+MAP_FILENAME_TXT  = "bucket-map.txt"
 LOCAL_DIR = Path.home() / ".okn" / "bucket-map"
 LIST_TIMEOUT_SECONDS = int(os.environ.get("B2_LIST_TIMEOUT_SECONDS", "900"))
 UPLOAD_TIMEOUT_SECONDS = int(os.environ.get("GDRIVE_UPLOAD_TIMEOUT_SECONDS", "300"))
@@ -187,12 +188,76 @@ def describe_contents(files_dict):
         }.get(cat, "")
         ext_str = ", ".join(unique_exts[:4])
         if len(unique_exts) > 4:
-            ext_str += "…"
+            ext_str += "..."
         noun = f"{label} file" if label else "file"
         if count != 1:
             noun += "s"
         parts.append(f"{count} {noun} ({ext_str})")
     return ", ".join(parts)
+
+
+# ══════════════════════════════════════
+# PLAIN-TEXT MAP  (Google Drive preview)
+# ══════════════════════════════════════
+
+DIV  = "=" * 60
+SEP  = "-" * 60
+
+def generate_text_map(tree):
+    """Generate a plain-text bucket map that Google Drive previews inline."""
+    now      = datetime.now(timezone.utc).strftime("%a %d %b %Y · %H:%M UTC")
+    n_files  = f"{tree['file_count']:,}"
+    vol      = format_size(tree["total_size"])
+    n_top    = str(len(tree["children"]))
+
+    lines = [
+        DIV,
+        " OKN MEDIA ARCHIVE — Bucket Map",
+        f" Generated : {now}",
+        f" Bucket    : {B2_BUCKET}",
+        DIV,
+        "",
+        f"  Total files   : {n_files}",
+        f"  Total volume  : {vol}",
+        f"  Root folders  : {n_top}",
+        "",
+        SEP,
+        " DIRECTORY TREE",
+        SEP,
+        "",
+    ]
+
+    _render_text_tree(tree, lines, prefix="")
+
+    lines += [
+        "",
+        SEP,
+        " Auto-generated daily by OKN Studio · CyberSystema",
+        SEP,
+    ]
+    return "\n".join(lines)
+
+
+def _render_text_tree(node, lines, prefix):
+    """Recursively append plain-text tree rows to `lines`."""
+    children = sorted(node["children"].keys())
+    for idx, name in enumerate(children):
+        child = node["children"][name]
+        is_last = idx == len(children) - 1
+        connector = "└── " if is_last else "├── "
+        child_prefix = prefix + ("    " if is_last else "│   ")
+
+        desc = describe_contents(child["files"])
+        size_str = f"  [{format_size(child['total_size'])}]" if child["total_size"] > 0 else ""
+
+        if desc and desc != "empty":
+            lines.append(f"{prefix}{connector}{name}/{size_str}")
+            lines.append(f"{child_prefix}    {desc}")
+        else:
+            lines.append(f"{prefix}{connector}{name}/{size_str}")
+
+        if child["children"]:
+            _render_text_tree(child, lines, child_prefix)
 
 
 
@@ -454,23 +519,16 @@ def html_escape(text):
 # UPLOAD TO GOOGLE DRIVE
 # ══════════════════════════════════════
 
-def upload_to_drive(local_path, drive_folder):
-    """Upload the map file to the specified Google Drive folder."""
-    dest = f"{GDRIVE_REMOTE}:{drive_folder}"
+def upload_to_drive(local_path, remote_filename, drive_folder):
+    """Upload a single file to the specified Google Drive folder."""
+    dest = f"{GDRIVE_REMOTE}:{drive_folder}/{remote_filename}"
     cmd = [
-        "rclone", "copy",
-        str(local_path),
-        dest,
-        "--include", MAP_FILENAME,
-    ]
-    # rclone copy needs the parent directory, not the file itself
-    cmd_dir = [
         "rclone", "copyto",
         str(local_path),
-        f"{dest}/{MAP_FILENAME}",
+        dest,
     ]
     try:
-        result = subprocess.run(cmd_dir, capture_output=True, text=True, timeout=UPLOAD_TIMEOUT_SECONDS)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=UPLOAD_TIMEOUT_SECONDS)
     except subprocess.TimeoutExpired:
         print(
             f"ERROR: Drive upload timed out after {UPLOAD_TIMEOUT_SECONDS}s. "
@@ -510,25 +568,30 @@ def main():
     print("🌳 Building tree...")
     tree = build_tree(entries)
 
-    print("📝 Generating map...")
-    map_content = generate_map(tree)
+    print("📝 Generating maps...")
+    html_content = generate_map(tree)
+    txt_content  = generate_text_map(tree)
 
     if dry_run:
-        print("\n" + map_content)
+        print("\n" + txt_content)
         print("\n✅ Dry run complete (not uploaded)")
         return
 
-    # Save locally
+    # Save both files locally
     LOCAL_DIR.mkdir(parents=True, exist_ok=True)
-    local_file = LOCAL_DIR / MAP_FILENAME
-    local_file.write_text(map_content, encoding="utf-8")
-    print(f"💾 Saved to {local_file}")
+    local_html = LOCAL_DIR / MAP_FILENAME_HTML
+    local_txt  = LOCAL_DIR / MAP_FILENAME_TXT
+    local_html.write_text(html_content, encoding="utf-8")
+    local_txt.write_text(txt_content, encoding="utf-8")
+    print(f"💾 Saved HTML : {local_html}")
+    print(f"💾 Saved TXT  : {local_txt}")
 
-    # Upload to Google Drive
-    print(f"☁️  Uploading to {GDRIVE_REMOTE}:{drive_folder}/{MAP_FILENAME}")
-    success = upload_to_drive(local_file, drive_folder)
+    # Upload the plain-text map to Google Drive.
+    # Google Drive previews .txt files natively inline — HTML only shows raw code.
+    print(f"☁️  Uploading {MAP_FILENAME_TXT} → {GDRIVE_REMOTE}:{drive_folder}/")
+    success = upload_to_drive(local_txt, MAP_FILENAME_TXT, drive_folder)
     if success:
-        print("✅ Done — bucket map uploaded to Google Drive")
+        print(f"✅ Done — bucket map uploaded to Google Drive as {MAP_FILENAME_TXT}")
     else:
         print("❌ Upload failed", file=sys.stderr)
         sys.exit(1)
