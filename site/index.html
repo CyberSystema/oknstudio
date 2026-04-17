@@ -312,13 +312,33 @@ body::after{
   margin-left:8px;
 }
 
-/* Right: the network mark visual */
+/* Right: live OG visual */
 .hero-visual{
   position:relative;
-  aspect-ratio:1;
-  max-width:520px;
+  aspect-ratio:1200/630;
+  width:100%;
+  max-width:720px;
   margin-left:auto;
   animation:fadeIn 1s ease-out 0.3s both;
+}
+
+.hero-visual-frame{
+  position:absolute;
+  inset:0;
+  border:1px solid var(--line);
+  border-radius:var(--r-2);
+  overflow:hidden;
+  background:linear-gradient(135deg, var(--bg-3), var(--bg-2));
+  box-shadow:
+    0 0 0 1px rgba(94,234,212,0.08),
+    0 24px 70px rgba(0,0,0,0.45);
+}
+
+.hero-visual-frame iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
 }
 
 .console-frame{
@@ -1090,81 +1110,15 @@ body::after{
       </div>
     </div>
 
-    <!-- HERO VISUAL — console with network mark -->
+    <!-- HERO VISUAL — embedded live OG card -->
     <div class="hero-visual">
-      <div class="console-frame">
-
-        <!-- Console bar -->
-        <div class="console-bar">
-          <div class="console-dots">
-            <span></span><span></span><span></span>
-          </div>
-          <span class="console-path">okn-studio :: /network</span>
-          <span class="console-badge">● REC</span>
-        </div>
-
-        <!-- Crosshairs -->
-        <div class="crosshair tl"><svg viewBox="0 0 20 20"><path d="M0 5 L0 0 L5 0 M0 0 L8 8"/></svg></div>
-        <div class="crosshair tr"><svg viewBox="0 0 20 20"><path d="M0 5 L0 0 L5 0 M0 0 L8 8"/></svg></div>
-        <div class="crosshair bl"><svg viewBox="0 0 20 20"><path d="M0 5 L0 0 L5 0 M0 0 L8 8"/></svg></div>
-        <div class="crosshair br"><svg viewBox="0 0 20 20"><path d="M0 5 L0 0 L5 0 M0 0 L8 8"/></svg></div>
-
-        <!-- Scan -->
-        <div class="scan"></div>
-
-        <!-- HUD readouts -->
-        <div class="hud hud-tl"><span class="dot"></span>NODE <span class="val">A1</span></div>
-        <div class="hud hud-tr">SIG <span class="val">+ 04</span></div>
-        <div class="hud hud-bl">LAT <span class="val">22ms</span></div>
-        <div class="hud hud-br">SYNC <span class="val">OK</span><span class="dot"></span></div>
-
-        <!-- The network mark -->
-        <div class="net-mark">
-          <svg viewBox="-120 -120 240 240" aria-label="OKN network mark">
-            <!-- Concentric rings -->
-            <circle cx="0" cy="0" r="60" class="ring"/>
-            <circle cx="0" cy="0" r="100" class="ring"/>
-
-            <!-- Pulsing signal -->
-            <circle cx="0" cy="0" class="pulse"/>
-            <circle cx="0" cy="0" class="pulse" style="animation-delay:1s"/>
-            <circle cx="0" cy="0" class="pulse" style="animation-delay:2s"/>
-
-            <!-- Lines to outer nodes -->
-            <line x1="0" y1="0" x2="0" y2="-90" class="line"/>
-            <line x1="0" y1="0" x2="0" y2="90" class="line"/>
-            <line x1="0" y1="0" x2="-90" y2="0" class="line"/>
-            <line x1="0" y1="0" x2="90" y2="0" class="line"/>
-
-            <!-- Diagonal stubs -->
-            <line x1="0" y1="0" x2="46" y2="-46" class="line" style="opacity:0.25"/>
-            <line x1="0" y1="0" x2="-46" y2="46" class="line" style="opacity:0.25"/>
-            <line x1="0" y1="0" x2="46" y2="46" class="line" style="opacity:0.25"/>
-            <line x1="0" y1="0" x2="-46" y2="-46" class="line" style="opacity:0.25"/>
-
-            <!-- Outer nodes -->
-            <g class="node-anim">
-              <circle cx="0" cy="-90" r="5" class="node"/>
-              <circle cx="0" cy="-90" r="10" class="ring" style="opacity:0.4"/>
-            </g>
-            <g class="node-anim" style="animation-delay:0.75s">
-              <circle cx="0" cy="90" r="5" class="node"/>
-              <circle cx="0" cy="90" r="10" class="ring" style="opacity:0.4"/>
-            </g>
-            <g class="node-anim" style="animation-delay:1.5s">
-              <circle cx="-90" cy="0" r="5" class="node"/>
-              <circle cx="-90" cy="0" r="10" class="ring" style="opacity:0.4"/>
-            </g>
-            <g class="node-anim" style="animation-delay:2.25s">
-              <circle cx="90" cy="0" r="5" class="node"/>
-              <circle cx="90" cy="0" r="10" class="ring" style="opacity:0.4"/>
-            </g>
-
-            <!-- Center node -->
-            <circle cx="0" cy="0" r="8" class="node-center"/>
-            <circle cx="0" cy="0" r="14" class="ring" style="opacity:0.5"/>
-          </svg>
-        </div>
+      <div class="hero-visual-frame">
+        <iframe
+          src="/og/"
+          title="OKN Studio live signal card"
+          loading="eager"
+          referrerpolicy="no-referrer"
+        ></iframe>
       </div>
     </div>
 
