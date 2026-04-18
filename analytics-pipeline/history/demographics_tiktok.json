@@ -1,5 +1,5 @@
 {
-  "snapshot_date": "2026-04-13T01:16:43.222063",
+  "snapshot_date": "2026-04-18T08:08:45.467489",
   "platform": "tiktok",
   "gender": [
     {
@@ -19,97 +19,97 @@
     {
       "country": "Greece",
       "code": "GR",
-      "percentage": 37.3
+      "percentage": 34.8
     },
     {
       "country": "Romania",
       "code": "RO",
-      "percentage": 13.5
+      "percentage": 12.4
     },
     {
       "country": "Germany",
       "code": "DE",
-      "percentage": 3.6
+      "percentage": 3.9
     },
     {
       "country": "Cyprus",
       "code": "CY",
-      "percentage": 3.5
-    },
-    {
-      "country": "United States",
-      "code": "US",
-      "percentage": 2.9
+      "percentage": 3.2
     },
     {
       "country": "Ethiopia",
       "code": "ET",
-      "percentage": 2.0
+      "percentage": 3.1
     },
     {
-      "country": "South Korea",
-      "code": "KR",
-      "percentage": 1.9
-    },
-    {
-      "country": "Australia",
-      "code": "AU",
-      "percentage": 1.8
-    },
-    {
-      "country": "Serbia",
-      "code": "RS",
-      "percentage": 1.7
+      "country": "United States",
+      "code": "US",
+      "percentage": 2.5
     },
     {
       "country": "United Kingdom",
       "code": "GB",
-      "percentage": 1.6
+      "percentage": 1.8
+    },
+    {
+      "country": "South Korea",
+      "code": "KR",
+      "percentage": 1.7
+    },
+    {
+      "country": "Australia",
+      "code": "AU",
+      "percentage": 1.4
+    },
+    {
+      "country": "Serbia",
+      "code": "RS",
+      "percentage": 1.4
     },
     {
       "country": "Others",
       "code": "Others",
-      "percentage": 30.2
+      "percentage": 33.8
     }
   ],
   "active_hours": {
-    "0": 951,
-    "1": 685,
-    "2": 494,
-    "3": 321,
-    "4": 273,
-    "5": 280,
-    "6": 373,
-    "7": 552,
-    "8": 609,
-    "9": 663,
-    "10": 722,
-    "11": 744,
-    "12": 810,
-    "13": 866,
-    "14": 902,
-    "15": 914,
-    "16": 938,
-    "17": 948,
-    "18": 933,
-    "19": 921,
-    "20": 941,
-    "21": 1016,
-    "22": 1073,
-    "23": 1013
+    "0": 1278,
+    "1": 967,
+    "2": 708,
+    "3": 492,
+    "4": 409,
+    "5": 375,
+    "6": 453,
+    "7": 678,
+    "8": 838,
+    "9": 980,
+    "10": 1093,
+    "11": 1160,
+    "12": 1207,
+    "13": 1275,
+    "14": 1315,
+    "15": 1328,
+    "16": 1379,
+    "17": 1374,
+    "18": 1397,
+    "19": 1437,
+    "20": 1466,
+    "21": 1514,
+    "22": 1500,
+    "23": 1358
   },
   "peak_hours": [
     {
-      "hour": 22,
-      "avg_active": 1073
-    },
-    {
       "hour": 21,
-      "avg_active": 1016
+      "avg_active": 1514
     },
     {
-      "hour": 23,
-      "avg_active": 1013
+      "hour": 22,
+      "avg_active": 1500
+    },
+    {
+      "hour": 20,
+      "avg_active": 1466
     }
   ]
 }
