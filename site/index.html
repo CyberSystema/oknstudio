@@ -1614,13 +1614,23 @@ document.addEventListener('keydown', e => {
 const clockEl = document.getElementById('live-clock');
 const latEl   = document.getElementById('hud-lat');
 let _t = 0;
+const kstFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+});
 
 function tick(){
-  const d = new Date();
-  const pad = n => String(n).padStart(2,'0');
+  const parts = kstFormatter.formatToParts(new Date());
+  const getPart = type => parts.find(p => p.type === type)?.value || '00';
   clockEl.textContent =
-    d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate()) + ' ' +
-    pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds()) + ' UTC';
+    getPart('year') + '-' + getPart('month') + '-' + getPart('day') + ' ' +
+    getPart('hour') + ':' + getPart('minute') + ':' + getPart('second') + ' KST';
 
   _t += 0.04;
   const lat = Math.round(18 + Math.sin(_t) * 7 + Math.cos(_t * 1.7) * 3);
