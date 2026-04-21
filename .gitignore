@@ -1,24 +1,70 @@
-# Python
+# ── Python ────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*$py.class
 *.egg-info/
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-
-# Generated (rebuilt on every deploy)
-site/assets/
-
-# Node (wrangler)
+# ── Node / TypeScript ─────────────────────────────────
 node_modules/
 package-lock.json
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Logs
+# ── Cloudflare Wrangler / Pages ───────────────────────
+.wrangler/
+.mf/
+.dev.vars
+.dev.vars.*
+wrangler.toml.local
+
+# ── Env / secrets ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Generated (rebuilt on every deploy) ───────────────
+site/assets/
+site/og/og-image.png
+site/og/og-status.png
+
+# ── OS ────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Editors / IDE ─────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+# ── Logs ──────────────────────────────────────────────
 *.log
+logs/
+
+# ── Local working data (ingest staging — never commit exports) ─
+analytics-pipeline/data/**/*.csv
+analytics-pipeline/data/**/*.xlsx
+analytics-pipeline/data/**/*.json
+!analytics-pipeline/data/**/.gitkeep

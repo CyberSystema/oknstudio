@@ -1,0 +1,72 @@
+// OKN Studio — TypeScript in check-only mode.
+//
+// We have no build step: tsc never emits JS. Its job is to surface type
+// errors from our JSDoc annotations against real .js files. See
+// site/_lib/README.md for the architecture rationale.
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+
+    // ── JS with JSDoc ────────────────────────────────────────────────
+    // allowJs + checkJs lets us type-check vanilla JS. noEmit keeps
+    // tsc passive — we don't generate any output.
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+
+    // ── Strictness: moderate, tightenable over time ──────────────────
+    // Full strict mode would drown an existing codebase in errors on
+    // first run. We enable the cheap high-value checks now, and tighten
+    // per-file with // @ts-check and more JSDoc annotations as code is
+    // touched.
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitOverride": true,
+
+    // ── Module graph hygiene ─────────────────────────────────────────
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    // ── Import map aliases ───────────────────────────────────────────
+    // These match the @okn/* prefix used by the browser importmap in
+    // each tool's index.html. Keep the two in sync when adding aliases.
+    // Since TS 4.1, `paths` resolves relative to this tsconfig.json when
+    // `baseUrl` is omitted — which is the TS 7.0-forward-compatible form.
+    "paths": {
+      "@okn/engines/*": ["./site/_lib/engines/*"],
+      "@okn/job/*":     ["./site/_lib/job/*"],
+      "@okn/storage/*": ["./site/_lib/storage/*"]
+    },
+
+    // ── Ambient types ────────────────────────────────────────────────
+    // types/ holds our hand-rolled shims (e.g. declaring https://esm.sh/*
+    // URL imports as any so TypeScript doesn't choke on them).
+    "typeRoots": ["./node_modules/@types", "./types"]
+  },
+
+  "include": [
+    "site/**/*.js",
+    "site/**/*.mjs",
+    "functions/**/*.js",
+    "tools/**/*.mjs",
+    "types/**/*.d.ts"
+  ],
+
+  "exclude": [
+    "node_modules",
+    ".venv",
+    ".git",
+    "tools/__pycache__"
+  ]
+}

@@ -25,6 +25,7 @@ A unified workbench for the OKN social-media team — analytics, media pool, ing
 | **Analytics** | ✅ Live | `/analytics/` | Social-media intelligence report — 14 ML models, auto-generated weekly |
 | **Ingest** | ✅ Live | `/analytics/upload` | Drag-and-drop CSV uploads with platform auto-detection |
 | **Media Pool** | ✅ Live | `/media/` | Private media library (Backblaze B2, authenticated proxy downloads, lazy thumbs) |
+| **Darkroom** | ✅ Live | `/darkroom/` | Photo workflow station — rename / resize / strip / attribute / archive. Originals never touched. |
 | **Calendar** | 🔧 In Development | `/calendar/` | Liturgical + editorial year, iCal feed (Q2 2026) |
 | **Colophon** | ✅ Live | `/colophon/` | Design-system reference: typography, palette, components, stack |
 
@@ -47,6 +48,16 @@ oknstudio/
 │   │   └── index.html             ← In-development page
 │   ├── colophon/
 │   │   └── index.html             ← Design-system reference
+│   ├── darkroom/                   ← Photo workflow station (Phase 1 ships Batch Rename)
+│   │   ├── index.html
+│   │   └── lib/                    ← ESM modules loaded directly by the browser
+│   │       ├── app.js              ← Controller — DOM wiring, dry-run, history
+│   │       ├── i18n.js, messages.en.js
+│   │       ├── engines/rename.js   ← Rename token grammar + collision resolver
+│   │       ├── engines/rename.test.mjs ← 41 tests, zero deps (node --test)
+│   │       ├── job/                ← intake.js · zipper.js · dispatcher.js
+│   │       ├── storage/            ← db.js · settings.js · history.js (IndexedDB)
+│   │       └── zones/              ← registry.js · batch-rename.js
 │   └── media/
 │       └── index.html             ← Media Pool browser
 ├── assets/                        ← Logo sources (baked into reports via base64)

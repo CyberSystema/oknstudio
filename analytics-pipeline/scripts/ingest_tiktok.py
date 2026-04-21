@@ -497,13 +497,23 @@ def ingest_tiktok_account(tiktok_dir: Path) -> Dict[str, Any]:
 # ══════════════════════════════════════════════
 
 def _read_csv_safe(filepath: Path) -> Optional[pd.DataFrame]:
-    """Read a CSV with multiple encoding fallbacks."""
-    for enc in ["utf-8-sig", "utf-8", "utf-16", "cp1253", "latin-1"]:
+    """Read a CSV with multiple Unicode-aware encoding fallbacks.
+
+    We avoid permissive codecs like latin-1 which accept any byte sequence
+    and silently produce mojibake for Korean / emoji content. If all
+    Unicode codecs fail, we log and return None so the caller can handle
+    the gap explicitly.
+    """
+    for enc in ["utf-8-sig", "utf-8", "utf-16", "cp949", "euc-kr", "cp1253"]:
         try:
-            return pd.read_csv(filepath, encoding=enc)
+            df = pd.read_csv(filepath, encoding=enc)
         except Exception:
             continue
-    logger.warning(f"   Could not read {filepath.name}")
+        if any("\ufffd" in str(c) for c in df.columns):
+            # Decoded "successfully" but headers contain replacement chars.
+            continue
+        return df
+    logger.warning(f"   Could not read {filepath.name} with any Unicode encoding")
     return None
 
 

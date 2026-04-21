@@ -33,6 +33,10 @@ from config import HISTORY_DIR, ensure_dirs
 
 logger = logging.getLogger("okn.ingest_account")
 
+# Cap single CSV size at 50 MB. Meta account exports are KB-sized; anything
+# larger is either an attack or a wrong file dropped into the pipeline.
+MAX_FILE_BYTES = 50 * 1024 * 1024
+
 
 # ══════════════════════════════════════════════
 # MAIN ENTRY POINT
@@ -105,6 +109,14 @@ def read_meta_utf16_csv(filepath: Path) -> Optional[str]:
     Read a Meta Business Suite CSV that uses UTF-16 encoding.
     Returns the decoded text content.
     """
+    try:
+        size = filepath.stat().st_size
+    except OSError:
+        size = 0
+    if size > MAX_FILE_BYTES:
+        logger.warning(f"   {filepath.name} exceeds {MAX_FILE_BYTES} bytes — skipping")
+        return None
+
     for encoding in ["utf-16", "utf-16-le", "utf-16-be", "utf-8-sig", "utf-8"]:
         try:
             with open(filepath, "r", encoding=encoding) as f:

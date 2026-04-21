@@ -109,19 +109,34 @@ def ingest_platform(platform: str, data_dir: Path) -> Optional[pd.DataFrame]:
 
 
 def parse_file(filepath: Path, platform: str) -> Optional[pd.DataFrame]:
-    """Parse a single file based on its extension."""
+    """Parse a single file based on its extension.
+
+    Hardened against:
+      * Oversized files (OOM protection; 50 MB cap).
+      * Silent encoding corruption (drops permissive latin-1 fallback and
+        validates that decoded content doesn't look like mojibake).
+      * CSV formula injection (Excel/Sheets executing cells that start with
+        =, +, @, - or tab/CR when opened).
+    """
     ext = filepath.suffix.lower()
 
+    # ── Size cap — CSVs from IG/TikTok are typically small; anything over
+    # 50 MB is almost certainly a misconfigured export or an attack.
+    MAX_INGEST_BYTES = 50 * 1024 * 1024
+    try:
+        size = filepath.stat().st_size
+    except OSError:
+        return None
+    if size > MAX_INGEST_BYTES:
+        logger.warning(
+            "   Skipping %s: file exceeds %d MB cap (%.1f MB)",
+            filepath.name, MAX_INGEST_BYTES // (1024 * 1024), size / (1024 * 1024),
+        )
+        return None
+
     if ext == ".csv":
-        # Try different encodings
-        for encoding in ["utf-8", "utf-8-sig", "cp949", "euc-kr", "latin-1"]:
-            try:
-                df = pd.read_csv(filepath, encoding=encoding)
-                break
-            except (UnicodeDecodeError, pd.errors.ParserError):
-                continue
-        else:
-            logger.warning(f"   Could not decode {filepath.name}")
+        df = _read_csv_safely(filepath)
+        if df is None:
             return None
     elif ext == ".json":
         with open(filepath, "r", encoding="utf-8") as f:
@@ -134,6 +149,10 @@ def parse_file(filepath: Path, platform: str) -> Optional[pd.DataFrame]:
     else:
         return None
 
+    # Neutralise CSV-injection payloads in any string column *before* the data
+    # ever reaches downstream report generation (which may emit CSV/Excel).
+    df = _sanitize_formula_injection(df)
+
     # Route to platform-specific normalizer
     normalizer = NORMALIZERS.get(platform)
     if normalizer:
@@ -141,6 +160,57 @@ def parse_file(filepath: Path, platform: str) -> Optional[pd.DataFrame]:
     else:
         logger.warning(f"   No normalizer for platform: {platform}")
         return None
+
+
+def _read_csv_safely(filepath: Path) -> Optional[pd.DataFrame]:
+    """Try a strict set of encodings; refuse to silently mojibake Korean text.
+
+    We deliberately DO NOT fall back to latin-1 (which accepts any byte
+    sequence and produces corrupted output for Korean / emoji content).
+    Instead, if none of the Unicode-aware encodings succeed we surface the
+    error so the operator can fix the export.
+    """
+    encodings = ["utf-8", "utf-8-sig", "cp949", "euc-kr"]
+    last_err: Optional[Exception] = None
+    for encoding in encodings:
+        try:
+            df = pd.read_csv(filepath, encoding=encoding)
+        except (UnicodeDecodeError, pd.errors.ParserError) as e:
+            last_err = e
+            continue
+        # Guard against "successful" decodes that produced obvious garbage
+        # (an all-empty first row or a column name containing the UTF-8
+        # replacement character).
+        if any("\ufffd" in str(c) for c in df.columns):
+            last_err = UnicodeDecodeError(
+                encoding, b"", 0, 1, "replacement char in headers",
+            )
+            continue
+        return df
+    logger.warning("   Could not decode %s with any supported encoding (%s)",
+                   filepath.name, last_err)
+    return None
+
+
+# Leading characters that Excel / Google Sheets / LibreOffice will treat as
+# the start of a formula when a CSV is opened. Prefixing with a single quote
+# neutralises them without losing information.
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _sanitize_formula_injection(df: pd.DataFrame) -> pd.DataFrame:
+    """Escape cells whose leading character could execute as a spreadsheet
+    formula. Idempotent and only touches string-typed columns."""
+    if df is None or df.empty:
+        return df
+    obj_cols = df.select_dtypes(include=["object"]).columns
+    for col in obj_cols:
+        # Only Series with at least one string value
+        series = df[col]
+        mask = series.apply(lambda v: isinstance(v, str) and v.startswith(_FORMULA_PREFIXES))
+        if mask.any():
+            df.loc[mask, col] = series[mask].apply(lambda v: "'" + v)
+    return df
 
 
 # ══════════════════════════════════════════════

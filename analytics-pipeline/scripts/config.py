@@ -9,17 +9,25 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import pandas as pd
 
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+    _KST_TZ = ZoneInfo("Asia/Seoul")
+except Exception:
+    # Fallback: Korea has no DST, so a fixed +09:00 offset is correct today
+    # and remains stable — this branch only runs on older Pythons / stripped
+    # systems without the IANA tz database.
+    _KST_TZ = timezone(timedelta(hours=9))
+
 
 def to_kst(ts):
-    """Convert any timestamp to KST (UTC+9). Works with Series or scalar."""
-    kst = timezone(timedelta(hours=KST_OFFSET_HOURS))
+    """Convert any timestamp to KST (Asia/Seoul). Works with Series or scalar."""
     if isinstance(ts, pd.Series):
         ts = pd.to_datetime(ts, errors="coerce", utc=True)
-        return ts.dt.tz_convert(kst)
+        return ts.dt.tz_convert(_KST_TZ)
     if isinstance(ts, pd.Timestamp):
         if ts.tzinfo is None:
             ts = ts.tz_localize("UTC")
-        return ts.tz_convert(kst)
+        return ts.tz_convert(_KST_TZ)
     return ts
 
 

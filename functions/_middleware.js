@@ -15,17 +15,41 @@ const MAX_BODY = 10 * 1024;
 const MAX_AGE = 30 * 24 * 60 * 60;       // 30 days (seconds)
 const RATE_WINDOW = 15 * 60 * 1000;      // 15 min (ms)
 const RATE_MAX = 5;
+// In-memory fallback if RATE_LIMIT_KV binding is not configured.
+// Note: ephemeral per Worker isolate — bind RATE_LIMIT_KV in production.
 const attempts = new Map();
 
 // ══════════════════════════════════════
 // SECURITY HEADERS
 // ══════════════════════════════════════
 
+// Content-Security-Policy is intentionally permissive for inline styles/scripts
+// (zero-build ESM convention). `esm.sh` is whitelisted for runtime module
+// imports (e.g. client-zip, exifr). Tighten as the codebase moves toward
+// hashed inline scripts / bundled modules.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://esm.sh",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: https:",
+  "connect-src 'self' https://esm.sh",
+  "worker-src 'self' blob:",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join('; ');
+
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  'Content-Security-Policy': CSP,
+  'Cross-Origin-Opener-Policy': 'same-origin',
 };
 
 function applySecurityHeaders(response) {
@@ -44,9 +68,26 @@ export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
 
+  // ── Unauthenticated healthcheck (for uptime monitors) ──
+  if (url.pathname === '/_health' && request.method === 'GET') {
+    return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+        ...SECURITY_HEADERS,
+      },
+    });
+  }
+
+  // ── Logout (POST only — CSRF-safe by SameSite=Lax cookie) ──
+  if (url.pathname === '/_logout' && request.method === 'POST') {
+    return handleLogout(request, env, context);
+  }
+
   // ── Site login POST ──
   if (url.pathname === '/_auth' && request.method === 'POST') {
-    return handleSiteLogin(request, env);
+    return handleSiteLogin(request, env, context);
   }
 
   // ── Check site session ──
@@ -76,10 +117,33 @@ export async function onRequest(context) {
 // SITE LOGIN
 // ══════════════════════════════════════
 
-async function handleSiteLogin(request, env) {
+async function handleLogout(request, env, context) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  // Best-effort audit; never block the response.
+  const ev = recordAuthEvent(env, { ip, success: true, reason: 'logout', ua: request.headers.get('User-Agent') || '' });
+  if (context && typeof context.waitUntil === 'function') context.waitUntil(ev);
+
+  const url = new URL(request.url);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      'Location': '/',
+      'Set-Cookie': `${SITE_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
+      ...SECURITY_HEADERS,
+    },
+  });
+}
+
+async function handleSiteLogin(request, env, context) {
+  const wait = (p) => {
+    if (context && typeof context.waitUntil === 'function') {
+      try { context.waitUntil(p); } catch { /* ignore */ }
+    }
+  };
   try {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (isLimited(ip)) {
+    if (await isLimited(ip, env)) {
+      wait(recordAuthEvent(env, { ip, success: false, reason: 'rate_limited', ua: request.headers.get('User-Agent') || '' }));
       return htmlResponse(loginHTML({
         pageTitle: 'Authenticate — OKN Studio',
         kicker: 'Secure Channel',
@@ -110,7 +174,8 @@ async function handleSiteLogin(request, env) {
 
     const hash = await sha256(password);
     if (!(await timeSafeEqual(hash, stored))) {
-      recordAttempt(ip);
+      await recordAttempt(ip, env);
+      wait(recordAuthEvent(env, { ip, success: false, reason: 'bad_password', ua: request.headers.get('User-Agent') || '' }));
       return htmlResponse(loginHTML({
         pageTitle: 'Authenticate — OKN Studio',
         kicker: 'Secure Channel',
@@ -127,6 +192,7 @@ async function handleSiteLogin(request, env) {
     }
 
     const token = await signSession(env);
+    wait(recordAuthEvent(env, { ip, success: true, ua: request.headers.get('User-Agent') || '' }));
     return new Response(null, {
       status: 302,
       headers: {
@@ -151,7 +217,10 @@ function parseCookie(request, name) {
 
 async function signSession(env) {
   const secret = requireSecret(env);
-  const payload = Date.now().toString();
+  // Payload = timestamp + random nonce. The nonce prevents token prediction
+  // (timestamp alone is guessable) and collisions within the same millisecond.
+  const nonce = hex(crypto.getRandomValues(new Uint8Array(16)));
+  const payload = Date.now().toString() + '.' + nonce;
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
@@ -162,12 +231,15 @@ async function signSession(env) {
 
 async function verifySession(token, env) {
   if (!token) return false;
-  const dot = token.indexOf('.');
-  if (dot < 1) return false;
-  const ts = token.slice(0, dot);
-  const sigHex = token.slice(dot + 1);
-  const timestamp = Number(ts);
-  if (!Number.isSafeInteger(timestamp) || timestamp > Date.now()) return false;
+  // Token format: `<timestamp>.<nonce>.<hmacHex>` (new) or `<timestamp>.<hmacHex>` (legacy).
+  // Legacy tokens are accepted for backward compatibility until they expire.
+  const lastDot = token.lastIndexOf('.');
+  if (lastDot < 1) return false;
+  const payload = token.slice(0, lastDot);
+  const sigHex = token.slice(lastDot + 1);
+  const tsPart = payload.split('.')[0];
+  const timestamp = Number(tsPart);
+  if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > Date.now()) return false;
   if (Date.now() - timestamp > MAX_AGE * 1000) return false;
 
   let secret;
@@ -180,7 +252,7 @@ async function verifySession(token, env) {
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
   );
-  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(ts));
+  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
 }
 
 // ══════════════════════════════════════
@@ -223,10 +295,24 @@ function unhex(h) {
 }
 
 // ══════════════════════════════════════
-// RATE LIMITING (in-memory; ephemeral on Workers cold starts)
+// RATE LIMITING (KV-backed; in-memory fallback)
 // ══════════════════════════════════════
+//
+// Bind a Workers KV namespace to `RATE_LIMIT_KV` in the Cloudflare Pages
+// project settings for durable cross-isolate rate limiting. Without the
+// binding we fall back to an in-memory Map which resets on cold starts.
 
-function isLimited(ip) {
+async function isLimited(ip, env) {
+  if (env && env.RATE_LIMIT_KV) {
+    try {
+      const rec = await env.RATE_LIMIT_KV.get(`auth_rl:${ip}`, { type: 'json' });
+      if (!rec) return false;
+      if (Date.now() - rec.start > RATE_WINDOW) return false;
+      return rec.count >= RATE_MAX;
+    } catch {
+      // KV outage — fall through to in-memory check
+    }
+  }
   const now = Date.now();
   const rec = attempts.get(ip);
   if (!rec) return false;
@@ -234,13 +320,67 @@ function isLimited(ip) {
   return rec.count >= RATE_MAX;
 }
 
-function recordAttempt(ip) {
+async function recordAttempt(ip, env) {
   const now = Date.now();
+  if (env && env.RATE_LIMIT_KV) {
+    try {
+      const key = `auth_rl:${ip}`;
+      const rec = await env.RATE_LIMIT_KV.get(key, { type: 'json' });
+      const next = (!rec || now - rec.start > RATE_WINDOW)
+        ? { start: now, count: 1 }
+        : { start: rec.start, count: rec.count + 1 };
+      await env.RATE_LIMIT_KV.put(key, JSON.stringify(next), {
+        expirationTtl: Math.ceil(RATE_WINDOW / 1000) + 60,
+      });
+      return;
+    } catch {
+      // fall through to in-memory record
+    }
+  }
   const rec = attempts.get(ip);
   if (!rec || now - rec.start > RATE_WINDOW) {
     attempts.set(ip, { start: now, count: 1 });
   } else {
     rec.count++;
+  }
+}
+
+// ══════════════════════════════════════
+// AUDIT LOGGING (best-effort; no-op without AUDIT_LOG_KV binding)
+// ══════════════════════════════════════
+//
+// When `AUDIT_LOG_KV` (Workers KV namespace) is bound, each auth event is
+// persisted under `auth:<timestamp>:<ip>` with a 180-day TTL. We also emit
+// to `console.log` so Cloudflare's Workers logs (Logpush / tail) capture
+// it regardless of KV availability. Logging failures never impact auth.
+
+/**
+ * @param {any} env
+ * @param {{ ip: string, success: boolean, reason?: string, ua?: string }} event
+ */
+async function recordAuthEvent(env, event) {
+  const record = {
+    t: new Date().toISOString(),
+    ip: event.ip || 'unknown',
+    success: !!event.success,
+    reason: event.reason,
+    // Truncate UA to keep records bounded and avoid log injection.
+    ua: (event.ua || '').slice(0, 240).replace(/[\r\n]/g, ' '),
+  };
+  try {
+    console.log('auth_event', JSON.stringify(record));
+  } catch {
+    // Ignore — logging must never break auth.
+  }
+  if (env && env.AUDIT_LOG_KV) {
+    try {
+      const key = `auth:${Date.now().toString(36)}:${record.ip}`;
+      await env.AUDIT_LOG_KV.put(key, JSON.stringify(record), {
+        expirationTtl: 60 * 60 * 24 * 180, // 180 days
+      });
+    } catch {
+      // Ignore KV outage.
+    }
   }
 }
 
@@ -270,9 +410,7 @@ function htmlResponse(html, status) {
     status,
     headers: {
       'Content-Type': 'text/html;charset=UTF-8',
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      ...SECURITY_HEADERS,
     },
   });
 }

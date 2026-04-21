@@ -92,10 +92,13 @@ function corsHeaders(request, env) {
     .map((entry) => entry.trim())
     .filter(Boolean);
 
-  let allowOrigin = 'https://oknstudio.cybersystema.com';
-  if (configuredOrigins.includes('*')) {
-    allowOrigin = '*';
-  } else if (origin && (configuredOrigins.includes(origin) || origin === allowOrigin)) {
+  // Default allow-origin is the production site. We deliberately REJECT the
+  // wildcard '*' even if configured, because this endpoint accepts
+  // authenticated batch uploads — a wildcard would defeat CSRF protection.
+  const DEFAULT_ORIGIN = 'https://oknstudio.cybersystema.com';
+  let allowOrigin = DEFAULT_ORIGIN;
+  const safeList = configuredOrigins.filter((o) => o !== '*');
+  if (origin && (safeList.includes(origin) || origin === DEFAULT_ORIGIN)) {
     allowOrigin = origin;
   }
 
@@ -104,6 +107,9 @@ function corsHeaders(request, env) {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    'X-Content-Type-Options': 'nosniff',
     'Vary': 'Origin',
   };
 }
@@ -394,7 +400,11 @@ async function timeSafeEqual(a, b) {
 
 async function generateToken(env) {
   const secret = getRequiredTokenSecret(env);
-  const payload = Date.now().toString();
+  // Include a random nonce so tokens can't be brute-forced by guessing the
+  // current millisecond timestamp.
+  const nonceBytes = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = Array.from(nonceBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  const payload = Date.now().toString() + '.' + nonce;
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
   return payload + '.' + Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -402,10 +412,15 @@ async function generateToken(env) {
 
 async function verifyToken(token, env) {
   if (!token || typeof token !== 'string') return false;
-  const parts = token.split('.');
-  if (parts.length !== 2) return false;
-  const timestamp = Number(parts[0]);
-  if (!Number.isSafeInteger(timestamp)) return false;
+  // Token format: `<timestamp>.<nonce>.<hmacHex>` (current) or
+  // `<timestamp>.<hmacHex>` (legacy — accepted until old tokens expire).
+  const lastDot = token.lastIndexOf('.');
+  if (lastDot < 1) return false;
+  const payload = token.slice(0, lastDot);
+  const sigHex = token.slice(lastDot + 1);
+  const tsPart = payload.split('.')[0];
+  const timestamp = Number(tsPart);
+  if (!Number.isSafeInteger(timestamp) || timestamp <= 0) return false;
   if (timestamp > Date.now()) return false;
   if (Date.now() - timestamp > TOKEN_EXPIRY_MS) return false;
 
@@ -416,12 +431,12 @@ async function verifyToken(token, env) {
     return false;
   }
 
-  const sigBytes = hexToBytes(parts[1]);
+  const sigBytes = hexToBytes(sigHex);
   if (!sigBytes) return false;
 
   // Use crypto.subtle.verify for constant-time HMAC comparison
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
-  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(parts[0]));
+  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
 }
 
 function hexToBytes(hex) {

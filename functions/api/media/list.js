@@ -117,7 +117,10 @@ export async function onRequestGet(context) {
       count: files.length,
       folderCount: folders.length,
     }, {
-      headers: { 'Cache-Control': 'private, max-age=1800' },
+      headers: {
+        'Cache-Control': 'private, max-age=1800',
+        'Vary': 'Origin, Accept-Encoding',
+      },
     });
 
     context.waitUntil(cache.put(cacheKey, response.clone()));

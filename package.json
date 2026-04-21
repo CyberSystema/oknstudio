@@ -3,10 +3,21 @@
   "private": true,
   "description": "OKN Studio — Orthodox Korea Network digital workspace",
   "scripts": {
+    "check": "tsc",
+    "check:watch": "tsc --watch",
+    "test": "node --test site/_lib/engines/rename.test.mjs site/darkroom/lib/job/server-router.test.mjs",
+    "verify": "npm run check && npm test",
     "og:status": "node tools/og/generate-status.mjs",
     "og:build": "./tools/og/build.sh"
   },
   "dependencies": {
     "aws4fetch": "^1.0.20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

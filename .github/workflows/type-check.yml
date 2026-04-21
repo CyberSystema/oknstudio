@@ -1,0 +1,78 @@
+name: Type check & tests
+
+# ─────────────────────────────────────────────────────────
+# Runs TypeScript type checking (tsc in check-only mode,
+# no emit) and the Node test suite on every push & PR.
+#
+# Fast feedback — no build, no deploy. This is the quality
+# gate that lets the rest of the deploy workflow stay
+# minimal.
+# ─────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'functions/**'
+      - 'tools/**/*.mjs'
+      - 'types/**'
+      - 'tsconfig.json'
+      - 'package.json'
+      - '.github/workflows/type-check.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: type-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: 🔍 Type check & tests
+    timeout-minutes: 5
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📥 Install
+        # Lockfile is gitignored so we use `npm install`, not `npm ci`,
+        # matching the convention set by .github/workflows/deploy.yml.
+        run: npm install
+
+      - name: 🔍 Type check
+        run: npm run check
+
+      - name: 🧪 Tests
+        run: npm test
+
+      - name: 🛡️ Audit dependencies
+        # Non-blocking: reports high/critical advisories but doesn't fail the
+        # build so upstream advisories can't break merges on their own. Flip
+        # to `--audit-level=high` without `|| true` once the dep surface is
+        # stable.
+        run: npm audit --audit-level=high || true
+
+      - name: 📋 Summary
+        if: always()
+        run: |
+          echo "## 🔍 Type check & tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${GITHUB_SHA::8}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY

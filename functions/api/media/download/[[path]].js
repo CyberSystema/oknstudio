@@ -63,6 +63,7 @@ export async function onRequestGet(context) {
   const s3Url = `https://${env.B2_BUCKET}.${env.B2_ENDPOINT}/${filePath}`;
 
   try {
+    /** @type {Record<string, string>} */
     const headers = {};
     const rangeHeader = request.headers.get('Range');
     if (rangeHeader) headers['Range'] = rangeHeader;
@@ -104,10 +105,34 @@ export async function onRequestGet(context) {
 }
 
 function sanitizeObjectKey(rawPath) {
-  const decoded = decodeURIComponent(rawPath);
-  const normalized = decoded.replaceAll('\\\\', '/');
+  // Defense-in-depth against double-URL-encoding bypass
+  // (e.g. `%252e%252e` \u2192 `%2e%2e` \u2192 `..`).
+  let decoded;
+  try {
+    decoded = decodeURIComponent(rawPath);
+  } catch {
+    throw new Error('Invalid path');
+  }
+  if (decoded.includes('%')) {
+    // Re-decoding should be a no-op if the input was single-encoded.
+    try {
+      const reDecoded = decodeURIComponent(decoded);
+      if (reDecoded !== decoded) throw new Error('Invalid path');
+    } catch {
+      throw new Error('Invalid path');
+    }
+  }
+
+  // Normalise separators \u2014 reject both forward-slash lead and backslashes.
+  const normalized = decoded.replaceAll('\\', '/');
 
   if (!normalized || normalized.startsWith('/') || normalized.includes('\0')) {
+    throw new Error('Invalid path');
+  }
+
+  // Reject control characters that could be used to smuggle headers/paths.
+  // eslint-disable-next-line no-control-regex
+  if (/[\x00-\x1f\x7f]/.test(normalized)) {
     throw new Error('Invalid path');
   }
 
