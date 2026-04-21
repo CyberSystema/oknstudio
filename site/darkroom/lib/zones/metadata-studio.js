@@ -6,7 +6,7 @@
  * is rewritten according to the chosen policy.
  *
  * Phase 2 scope: JPEG only (piexifjs). PNG/TIFF/WebP/HEIC metadata writes
- * land with the home server (exiftool) in a later phase and currently route
+ * land with the processing server (exiftool) in a later phase and currently route
  * to "Needs attention" as the expected outcome.
  *
  * Shared with Web-ready / Bulk Compress:

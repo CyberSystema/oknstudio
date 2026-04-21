@@ -3,7 +3,7 @@
  * =================================================================
  * Smart-routing contract (per spec): every zone ships browser-capable, but
  * when batch size / file size crosses a per-zone threshold, routing returns
- * 'server-large-batch-soon'. The home server isn't live yet, so that
+ * 'server-large-batch-soon'. The processing server isn't live yet, so that
  * decision currently surfaces as "Coming soon" in the dry-run and lands the
  * file in Needs attention at process time — never silently dropped.
  *

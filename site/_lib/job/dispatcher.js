@@ -143,7 +143,7 @@ export function createDispatcher(opts) {
             row.status = 'error';
             row.error = {
               class: 'server-large-batch-soon',
-              message: 'Routed to home server (coming soon)',
+              message: 'Routed to processing server (coming soon)',
               retryable: false
             };
           }
