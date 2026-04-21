@@ -52,7 +52,13 @@
     // ── Ambient types ────────────────────────────────────────────────
     // types/ holds our hand-rolled shims (e.g. declaring https://esm.sh/*
     // URL imports as any so TypeScript doesn't choke on them).
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": ["./node_modules/@types", "./types"],
+
+    // Explicitly include @types/node so tsc can resolve `node:test`,
+    // `node:assert/strict`, `node:fs/promises`, etc. used by our .mjs
+    // test files and build tools. Without this, fresh CI installs fail
+    // with TS2591 "Cannot find name 'node:test'".
+    "types": ["node"]
   },
 
   "include": [
