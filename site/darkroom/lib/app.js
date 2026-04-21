@@ -1360,37 +1360,6 @@ function closeModal(id) {
   modalState.delete(id);
 }
 
-/**
- * Open a modal: saves previous focus, installs Tab trap, and
- * sets ARIA state. Call `closeModal(id)` to reverse.
- * @param {string} id        element id (without `#`)
- * @param {HTMLElement=} focusTarget  element to focus after opening
- */
-function openModal(id, focusTarget) {
-  const panel = document.getElementById(id);
-  if (!panel) return;
-  const prev = /** @type {HTMLElement | null} */ (document.activeElement);
-  panel.classList.add('is-open');
-  panel.setAttribute('aria-hidden', 'false');
-  if (!panel.hasAttribute('role')) panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-modal', 'true');
-  const handler = trapTabWithin(panel);
-  modalState.set(id, { prev, handler });
-  focusTarget?.focus?.();
-}
-
-/** @param {string} id */
-function closeModal(id) {
-  const panel = document.getElementById(id);
-  if (!panel) return;
-  panel.classList.remove('is-open');
-  panel.setAttribute('aria-hidden', 'true');
-  const st = modalState.get(id);
-  if (st?.handler) document.removeEventListener('keydown', st.handler);
-  st?.prev?.focus?.();
-  modalState.delete(id);
-}
-
 function openSettings() {
   const panel = $('#dr-settings');
   if (!panel) return;
