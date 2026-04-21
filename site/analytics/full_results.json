@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T01:17:44.219714",
+  "generated_at": "2026-04-21T11:53:44.865849",
   "meta": {
     "total_posts": 182,
     "platforms": [
@@ -22,7 +22,7 @@
     {
       "priority": "high",
       "category": "content",
-      "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
+      "message": "Viral content on Instagram: Short Video, Carousel. Create more content in these formats."
     },
     {
       "priority": "high",
@@ -72,7 +72,7 @@
   ],
   "analysis": {
     "meta": {
-      "generated_at": "2026-04-20T01:17:25.429487",
+      "generated_at": "2026-04-21T11:53:25.217395",
       "total_posts": 182,
       "platforms": [
         "instagram",
@@ -1359,7 +1359,7 @@
       {
         "priority": "high",
         "category": "content",
-        "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
+        "message": "Viral content on Instagram: Short Video, Carousel. Create more content in these formats."
       },
       {
         "priority": "high",
@@ -2126,10 +2126,10 @@
   "forecast": {
     "horizon_days": 0,
     "method_used": "prophet",
-    "generated_at": "2026-04-20T01:17:26.195628",
+    "generated_at": "2026-04-21T11:53:26.014293",
     "reach": {
       "method": "prophet",
-      "historical_weeks": 48,
+      "historical_weeks": 12,
       "current_weekly_avg": 110532,
       "trend_direction": "up",
       "forecast": [],
@@ -2137,7 +2137,7 @@
     },
     "engagement": {
       "method": "prophet",
-      "historical_weeks": 48,
+      "historical_weeks": 12,
       "current_weekly_avg": 18014,
       "trend_direction": "up",
       "forecast": [],
@@ -2145,7 +2145,7 @@
     },
     "followers": {
       "method": "prophet",
-      "historical_weeks": 48,
+      "historical_weeks": 12,
       "current_weekly_avg": 755,
       "trend_direction": "up",
       "forecast": [],
@@ -2160,10 +2160,10 @@
     "instagram_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-04-20T01:17:26.595466",
+      "generated_at": "2026-04-21T11:53:26.213517",
       "reach": {
         "method": "prophet",
-        "historical_weeks": 45,
+        "historical_weeks": 10,
         "current_weekly_avg": 59884,
         "trend_direction": "up",
         "forecast": [],
@@ -2171,7 +2171,7 @@
       },
       "engagement": {
         "method": "prophet",
-        "historical_weeks": 45,
+        "historical_weeks": 10,
         "current_weekly_avg": 11104,
         "trend_direction": "up",
         "forecast": [],
@@ -2179,7 +2179,7 @@
       },
       "followers": {
         "method": "prophet",
-        "historical_weeks": 45,
+        "historical_weeks": 10,
         "current_weekly_avg": 755,
         "trend_direction": "up",
         "forecast": [],
@@ -2196,36 +2196,36 @@
     "tiktok_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-04-20T01:17:26.954244",
+      "generated_at": "2026-04-21T11:53:26.378324",
       "reach": {
         "method": "prophet",
-        "historical_weeks": 9,
+        "historical_weeks": 8,
         "current_weekly_avg": 50649,
-        "trend_direction": "up",
+        "trend_direction": "down",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "engagement": {
         "method": "prophet",
-        "historical_weeks": 9,
+        "historical_weeks": 8,
         "current_weekly_avg": 6910,
-        "trend_direction": "up",
+        "trend_direction": "down",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "followers": {
         "method": "prophet",
-        "historical_weeks": 9,
+        "historical_weeks": 8,
         "current_weekly_avg": 0,
         "trend_direction": "flat",
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
       "health": {
-        "status": "strong_growth",
-        "emoji": "\ud83d\ude80",
-        "message": "OKN's social presence is growing well across key metrics.",
-        "signal_score": 0.67
+        "status": "needs_attention",
+        "emoji": "\u26a0\ufe0f",
+        "message": "Multiple metrics are declining. Review content strategy.",
+        "signal_score": -0.67
       },
       "platform": "tiktok"
     }
