@@ -14,8 +14,8 @@
     "aws4fetch": "^1.0.20"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "typescript": "^5.7.0"
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=20.0.0"
