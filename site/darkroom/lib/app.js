@@ -1620,6 +1620,10 @@ function openDryRun() {
   const summary = summariseRouting(routing);
   state.activeJob.routing = routing;
 
+  // All rows route to server AND the server isn't live yet → block Process.
+  // (Server-only options/services aren't acceptable in browser-only mode.)
+  const allServer = summary.server > 0 && summary.browser === 0;
+
   if (summary.server > 0) {
     const ex = routing.explain;
     const reasonKey = ex.reason ? `routing.explain.${ex.reason}` : '';
@@ -1633,9 +1637,20 @@ function openDryRun() {
     warnings.push(t('routing.serverNotLive'));
   }
 
-  $('#dr-dryrun-warnings').innerHTML = warnings
-    .map((w) => `<div class="dr-warning">${esc(w)}</div>`)
-    .join('');
+  const blockTip = allServer ? t('routing.blockedAllServer') : '';
+
+  $('#dr-dryrun-warnings').innerHTML = [
+    ...(blockTip ? [`<div class="dr-warning dr-warning-block" role="alert">${esc(blockTip)}</div>`] : []),
+    ...warnings.map((w) => `<div class="dr-warning">${esc(w)}</div>`)
+  ].join('');
+
+  const processBtn = /** @type {HTMLButtonElement | null} */ ($('#dr-dryrun-process'));
+  if (processBtn) {
+    processBtn.disabled = allServer;
+    processBtn.setAttribute('aria-disabled', allServer ? 'true' : 'false');
+    if (allServer) processBtn.title = t('routing.blockedAllServer');
+    else processBtn.removeAttribute('title');
+  }
 
   const tbody = $('#dr-dryrun-tbody');
   const impl = ZONE_IMPL[zoneId];
@@ -1697,6 +1712,16 @@ function closeDryRun() {
 
 async function startProcessing() {
   if (!state.activeJob) return;
+
+  // Hard-guard: if every row is server-routed (and the server isn't live),
+  // Process is not acceptable. The dry-run already disables the button and
+  // shows a tip; this catches keyboard / programmatic triggers too.
+  const routingSummary = state.activeJob.routing
+    ? summariseRouting(state.activeJob.routing)
+    : null;
+  if (routingSummary && routingSummary.server > 0 && routingSummary.browser === 0) {
+    return;
+  }
 
   const skip = /** @type {HTMLInputElement | null} */ ($('#dr-dryrun-skipfuture'));
   if (skip) {
