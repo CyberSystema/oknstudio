@@ -228,5 +228,66 @@ export const en = {
   'units.mb': 'MB',
   'units.gb': 'GB',
   'units.seconds': 's',
-  'units.minutes': 'min'
+  'units.minutes': 'min',
+
+  // ─── Social zone ───────────────────────────────────────────────
+  'zone.social.platform': 'Platform',
+  'zone.social.platform.instagram-square':   'Instagram · Square (1080 × 1080)',
+  'zone.social.platform.instagram-portrait': 'Instagram · Portrait (1080 × 1350)',
+  'zone.social.platform.instagram-story':    'Instagram · Story (1080 × 1920)',
+  'zone.social.platform.facebook-post':      'Facebook · Post (1200 × 630)',
+  'zone.social.platform.facebook-cover':     'Facebook · Cover (820 × 312)',
+  'zone.social.platform.custom':             'Custom canvas…',
+  'zone.social.customSize': 'Custom canvas (px)',
+  'zone.social.fit': 'Fit to canvas',
+  'zone.social.fit.cover':   'Fill (center-crop)',
+  'zone.social.fit.contain': 'Fit (add background)',
+  'zone.social.background': 'Background (when fit)',
+  'zone.social.background.blur':        'Blurred source',
+  'zone.social.background.white':       'White',
+  'zone.social.background.black':       'Black',
+  'zone.social.background.transparent': 'Transparent (PNG/WebP only)',
+  'zone.social.format':  'Output format',
+  'zone.social.quality': 'Quality',
+
+  // ─── HEIC → JPEG zone ──────────────────────────────────────────
+  'zone.heic-to-jpeg.format':        'Output format',
+  'zone.heic-to-jpeg.quality':       'Quality',
+  'zone.heic-to-jpeg.maxEdge':       'Max long-edge',
+  'zone.heic-to-jpeg.maxEdge.off':   'Keep original size',
+  'zone.heic-to-jpeg.srgbConvert':   'Convert Display P3 → sRGB',
+  'zone.heic-to-jpeg.srgbConvert.hint': 'Recommended for recipients on older browsers. Leave off to preserve wide gamut.',
+
+  // ─── Colour-space zone ─────────────────────────────────────────
+  'zone.colour-space.target':            'Target profile',
+  'zone.colour-space.target.srgb':       'sRGB (universal)',
+  'zone.colour-space.target.display-p3': 'Display P3 (wide gamut, modern browsers)',
+  'zone.colour-space.target.adobe-rgb':  'Adobe RGB 1998 (server only, soon)',
+  'zone.colour-space.target.prophoto':   'ProPhoto RGB (server only, soon)',
+  'zone.colour-space.format':            'Output format',
+  'zone.colour-space.quality':           'Quality',
+  'zone.colour-space.tagSlug':           'Tag filename with profile slug',
+
+  // ─── Archive zone ──────────────────────────────────────────────
+  'zone.archive.event':            'Event name (required)',
+  'zone.archive.event.placeholder':'e.g. Theophany 2026',
+  'zone.archive.location':         'Location (optional)',
+  'zone.archive.location.placeholder': 'e.g. Church of St. Dionysius, Seoul',
+  'zone.archive.includeSidecars':  'Write per-file .xmp sidecars',
+  'zone.archive.includeManifest':  'Include manifest.csv',
+  'zone.archive.includeReadme':    'Include README.txt',
+  'zone.archive.hint':             'Originals are shipped untouched. Attribution and event metadata travel alongside in sidecars and the manifest.',
+
+  // ─── RAW develop zone ──────────────────────────────────────────
+  'zone.raw-develop.outputFormat':   'Output format',
+  'zone.raw-develop.whiteBalance':   'White balance',
+  'zone.raw-develop.whiteBalance.as-shot':  'As shot',
+  'zone.raw-develop.whiteBalance.auto':     'Auto',
+  'zone.raw-develop.whiteBalance.daylight': 'Daylight',
+  'zone.raw-develop.whiteBalance.tungsten': 'Tungsten',
+  'zone.raw-develop.exposure':       'Exposure (EV)',
+  'zone.raw-develop.quality':        'Quality',
+  'zone.raw-develop.unavailable':    'RAW development runs on the processing server, which isn\u2019t online yet. Files drop into Needs attention instead of being processed.',
+
+  'needsAttention.classes.server-required': 'Requires the processing server (coming soon)'
 };

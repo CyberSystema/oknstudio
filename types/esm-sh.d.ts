@@ -43,3 +43,7 @@ declare module 'https://esm.sh/idb-keyval@6.2.1?bundle' {
   export const keys: any;
   export const clear: any;
 }
+declare module 'https://esm.sh/libheif-js@1.17.1?bundle' {
+  const libheif: any;
+  export default libheif;
+}

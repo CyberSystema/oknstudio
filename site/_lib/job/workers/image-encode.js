@@ -10,16 +10,27 @@
  *
  * Payload shape:
  *   {
- *     buffer:       ArrayBuffer,            // source file bytes (transferred)
- *     mime:         string,                 // source MIME (for createImageBitmap hints)
- *     maxEdge:      number,                 // 0 = no resize
+ *     // One of:
+ *     buffer:       ArrayBuffer,            // encoded source bytes (transferred)
+ *     mime:         string,                 // source MIME when using buffer
+ *     // OR pre-decoded RGBA pixels (used by HEIC/RAW zones that decode on main):
+ *     rgba?:        ArrayBuffer,            // width*height*4 bytes, sRGB, non-premultiplied
+ *     rgbaWidth?:   number,
+ *     rgbaHeight?:  number,
+ *
+ *     maxEdge:      number,                 // 0 = no long-edge cap
+ *     // Exact output dimensions (used by Social zone for platform canvases).
+ *     // When set, output is fit into [targetW × targetH] per `fit` mode.
+ *     targetW?:     number,
+ *     targetH?:     number,
+ *     fit?:         'cover' | 'contain',    // 'cover' = center-crop, 'contain' = pad
+ *     background?:  'white' | 'black' | 'blur' | 'transparent',
+ *
  *     format:       'image/jpeg' | 'image/webp' | 'image/avif' | 'image/png',
  *     quality:      number,                 // 0..1 (ignored for PNG)
  *     orientation:  number | undefined,     // EXIF Orientation (1..8), applied + cleared
- *     srgbConvert:  boolean                 // if true, paint via OffscreenCanvas 2D
- *                                           //   (the 2D context converts to display
- *                                           //    colour space on paint — effectively sRGB
- *                                           //    when no colorSpace is set on createImageBitmap)
+ *     srgbConvert:  boolean,                // canvas paints via sRGB context when true
+ *     canvasColorSpace?: 'srgb' | 'display-p3'  // output canvas colour space (v2)
  *   }
  *
  * Returns:
@@ -65,20 +76,27 @@ export default {
 
     const {
       buffer, mime,
+      rgba, rgbaWidth, rgbaHeight,
       maxEdge = 0,
+      targetW = 0, targetH = 0,
+      fit = 'cover',
+      background = 'white',
       format = 'image/jpeg',
       quality = 0.82,
       orientation = 1,
-      srgbConvert = true
+      srgbConvert = true,
+      canvasColorSpace = 'srgb'
     } = payload ?? {};
 
-    if (!(buffer instanceof ArrayBuffer)) {
-      throw Object.assign(new Error('image-encode: expected ArrayBuffer buffer'), { klass: 'corrupt' });
+    const hasBuffer = buffer instanceof ArrayBuffer;
+    const hasRgba = rgba instanceof ArrayBuffer && rgbaWidth > 0 && rgbaHeight > 0;
+    if (!hasBuffer && !hasRgba) {
+      throw Object.assign(new Error('image-encode: expected buffer or rgba input'), { klass: 'corrupt' });
     }
 
     if (ctx.signal.aborted) throw cancelError();
 
-    if (!NATIVE_DECODE.has(mime)) {
+    if (hasBuffer && !NATIVE_DECODE.has(mime)) {
       // Allow anyway — some browsers have extra coverage — but warn via error class.
       // The createImageBitmap call below will throw if the browser really can't decode.
     }
@@ -87,16 +105,21 @@ export default {
 
     /** @type {ImageBitmap} */
     let bitmap;
-    try {
-      bitmap = await createImageBitmap(new Blob([buffer], { type: mime }), {
-        // When srgbConvert is true we ask the decoder for sRGB colour space;
-        // otherwise we let it stay in the image's native space.
-        colorSpaceConversion: srgbConvert ? 'default' : 'none',
-        // Honour premultiplied alpha consistently.
-        premultiplyAlpha: 'default'
-      });
-    } catch (err) {
-      throw Object.assign(new Error(`decode failed: ${err?.message ?? err}`), { klass: 'corrupt' });
+    if (hasRgba) {
+      const imageData = new ImageData(new Uint8ClampedArray(rgba), rgbaWidth, rgbaHeight);
+      bitmap = await createImageBitmap(imageData, { premultiplyAlpha: 'default' });
+    } else {
+      try {
+        bitmap = await createImageBitmap(new Blob([buffer], { type: mime }), {
+          // When srgbConvert is true we ask the decoder for sRGB colour space;
+          // otherwise we let it stay in the image's native space.
+          colorSpaceConversion: srgbConvert ? 'default' : 'none',
+          // Honour premultiplied alpha consistently.
+          premultiplyAlpha: 'default'
+        });
+      } catch (err) {
+        throw Object.assign(new Error(`decode failed: ${err?.message ?? err}`), { klass: 'corrupt' });
+      }
     }
 
     if (ctx.signal.aborted) { bitmap.close?.(); throw cancelError(); }
@@ -106,42 +129,117 @@ export default {
     const swapsWH = orientation >= 5 && orientation <= 8;
     const srcW = swapsWH ? bitmap.height : bitmap.width;
     const srcH = swapsWH ? bitmap.width  : bitmap.height;
-    const { outW, outH } = computeTargetSize(srcW, srcH, maxEdge);
+
+    // Two sizing modes:
+    //   (a) exact target W×H  — used by Social (platform canvases).
+    //                           Picture is cover-cropped or contained with
+    //                           background fill to the exact size.
+    //   (b) long-edge cap     — used by Web-ready / HEIC / Bulk compress.
+    let outW, outH;
+    const hasExactTarget = targetW > 0 && targetH > 0;
+    if (hasExactTarget) {
+      outW = targetW;
+      outH = targetH;
+    } else {
+      ({ outW, outH } = computeTargetSize(srcW, srcH, maxEdge));
+    }
 
     ctx.progress(0.3);
 
     // ─── Paint to OffscreenCanvas with orientation applied ──────────────
 
+    // Prefer display-p3 when the caller asked for it AND the platform supports
+    // it. Older browsers fall back to sRGB which is safe.
+    const wantsP3 = canvasColorSpace === 'display-p3';
+    /** @type {'srgb' | 'display-p3'} */
+    let canvasSpace = 'srgb';
+    if (wantsP3) {
+      try {
+        const probe = new OffscreenCanvas(1, 1);
+        const cxProbe = probe.getContext('2d', { colorSpace: 'display-p3' });
+        if (cxProbe) canvasSpace = 'display-p3';
+      } catch { /* keep sRGB */ }
+    }
+
     const canvas = new OffscreenCanvas(outW, outH);
     const cx = canvas.getContext('2d', {
-      alpha: format !== 'image/jpeg',          // JPEG is opaque
+      alpha: format !== 'image/jpeg' && background !== 'white' && background !== 'black',
       willReadFrequently: false,
       desynchronized: false,
-      colorSpace: 'srgb'
+      colorSpace: canvasSpace
     });
     if (!cx) {
       bitmap.close?.();
       throw Object.assign(new Error('OffscreenCanvas 2D context unavailable'), { klass: 'unknown' });
     }
 
-    // Opaque target (JPEG): fill white first so transparent PNG→JPEG doesn't
-    // composite onto black.
-    if (format === 'image/jpeg') {
+    // Background fill — JPEG is always opaque (defaults to white); other
+    // formats honour the caller's preference.
+    if (format === 'image/jpeg' || background === 'white') {
       cx.fillStyle = '#ffffff';
       cx.fillRect(0, 0, outW, outH);
+    } else if (background === 'black') {
+      cx.fillStyle = '#000000';
+      cx.fillRect(0, 0, outW, outH);
     }
+    // 'transparent' → leave canvas clear. 'blur' handled after orientation below.
 
     cx.imageSmoothingEnabled = true;
     cx.imageSmoothingQuality = 'high';
 
-    applyOrientationTransform(cx, orientation, outW, outH);
+    if (hasExactTarget) {
+      // Exact target canvases bypass the EXIF orientation transform path
+      // and do the math in "logical" (oriented) space. For orientation 5..8
+      // we paint the bitmap onto a scratch canvas first so cover/contain
+      // math is straightforward.
+      const scratch = new OffscreenCanvas(srcW, srcH);
+      const sx = scratch.getContext('2d', { alpha: true, colorSpace: canvasSpace });
+      if (!sx) {
+        bitmap.close?.();
+        throw Object.assign(new Error('OffscreenCanvas 2D context unavailable'), { klass: 'unknown' });
+      }
+      applyOrientationTransform(sx, orientation, srcW, srcH);
+      const dW = swapsWH ? srcH : srcW;
+      const dH = swapsWH ? srcW : srcH;
+      sx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, 0, 0, dW, dH);
 
-    // Draw bitmap. Source rect is full bitmap in its native dimensions;
-    // destination rect is the post-orientation "logical" rect (before the
-    // transform; the canvas transform will swap/rotate for 5..8).
-    const drawW = swapsWH ? outH : outW;
-    const drawH = swapsWH ? outW : outH;
-    cx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, 0, 0, drawW, drawH);
+      if (background === 'blur' && format !== 'image/jpeg') {
+        // Fill background by up-scaling the source to 'cover' the canvas,
+        // blurring, then painting. Canvas filter support varies; guard with a
+        // try/catch and fall back to white.
+        try {
+          const coverScale = Math.max(outW / srcW, outH / srcH);
+          const bw = Math.ceil(srcW * coverScale);
+          const bh = Math.ceil(srcH * coverScale);
+          cx.save();
+          // @ts-ignore — filter is widely supported on OffscreenCanvas now.
+          cx.filter = 'blur(40px) brightness(0.95)';
+          cx.drawImage(scratch, (outW - bw) / 2, (outH - bh) / 2, bw, bh);
+          cx.restore();
+        } catch {
+          cx.fillStyle = '#ffffff';
+          cx.fillRect(0, 0, outW, outH);
+        }
+      }
+
+      if (fit === 'cover') {
+        const scale = Math.max(outW / srcW, outH / srcH);
+        const dstW = srcW * scale;
+        const dstH = srcH * scale;
+        cx.drawImage(scratch, (outW - dstW) / 2, (outH - dstH) / 2, dstW, dstH);
+      } else {
+        // contain
+        const scale = Math.min(outW / srcW, outH / srcH);
+        const dstW = srcW * scale;
+        const dstH = srcH * scale;
+        cx.drawImage(scratch, (outW - dstW) / 2, (outH - dstH) / 2, dstW, dstH);
+      }
+    } else {
+      applyOrientationTransform(cx, orientation, outW, outH);
+      const drawW = swapsWH ? outH : outW;
+      const drawH = swapsWH ? outW : outH;
+      cx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, 0, 0, drawW, drawH);
+    }
 
     bitmap.close?.();
 

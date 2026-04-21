@@ -27,11 +27,21 @@ import { createZipper } from './zipper.js';
  * @property {number=} finishedAt
  * @property {number=} durationMs
  *
+ * @typedef {Object} ZipEntryLite
+ * @property {string} name
+ * @property {Blob|ArrayBuffer|Uint8Array|string} input
+ * @property {number=} lastModified
+ *
  * @typedef {(
  *   row: import('./intake.js').FileRow,
  *   settings: object,
  *   signal: AbortSignal
- * ) => Promise<{ blob: Blob, outputName: string, outputSize: number }>} ProcessFn
+ * ) => Promise<{ blob: Blob, outputName: string, outputSize: number, extraEntries?: ZipEntryLite[] }>} ProcessFn
+ *
+ * @typedef {(
+ *   zipper: { add: (e: ZipEntryLite) => void, count: number },
+ *   job: Job
+ * ) => (void | Promise<void>)} FinalizeFn
  *
  * Kept local to _lib so this module doesn't reach into any tool's
  * server-router. Callers pass any object with a `perFile` Map; the
@@ -85,6 +95,7 @@ function dateStamp(ms) {
  *   processFile: ProcessFn,
  *   onUpdate?: (job: Job) => void,
  *   onFinish?: (job: Job) => (void | Promise<void>),
+ *   onFinalize?: FinalizeFn,
  *   concurrency?: number,
  *   zipFilename?: string,
  *   routing?: DispatcherRouting
@@ -151,6 +162,12 @@ export function createDispatcher(opts) {
         notify();
 
         await runPool(job, opts.processFile, CONCURRENCY, abort.signal, zipper, notify, routingMap);
+        // Finalize hook: runs once after all files are processed (or the
+        // job was cancelled). Used by zones like Archive to emit manifest
+        // CSVs, READMEs, or contact sheets that depend on the full batch.
+        if (opts.onFinalize && !abort.signal.aborted) {
+          try { await opts.onFinalize(zipper, job); } catch { /* ignore */ }
+        }
         job.state = abort.signal.aborted ? 'cancelled' : 'done';
       } catch {
         job.state = 'failed';
@@ -196,7 +213,7 @@ async function runPool(job, processFn, concurrency, signal, zipper, notify, rout
       row.status = 'processing';
       notify();
       try {
-        const { blob, outputName, outputSize } = await processFn(row, job.settings, signal);
+        const { blob, outputName, outputSize, extraEntries } = await processFn(row, job.settings, signal);
         if (signal.aborted) {
           row.status = 'cancelled';
           row.error = { class: 'cancelled', message: 'Cancelled', retryable: false };
@@ -204,6 +221,11 @@ async function runPool(job, processFn, concurrency, signal, zipper, notify, rout
           return;
         }
         zipper.add({ name: outputName, input: blob, lastModified: Date.now() });
+        if (Array.isArray(extraEntries)) {
+          for (const extra of extraEntries) {
+            zipper.add({ lastModified: Date.now(), ...extra });
+          }
+        }
         row.outputName = outputName;
         row.outputSize = outputSize;
         row.status = 'done';

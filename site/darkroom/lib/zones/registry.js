@@ -131,11 +131,16 @@ export function isShipped(zone, currentPhase) { return zone.shipsIn <= currentPh
  * Keep this alphabetised and bump it as each zone lands.
  */
 export const WIRED_ZONES = new Set([
+  'archive',
   'batch-rename',
   'bulk-compress',
+  'colour-space',
+  'heic-to-jpeg',
   'metadata-studio',
+  'raw-develop',
+  'social',
   'web-ready'
 ]);
 
 /** Current phase — bump as phases land. */
-export const CURRENT_PHASE = 2;
+export const CURRENT_PHASE = 7;

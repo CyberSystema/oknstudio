@@ -229,5 +229,66 @@ export const ko = {
   'units.mb': 'MB',
   'units.gb': 'GB',
   'units.seconds': '초',
-  'units.minutes': '분'
+  'units.minutes': '분',
+
+  // ─── Social ──────────────────────────────────────────────────
+  'zone.social.platform': '플랫폼',
+  'zone.social.platform.instagram-square':   '인스타그램 · 정사각 (1080 × 1080)',
+  'zone.social.platform.instagram-portrait': '인스타그램 · 세로 (1080 × 1350)',
+  'zone.social.platform.instagram-story':    '인스타그램 · 스토리 (1080 × 1920)',
+  'zone.social.platform.facebook-post':      '페이스북 · 포스트 (1200 × 630)',
+  'zone.social.platform.facebook-cover':     '페이스북 · 커버 (820 × 312)',
+  'zone.social.platform.custom':             '사용자 캔버스…',
+  'zone.social.customSize': '사용자 캔버스 (px)',
+  'zone.social.fit': '캔버스에 맞추기',
+  'zone.social.fit.cover':   '채우기 (중앙 크롭)',
+  'zone.social.fit.contain': '맞추기 (배경 추가)',
+  'zone.social.background': '배경 (맞추기 시)',
+  'zone.social.background.blur':        '원본 블러',
+  'zone.social.background.white':       '흰색',
+  'zone.social.background.black':       '검정',
+  'zone.social.background.transparent': '투명 (PNG/WebP만)',
+  'zone.social.format':  '출력 포맷',
+  'zone.social.quality': '품질',
+
+  // ─── HEIC → JPEG ─────────────────────────────────────────────
+  'zone.heic-to-jpeg.format':        '출력 포맷',
+  'zone.heic-to-jpeg.quality':       '품질',
+  'zone.heic-to-jpeg.maxEdge':       '긴 변 최대',
+  'zone.heic-to-jpeg.maxEdge.off':   '원본 크기 유지',
+  'zone.heic-to-jpeg.srgbConvert':   'Display P3 → sRGB 변환',
+  'zone.heic-to-jpeg.srgbConvert.hint': '구형 브라우저 수신자에게 권장. 끄면 광역 색역 유지.',
+
+  // ─── Colour-space ────────────────────────────────────────────
+  'zone.colour-space.target':            '대상 프로파일',
+  'zone.colour-space.target.srgb':       'sRGB (표준)',
+  'zone.colour-space.target.display-p3': 'Display P3 (광색역, 최신 브라우저)',
+  'zone.colour-space.target.adobe-rgb':  'Adobe RGB 1998 (서버 전용, 준비 중)',
+  'zone.colour-space.target.prophoto':   'ProPhoto RGB (서버 전용, 준비 중)',
+  'zone.colour-space.format':            '출력 포맷',
+  'zone.colour-space.quality':           '품질',
+  'zone.colour-space.tagSlug':           '파일명에 프로파일 슬러그 표시',
+
+  // ─── Archive ─────────────────────────────────────────────────
+  'zone.archive.event':                  '이벤트명 (필수)',
+  'zone.archive.event.placeholder':      '예: 신현축일 2026',
+  'zone.archive.location':               '장소 (선택)',
+  'zone.archive.location.placeholder':   '예: 서울 성 디오니시오스 성당',
+  'zone.archive.includeSidecars':        '파일별 .xmp 사이드카 생성',
+  'zone.archive.includeManifest':        'manifest.csv 포함',
+  'zone.archive.includeReadme':          'README.txt 포함',
+  'zone.archive.hint':                   '원본은 그대로 전달됩니다. 귀속 표기와 이벤트 메타데이터는 사이드카와 manifest로 함께 보존됩니다.',
+
+  // ─── RAW develop ─────────────────────────────────────────────
+  'zone.raw-develop.outputFormat':       '출력 포맷',
+  'zone.raw-develop.whiteBalance':       '화이트밸런스',
+  'zone.raw-develop.whiteBalance.as-shot':  '촬영값',
+  'zone.raw-develop.whiteBalance.auto':     '자동',
+  'zone.raw-develop.whiteBalance.daylight': '주광',
+  'zone.raw-develop.whiteBalance.tungsten': '텅스텐',
+  'zone.raw-develop.exposure':           '노출 (EV)',
+  'zone.raw-develop.quality':            '품질',
+  'zone.raw-develop.unavailable':        'RAW 현상은 처리 서버에서 실행되며 아직 가동되지 않았습니다. 파일은 처리 대신 “확인 필요”에 놓입니다.',
+
+  'needsAttention.classes.server-required': '처리 서버 필요 (준비 중)'
 };

@@ -38,6 +38,11 @@ import {
   createMetadataStudioProcessor,
   summariseExif
 } from './zones/metadata-studio.js';
+import { defaultSettings as socialDefaults,       createSocialProcessor }       from './zones/social.js';
+import { defaultSettings as heicDefaults,         createHeicToJpegProcessor }   from './zones/heic-to-jpeg.js';
+import { defaultSettings as colourSpaceDefaults,  createColourSpaceProcessor }  from './zones/colour-space.js';
+import { defaultSettings as archiveDefaults,      createArchiveProcessor }      from './zones/archive.js';
+import { defaultSettings as rawDevelopDefaults,   createRawDevelopProcessor }   from './zones/raw-develop.js';
 import { computeBatch, previewFirst } from '@okn/engines/rename.js';
 
 // ─── Module map: zoneId → { defaults(), makeProcessor(settings) } ───────
@@ -55,6 +60,28 @@ const ZONE_IMPL = {
   'bulk-compress': {
     defaults: bulkCompressDefaults,
     makeProcessor: createBulkCompressProcessor
+  },
+  'social': {
+    defaults: socialDefaults,
+    makeProcessor: createSocialProcessor
+  },
+  'heic-to-jpeg': {
+    defaults: heicDefaults,
+    makeProcessor: createHeicToJpegProcessor
+  },
+  'colour-space': {
+    defaults: colourSpaceDefaults,
+    makeProcessor: createColourSpaceProcessor
+  },
+  'archive': {
+    defaults: archiveDefaults,
+    // Archive returns { process, finalize } — startProcessing() detects
+    // that shape and wires the finalize hook into the dispatcher.
+    makeProcessor: createArchiveProcessor
+  },
+  'raw-develop': {
+    defaults: rawDevelopDefaults,
+    makeProcessor: createRawDevelopProcessor
   },
   'metadata-studio': {
     defaults: metadataStudioDefaults,
@@ -626,6 +653,386 @@ const ZONE_RENDERERS = {
         </details>
       </article>
     `;
+  },
+
+  'social': (zone, title, desc) => {
+    const settings = state.zoneSettings[zone.id];
+    const rename = settings.rename;
+    const ex = settings.extra;
+    const meta = settings.metadata;
+    const showCustom = rename.preset === 'custom';
+    const showEvent  = needsEventToken(rename);
+    const qPct = Math.round((ex.quality ?? 0.85) * 100);
+    const isCustom = ex.platform === 'custom';
+    const isContain = ex.fit === 'contain';
+    const transparentDisabled = ex.format === 'image/jpeg';
+
+    return `
+      <article class="dr-zone" data-zone="${zone.id}">
+        ${zoneHead(zone, title, desc)}
+        ${buildDropzone(zone)}
+
+        <div class="dr-zone-controls">
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">${esc(t('zone.social.platform'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="platform">
+              <option value="instagram-square"   ${ex.platform === 'instagram-square'   ? 'selected' : ''}>${esc(t('zone.social.platform.instagram-square'))}</option>
+              <option value="instagram-portrait" ${ex.platform === 'instagram-portrait' ? 'selected' : ''}>${esc(t('zone.social.platform.instagram-portrait'))}</option>
+              <option value="instagram-story"    ${ex.platform === 'instagram-story'    ? 'selected' : ''}>${esc(t('zone.social.platform.instagram-story'))}</option>
+              <option value="facebook-post"      ${ex.platform === 'facebook-post'      ? 'selected' : ''}>${esc(t('zone.social.platform.facebook-post'))}</option>
+              <option value="facebook-cover"     ${ex.platform === 'facebook-cover'     ? 'selected' : ''}>${esc(t('zone.social.platform.facebook-cover'))}</option>
+              <option value="custom"             ${isCustom ? 'selected' : ''}>${esc(t('zone.social.platform.custom'))}</option>
+            </select>
+          </label>
+
+          ${isCustom ? `
+            <label class="dr-field">
+              <span class="dr-field-label">${esc(t('zone.social.customSize'))}</span>
+              <span style="display:flex;gap:8px;align-items:center">
+                <input type="number" min="16" max="8192" step="1" class="dr-input dr-input-small"
+                  data-zone="${zone.id}" data-control="customW" value="${ex.customW ?? 1080}" />
+                <span class="dr-muted">×</span>
+                <input type="number" min="16" max="8192" step="1" class="dr-input dr-input-small"
+                  data-zone="${zone.id}" data-control="customH" value="${ex.customH ?? 1080}" />
+              </span>
+            </label>
+          ` : ''}
+
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.social.fit'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="socialFit">
+              <option value="cover"   ${ex.fit === 'cover'   ? 'selected' : ''}>${esc(t('zone.social.fit.cover'))}</option>
+              <option value="contain" ${ex.fit === 'contain' ? 'selected' : ''}>${esc(t('zone.social.fit.contain'))}</option>
+            </select>
+          </label>
+
+          ${isContain ? `
+            <label class="dr-field">
+              <span class="dr-field-label">${esc(t('zone.social.background'))}</span>
+              <select class="dr-select" data-zone="${zone.id}" data-control="socialBackground">
+                <option value="blur"        ${ex.background === 'blur'        ? 'selected' : ''}>${esc(t('zone.social.background.blur'))}</option>
+                <option value="white"       ${ex.background === 'white'       ? 'selected' : ''}>${esc(t('zone.social.background.white'))}</option>
+                <option value="black"       ${ex.background === 'black'       ? 'selected' : ''}>${esc(t('zone.social.background.black'))}</option>
+                <option value="transparent" ${ex.background === 'transparent' ? 'selected' : ''} ${transparentDisabled ? 'disabled' : ''}>${esc(t('zone.social.background.transparent'))}</option>
+              </select>
+            </label>
+          ` : ''}
+
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.social.format'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="format">
+              <option value="image/jpeg" ${ex.format === 'image/jpeg' ? 'selected' : ''}>JPEG</option>
+              <option value="image/webp" ${ex.format === 'image/webp' ? 'selected' : ''}>WebP</option>
+              <option value="image/png"  ${ex.format === 'image/png'  ? 'selected' : ''}>PNG (lossless)</option>
+            </select>
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">
+              ${esc(t('zone.social.quality'))}
+              <span class="dr-field-value" data-zone="${zone.id}" data-qv>${qPct}%</span>
+            </span>
+            <input type="range" min="60" max="95" step="1" class="dr-range"
+              data-zone="${zone.id}" data-control="quality"
+              value="${qPct}"
+              ${ex.format === 'image/png' ? 'disabled' : ''} />
+          </label>
+        </div>
+
+        <details class="dr-advanced">
+          <summary class="dr-advanced-summary">Rename & advanced</summary>
+          <div class="dr-zone-controls" style="padding-top:14px">
+            ${buildRenameSelect(zone, rename)}
+            ${showEvent  ? buildEventField(zone, settings) : ''}
+            ${showCustom ? buildCustomTemplateField(zone, rename) : ''}
+            <label class="dr-field dr-field-wide">
+              <span class="dr-field-label">${esc(t('zone.metadata-studio.policy'))}</span>
+              <select class="dr-select" data-zone="${zone.id}" data-control="metadataMode">
+                <option value="keep-all"      ${meta.mode === 'keep-all'      ? 'selected' : ''}>${esc(t('zone.metadata-studio.policy.keep-all'))}</option>
+                <option value="strip-private" ${meta.mode === 'strip-private' ? 'selected' : ''}>${esc(t('zone.metadata-studio.policy.strip-private'))}</option>
+                <option value="strip-all"     ${meta.mode === 'strip-all'     ? 'selected' : ''}>${esc(t('zone.metadata-studio.policy.strip-all'))}</option>
+              </select>
+            </label>
+          </div>
+          <div class="dr-advanced-body" style="padding-top:14px">
+            ${buildRenameAdvanced(zone, rename)}
+          </div>
+        </details>
+      </article>
+    `;
+  },
+
+  'heic-to-jpeg': (zone, title, desc) => {
+    const settings = state.zoneSettings[zone.id];
+    const rename = settings.rename;
+    const ex = settings.extra;
+    const meta = settings.metadata;
+    const showCustom = rename.preset === 'custom';
+    const showEvent  = needsEventToken(rename);
+    const qPct = Math.round((ex.quality ?? 0.90) * 100);
+
+    return `
+      <article class="dr-zone" data-zone="${zone.id}">
+        ${zoneHead(zone, title, desc)}
+        ${buildDropzone(zone)}
+
+        <div class="dr-zone-controls">
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.heic-to-jpeg.format'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="format">
+              <option value="image/jpeg" ${ex.format === 'image/jpeg' ? 'selected' : ''}>JPEG</option>
+              <option value="image/webp" ${ex.format === 'image/webp' ? 'selected' : ''}>WebP</option>
+            </select>
+          </label>
+
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.heic-to-jpeg.maxEdge'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="maxEdge">
+              <option value="0"    ${ex.maxEdge === 0    ? 'selected' : ''}>${esc(t('zone.heic-to-jpeg.maxEdge.off'))}</option>
+              <option value="1600" ${ex.maxEdge === 1600 ? 'selected' : ''}>1600 px</option>
+              <option value="2048" ${ex.maxEdge === 2048 ? 'selected' : ''}>2048 px</option>
+              <option value="2560" ${ex.maxEdge === 2560 ? 'selected' : ''}>2560 px</option>
+              <option value="3840" ${ex.maxEdge === 3840 ? 'selected' : ''}>3840 px</option>
+            </select>
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">
+              ${esc(t('zone.heic-to-jpeg.quality'))}
+              <span class="dr-field-value" data-zone="${zone.id}" data-qv>${qPct}%</span>
+            </span>
+            <input type="range" min="60" max="98" step="1" class="dr-range"
+              data-zone="${zone.id}" data-control="quality" value="${qPct}" />
+          </label>
+
+          <label class="dr-checkbox dr-field-wide">
+            <input type="checkbox" data-zone="${zone.id}" data-control="srgbConvert" ${ex.srgbConvert ? 'checked' : ''} />
+            <span class="dr-checkbox-label">
+              ${esc(t('zone.heic-to-jpeg.srgbConvert'))}
+              <span class="dr-hint">${esc(t('zone.heic-to-jpeg.srgbConvert.hint'))}</span>
+            </span>
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">${esc(t('zone.web-ready.metadata'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="metadataMode">
+              <option value="keep-all"      ${meta.mode === 'keep-all'      ? 'selected' : ''}>${esc(t('zone.web-ready.metadata.keep-all'))}</option>
+              <option value="strip-private" ${meta.mode === 'strip-private' ? 'selected' : ''}>${esc(t('zone.web-ready.metadata.strip-private'))}</option>
+              <option value="strip-all"     ${meta.mode === 'strip-all'     ? 'selected' : ''}>${esc(t('zone.web-ready.metadata.strip-all'))}</option>
+            </select>
+          </label>
+
+          <label class="dr-checkbox dr-field-wide">
+            <input type="checkbox" data-zone="${zone.id}" data-control="injectAttr" ${meta.injectOknAttribution ? 'checked' : ''} />
+            <span class="dr-checkbox-label">${esc(t('zone.web-ready.inject'))}</span>
+          </label>
+        </div>
+
+        <details class="dr-advanced">
+          <summary class="dr-advanced-summary">Rename & advanced</summary>
+          <div class="dr-zone-controls" style="padding-top:14px">
+            ${buildRenameSelect(zone, rename)}
+            ${showEvent  ? buildEventField(zone, settings) : ''}
+            ${showCustom ? buildCustomTemplateField(zone, rename) : ''}
+          </div>
+          <div class="dr-advanced-body" style="padding-top:14px">
+            ${buildRenameAdvanced(zone, rename)}
+          </div>
+        </details>
+      </article>
+    `;
+  },
+
+  'colour-space': (zone, title, desc) => {
+    const settings = state.zoneSettings[zone.id];
+    const rename = settings.rename;
+    const ex = settings.extra;
+    const meta = settings.metadata;
+    const showCustom = rename.preset === 'custom';
+    const showEvent  = needsEventToken(rename);
+    const qPct = Math.round((ex.quality ?? 0.92) * 100);
+
+    return `
+      <article class="dr-zone" data-zone="${zone.id}">
+        ${zoneHead(zone, title, desc)}
+        ${buildDropzone(zone)}
+
+        <div class="dr-zone-controls">
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">${esc(t('zone.colour-space.target'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="targetProfile">
+              <option value="srgb"       ${ex.targetProfile === 'srgb'       ? 'selected' : ''}>${esc(t('zone.colour-space.target.srgb'))}</option>
+              <option value="display-p3" ${ex.targetProfile === 'display-p3' ? 'selected' : ''}>${esc(t('zone.colour-space.target.display-p3'))}</option>
+              <option value="adobe-rgb"  ${ex.targetProfile === 'adobe-rgb'  ? 'selected' : ''}>${esc(t('zone.colour-space.target.adobe-rgb'))}</option>
+              <option value="prophoto"   ${ex.targetProfile === 'prophoto'   ? 'selected' : ''}>${esc(t('zone.colour-space.target.prophoto'))}</option>
+            </select>
+          </label>
+
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.colour-space.format'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="format">
+              <option value="image/jpeg" ${ex.format === 'image/jpeg' ? 'selected' : ''}>JPEG</option>
+              <option value="image/webp" ${ex.format === 'image/webp' ? 'selected' : ''}>WebP</option>
+              <option value="image/png"  ${ex.format === 'image/png'  ? 'selected' : ''}>PNG (lossless)</option>
+            </select>
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">
+              ${esc(t('zone.colour-space.quality'))}
+              <span class="dr-field-value" data-zone="${zone.id}" data-qv>${qPct}%</span>
+            </span>
+            <input type="range" min="60" max="98" step="1" class="dr-range"
+              data-zone="${zone.id}" data-control="quality" value="${qPct}"
+              ${ex.format === 'image/png' ? 'disabled' : ''} />
+          </label>
+
+          <label class="dr-checkbox dr-field-wide">
+            <input type="checkbox" data-zone="${zone.id}" data-control="tagOutputSlug" ${ex.tagOutputWithProfileSlug ? 'checked' : ''} />
+            <span class="dr-checkbox-label">${esc(t('zone.colour-space.tagSlug'))}</span>
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">${esc(t('zone.web-ready.metadata'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="metadataMode">
+              <option value="keep-all"      ${meta.mode === 'keep-all'      ? 'selected' : ''}>${esc(t('zone.web-ready.metadata.keep-all'))}</option>
+              <option value="strip-private" ${meta.mode === 'strip-private' ? 'selected' : ''}>${esc(t('zone.web-ready.metadata.strip-private'))}</option>
+              <option value="strip-all"     ${meta.mode === 'strip-all'     ? 'selected' : ''}>${esc(t('zone.web-ready.metadata.strip-all'))}</option>
+            </select>
+          </label>
+        </div>
+
+        <details class="dr-advanced">
+          <summary class="dr-advanced-summary">Rename & advanced</summary>
+          <div class="dr-zone-controls" style="padding-top:14px">
+            ${buildRenameSelect(zone, rename)}
+            ${showEvent  ? buildEventField(zone, settings) : ''}
+            ${showCustom ? buildCustomTemplateField(zone, rename) : ''}
+          </div>
+          <div class="dr-advanced-body" style="padding-top:14px">
+            ${buildRenameAdvanced(zone, rename)}
+          </div>
+        </details>
+      </article>
+    `;
+  },
+
+  'archive': (zone, title, desc) => {
+    const settings = state.zoneSettings[zone.id];
+    const ex = settings.extra;
+
+    return `
+      <article class="dr-zone" data-zone="${zone.id}">
+        ${zoneHead(zone, title, desc)}
+        ${buildDropzone(zone)}
+
+        <div class="dr-zone-controls">
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">${esc(t('zone.archive.event'))}</span>
+            <input type="text" class="dr-input"
+              data-zone="${zone.id}" data-control="event"
+              value="${esc(ex.event ?? '')}"
+              placeholder="${esc(t('zone.archive.event.placeholder'))}" />
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">${esc(t('zone.archive.location'))}</span>
+            <input type="text" class="dr-input"
+              data-zone="${zone.id}" data-control="archiveLocation"
+              value="${esc(ex.location ?? '')}"
+              placeholder="${esc(t('zone.archive.location.placeholder'))}" />
+          </label>
+
+          <label class="dr-checkbox dr-field-wide">
+            <input type="checkbox" data-zone="${zone.id}" data-control="includeSidecars" ${ex.includeSidecars ? 'checked' : ''} />
+            <span class="dr-checkbox-label">${esc(t('zone.archive.includeSidecars'))}</span>
+          </label>
+
+          <label class="dr-checkbox dr-field-wide">
+            <input type="checkbox" data-zone="${zone.id}" data-control="includeManifest" ${ex.includeManifest ? 'checked' : ''} />
+            <span class="dr-checkbox-label">${esc(t('zone.archive.includeManifest'))}</span>
+          </label>
+
+          <label class="dr-checkbox dr-field-wide">
+            <input type="checkbox" data-zone="${zone.id}" data-control="includeReadme" ${ex.includeReadme ? 'checked' : ''} />
+            <span class="dr-checkbox-label">${esc(t('zone.archive.includeReadme'))}</span>
+          </label>
+
+          <p class="dr-hint dr-field-wide">${esc(t('zone.archive.hint'))}</p>
+        </div>
+      </article>
+    `;
+  },
+
+  'raw-develop': (zone, title, desc) => {
+    const settings = state.zoneSettings[zone.id];
+    const rename = settings.rename;
+    const ex = settings.extra;
+    const showCustom = rename.preset === 'custom';
+    const showEvent  = needsEventToken(rename);
+    const qPct = Math.round((ex.quality ?? 0.92) * 100);
+
+    return `
+      <article class="dr-zone" data-zone="${zone.id}">
+        ${zoneHead(zone, title, desc)}
+        ${buildDropzone(zone)}
+
+        <div class="dr-zone-controls">
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.raw-develop.outputFormat'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="rawOutputFormat">
+              <option value="image/jpeg" ${ex.outputFormat === 'image/jpeg' ? 'selected' : ''}>JPEG</option>
+              <option value="image/tiff" ${ex.outputFormat === 'image/tiff' ? 'selected' : ''}>TIFF (16-bit)</option>
+            </select>
+          </label>
+
+          <label class="dr-field">
+            <span class="dr-field-label">${esc(t('zone.raw-develop.whiteBalance'))}</span>
+            <select class="dr-select" data-zone="${zone.id}" data-control="whiteBalance">
+              <option value="as-shot"  ${ex.whiteBalance === 'as-shot'  ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.as-shot'))}</option>
+              <option value="auto"     ${ex.whiteBalance === 'auto'     ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.auto'))}</option>
+              <option value="daylight" ${ex.whiteBalance === 'daylight' ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.daylight'))}</option>
+              <option value="tungsten" ${ex.whiteBalance === 'tungsten' ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.tungsten'))}</option>
+            </select>
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">
+              ${esc(t('zone.raw-develop.exposure'))}
+              <span class="dr-field-value" data-zone="${zone.id}" data-ev>${(ex.exposure ?? 0).toFixed(1)}</span>
+            </span>
+            <input type="range" min="-3" max="3" step="0.1" class="dr-range"
+              data-zone="${zone.id}" data-control="exposure" value="${ex.exposure ?? 0}" />
+          </label>
+
+          <label class="dr-field dr-field-wide">
+            <span class="dr-field-label">
+              ${esc(t('zone.raw-develop.quality'))}
+              <span class="dr-field-value" data-zone="${zone.id}" data-qv>${qPct}%</span>
+            </span>
+            <input type="range" min="60" max="98" step="1" class="dr-range"
+              data-zone="${zone.id}" data-control="quality" value="${qPct}"
+              ${ex.outputFormat === 'image/tiff' ? 'disabled' : ''} />
+          </label>
+
+          <p class="dr-hint dr-field-wide" style="margin-top:4px">
+            ${esc(t('zone.raw-develop.unavailable'))}
+          </p>
+        </div>
+
+        <details class="dr-advanced">
+          <summary class="dr-advanced-summary">Rename & advanced</summary>
+          <div class="dr-zone-controls" style="padding-top:14px">
+            ${buildRenameSelect(zone, rename)}
+            ${showEvent  ? buildEventField(zone, settings) : ''}
+            ${showCustom ? buildCustomTemplateField(zone, rename) : ''}
+          </div>
+          <div class="dr-advanced-body" style="padding-top:14px">
+            ${buildRenameAdvanced(zone, rename)}
+          </div>
+        </details>
+      </article>
+    `;
   }
 };
 
@@ -914,6 +1321,69 @@ function handleZoneControl(e) {
       settings.extra.normaliseOrientation = !!(/** @type {HTMLInputElement} */ (el).checked);
       break;
 
+    // ─── Social unique controls ──────────────────────────────────
+    case 'platform':
+      settings.extra.platform = el.value;
+      needsRerender = true;   // toggle custom size / background visibility
+      break;
+    case 'customW': {
+      const n = parseInt(el.value, 10);
+      if (Number.isFinite(n) && n >= 16 && n <= 8192) settings.extra.customW = n;
+      break;
+    }
+    case 'customH': {
+      const n = parseInt(el.value, 10);
+      if (Number.isFinite(n) && n >= 16 && n <= 8192) settings.extra.customH = n;
+      break;
+    }
+    case 'socialFit':
+      settings.extra.fit = el.value;
+      needsRerender = true;   // toggle background picker
+      break;
+    case 'socialBackground':
+      settings.extra.background = el.value;
+      break;
+
+    // ─── Colour-space unique controls ────────────────────────────
+    case 'targetProfile':
+      settings.extra.targetProfile = el.value;
+      break;
+    case 'tagOutputSlug':
+      settings.extra.tagOutputWithProfileSlug = !!(/** @type {HTMLInputElement} */ (el).checked);
+      break;
+
+    // ─── Archive unique controls ─────────────────────────────────
+    case 'archiveLocation':
+      settings.extra.location = el.value;
+      return;   // no re-render; freeform text input
+    case 'includeSidecars':
+      settings.extra.includeSidecars = !!(/** @type {HTMLInputElement} */ (el).checked);
+      break;
+    case 'includeManifest':
+      settings.extra.includeManifest = !!(/** @type {HTMLInputElement} */ (el).checked);
+      break;
+    case 'includeReadme':
+      settings.extra.includeReadme = !!(/** @type {HTMLInputElement} */ (el).checked);
+      break;
+
+    // ─── RAW develop unique controls ─────────────────────────────
+    case 'rawOutputFormat':
+      settings.extra.outputFormat = el.value;
+      needsRerender = true;   // TIFF disables quality slider
+      break;
+    case 'whiteBalance':
+      settings.extra.whiteBalance = el.value;
+      break;
+    case 'exposure': {
+      const n = parseFloat(el.value);
+      if (Number.isFinite(n)) {
+        settings.extra.exposure = Math.max(-3, Math.min(3, n));
+        const ev = $(`[data-ev][data-zone="${zoneId}"]`);
+        if (ev) ev.textContent = settings.extra.exposure.toFixed(1);
+      }
+      break;
+    }
+
     default:
       return;  // unknown control; nothing to do
   }
@@ -1113,11 +1583,22 @@ async function startProcessing() {
   const processor = await impl.makeProcessor(settings);
   const processedRows = rows.filter((r) => !!r.outputName);
 
+  // Archive (and future zones with batch-level outputs) return
+  // { process, finalize } instead of a bare ProcessFn. Detect the shape
+  // and route the finalize hook through the dispatcher.
+  const isBundle = processor && typeof processor === 'object'
+    && typeof processor.process === 'function';
+  const processFile = isBundle ? processor.process : processor;
+  const onFinalize = isBundle && typeof processor.finalize === 'function'
+    ? async (zipper, _job) => { await processor.finalize(zipper); }
+    : undefined;
+
   const dispatcher = createDispatcher({
     zoneId,
     settings,
     rows: processedRows,
-    processFile: processor,
+    processFile,
+    onFinalize,
     onUpdate: onJobUpdate,
     // Persistence hook: dispatcher is tool-agnostic now, so we inject
     // history writes here. Errors are swallowed by the dispatcher.
