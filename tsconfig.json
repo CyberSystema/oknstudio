@@ -73,6 +73,7 @@
     "node_modules",
     ".venv",
     ".git",
-    "tools/__pycache__"
+    "tools/__pycache__",
+    "site/darkroom/sw.js"
   ]
 }

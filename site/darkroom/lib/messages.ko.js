@@ -224,6 +224,18 @@ export const ko = {
   'shortcuts.process': 'Enter — 처리',
   'shortcuts.cancel': 'Esc — 취소 / 닫기',
   'shortcuts.settings': ', — 설정 열기',
+  'shortcuts.processCmd': '⌘/Ctrl · Enter — 처리 (드라이런에서)',
+  'shortcuts.zoneJump': '1–9 — 활성 탭의 존으로 이동',
+
+  // ─── 결과 패널 ─────────────────────────────────────────────
+  'result.retryFailed': '실패한 항목 재시도',
+  'result.copyDiagnostics': '진단 정보 복사',
+  'result.copied': '진단 정보가 클립보드에 복사되었습니다.',
+  'result.copyFailed': '복사 실패 — 콘솔에 기록했습니다.',
+  'result.retryNone': '재시도할 파일이 없습니다.',
+
+  // ─── 드라이런 예상 ──────────────────────────────────────
+  'dryrun.estimate': '예상 출력 용량 ~{size}',
 
   'units.kb': 'KB',
   'units.mb': 'MB',

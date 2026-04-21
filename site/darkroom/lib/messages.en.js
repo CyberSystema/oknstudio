@@ -223,6 +223,18 @@ export const en = {
   'shortcuts.process': 'Enter \u2014 process',
   'shortcuts.cancel': 'Esc \u2014 cancel / close',
   'shortcuts.settings': ', \u2014 open settings',
+  'shortcuts.processCmd': '\u2318/Ctrl \u00b7 Enter \u2014 process (in dry-run)',
+  'shortcuts.zoneJump': '1\u20139 \u2014 jump to zone in active tab',
+
+  // ─── Result panel ──────────────────────────────────────────────
+  'result.retryFailed': 'Retry failed',
+  'result.copyDiagnostics': 'Copy diagnostics',
+  'result.copied': 'Diagnostics copied to clipboard.',
+  'result.copyFailed': 'Couldn\u2019t copy \u2014 diagnostics logged to console instead.',
+  'result.retryNone': 'No retryable files in this job.',
+
+  // ─── Dry-run estimate ──────────────────────────────────────────
+  'dryrun.estimate': 'Estimated output ~{size}',
 
   'units.kb': 'KB',
   'units.mb': 'MB',

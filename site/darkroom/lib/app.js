@@ -129,11 +129,92 @@ function formatDuration(ms) {
   return `${m}m ${Math.round(s - m * 60)}s`;
 }
 
+/**
+ * Rough-estimate total output bytes for a zone + settings + rows combo.
+ * Used purely for a sanity-check line in the dry-run summary, never for
+ * any enforcement. Returns null if the zone has no meaningful estimate
+ * (e.g. Archive, which preserves originals byte-for-byte).
+ *
+ * The coefficients below are calibrated from typical real-world batches:
+ *   JPEG @ Q82  ≈ 0.28 × source for 24-MP photos
+ *   WebP @ Q82  ≈ 0.22 × source
+ *   AVIF @ Q82  ≈ 0.18 × source
+ *   PNG (lossless) — roughly 2× JPEG source, so we approximate with ×1.0
+ *   TIFF — we report source bytes (no lossy compression).
+ *
+ * Plus a `edgeFactor` scaling when the zone downscales via maxEdge or an
+ * exact target canvas — assumes ~2:1 reduction per halving of long-edge.
+ *
+ * @param {string} zoneId
+ * @param {any} settings
+ * @param {Array<{ size: number }>} rows
+ * @returns {number | null}
+ */
+function estimateOutputBytes(zoneId, settings, rows) {
+  if (!rows || rows.length === 0) return 0;
+  const totalIn = rows.reduce((a, r) => a + (r.size ?? 0), 0);
+
+  // Passthrough zones — no meaningful output delta worth reporting.
+  if (zoneId === 'archive' || zoneId === 'batch-rename' || zoneId === 'metadata-studio') {
+    return null;
+  }
+
+  const ex = settings?.extra || {};
+  const format = ex.format || 'image/jpeg';
+  const quality = typeof ex.quality === 'number' ? ex.quality : 0.82;
+
+  // Format coefficient relative to source bytes.
+  let formatK;
+  switch (format) {
+    case 'image/avif': formatK = 0.20; break;
+    case 'image/webp': formatK = 0.26; break;
+    case 'image/jpeg': formatK = 0.32; break;
+    case 'image/png':  formatK = 1.10; break;  // lossless; often bigger than JPEG source
+    case 'image/tiff': return totalIn;         // uncompressed TIFF
+    default:           formatK = 0.32;
+  }
+
+  // Quality adjustment — we calibrate formatK at Q=0.82 and linearly flex
+  // between Q=0.6 (×0.7) and Q=0.95 (×1.2). Rough but consistent.
+  const qAdj = Math.max(0.7, Math.min(1.2, 0.7 + ((quality - 0.6) / 0.35) * 0.5));
+
+  // Resize heuristic — compare target long-edge to a typical 4000px source.
+  // Exact-target (Social) uses the larger of W/H as the "edge".
+  let longEdge = 0;
+  if (zoneId === 'social') {
+    longEdge = Math.max(ex.customW || 0, ex.customH || 0);
+    if (!longEdge) {
+      // Walk the platform presets.
+      const m = {
+        'instagram-square': 1080, 'instagram-portrait': 1350,
+        'instagram-story': 1920, 'facebook-post': 1200, 'facebook-cover': 820
+      };
+      longEdge = m[ex.platform] ?? 1080;
+    }
+  } else {
+    longEdge = ex.maxEdge || 0;  // 0 means "no cap"
+  }
+  // Source assumed ~4000 px long-edge (24 MP class). Ratio squared
+  // because resizing scales pixels quadratically.
+  const edgeFactor = longEdge > 0
+    ? Math.min(1, Math.pow(longEdge / 4000, 2))
+    : 1;
+
+  // Bulk-compress has an explicit target — trust it when available.
+  if (zoneId === 'bulk-compress' && ex.targetSizeMB) {
+    return Math.min(totalIn, ex.targetSizeMB * 1024 * 1024);
+  }
+
+  return Math.round(totalIn * formatK * qAdj * edgeFactor);
+}
+
 // ─── State ──────────────────────────────────────────────────────────────
 
 const state = {
   activeTab: 'publish',    // Web-ready lives here — open publish tab on load
   activeJob: null,
+  /** @type {import('@okn/job/dispatcher.js').Job | null} */
+  lastFinishedJob: null,
   zoneSettings: {},
   user: null,
   history: []
@@ -1196,6 +1277,8 @@ function bindGlobalEvents() {
     if (el.closest('[data-action="dryrun-cancel"]'))  closeDryRun();
     if (el.closest('[data-action="process-cancel"]')) cancelProcessing();
     if (el.closest('[data-action="result-close"]'))   closeResult();
+    if (el.closest('[data-action="result-retry"]'))   retryFailedJob();
+    if (el.closest('[data-action="result-copy-diag"]')) copyDiagnostics();
 
     const replay = /** @type {HTMLElement | null} */ (el.closest('[data-history-replay]'));
     if (replay) replayHistoryEntry(replay.dataset.historyReplay, Number(replay.dataset.historyStarted));
@@ -1205,6 +1288,17 @@ function bindGlobalEvents() {
 
   // Global keyboard shortcuts
   document.addEventListener('keydown', (e) => {
+    // ⌘/Ctrl + Enter — "Process" when the dry-run panel is open.
+    // This works even with focus inside an input, because power users
+    // often tweak a setting and immediately want to kick off the job.
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'Enter' || e.key === 'Return')) {
+      if ($('#dr-dryrun')?.classList.contains('is-open')) {
+        e.preventDefault();
+        startProcessing();
+        return;
+      }
+    }
+
     if (asEl(e.target)?.matches('input, textarea, select')) return;
     if (e.key === '?') { e.preventDefault(); toggleShortcuts(); }
     if (e.key === 'Escape') {
@@ -1213,6 +1307,23 @@ function bindGlobalEvents() {
       else if ($('#dr-shortcuts')?.classList.contains('is-open')) toggleShortcuts();
     }
     if (e.key === ',') { e.preventDefault(); openSettings(); }
+
+    // 1–9 — jump to the nth zone in the active tab. Scrolls it into
+    // view and focuses its dropzone so Enter/Space opens the picker.
+    if (/^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      const zones = ZONES_BY_TAB[state.activeTab] ?? [];
+      const idx = Number(e.key) - 1;
+      const zone = zones[idx];
+      if (zone) {
+        e.preventDefault();
+        const card = document.querySelector(`.dr-zone[data-zone="${zone.id}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const dz = /** @type {HTMLElement | null} */ (card.querySelector('[data-dropzone]'));
+          dz?.focus();
+        }
+      }
+    }
   });
 }
 
@@ -1481,6 +1592,22 @@ function openDryRun() {
     size: formatBytes(totalBytes)
   });
 
+  // Estimated output size — crude per-zone heuristic. We don't claim
+  // accuracy; it's directional so the user can sanity-check before hitting
+  // Process. Zones that passthrough bytes (e.g. Archive, Batch-rename) are
+  // reported as roughly the input total.
+  const estBytes = estimateOutputBytes(zoneId, settings, rows);
+  if (estBytes != null) {
+    const prev = $('#dr-dryrun-summary');
+    if (prev) {
+      // Attach on a trailing sibling span so the main summary stays tidy.
+      prev.textContent = t('dryrun.summary', {
+        count: rows.length,
+        size: formatBytes(totalBytes)
+      }) + ' · ' + t('dryrun.estimate', { size: formatBytes(estBytes) });
+    }
+  }
+
   const warnings = [];
   if (rejected.length > 0) warnings.push(t('dryrun.warnings.unsupported', { n: rejected.length }));
 
@@ -1700,6 +1827,10 @@ function openResult(job) {
   const panel = $('#dr-result');
   if (!panel) return;
 
+  // Remember the last finished job so "Retry failed" / "Copy diagnostics"
+  // can reach into it from the result panel's button handlers.
+  state.lastFinishedJob = job;
+
   const okRows   = job.files.filter((f) => f.status === 'done');
   const failed   = job.files.filter((f) => f.status !== 'done');
   const totalOut = okRows.reduce((a, r) => a + (r.outputSize ?? 0), 0);
@@ -1709,6 +1840,16 @@ function openResult(job) {
     size: formatBytes(totalOut),
     duration: formatDuration(job.durationMs ?? 0)
   });
+
+  // Show the Retry button only when at least one non-server failure has
+  // its original File still attached (dispatcher clears `.file` on done
+  // but not on error, and server-routed rows were never processed).
+  const retryBtn = /** @type {HTMLButtonElement | null} */ ($('#dr-result-retry'));
+  if (retryBtn) {
+    const retryable = findRetryableRows(job);
+    retryBtn.hidden = retryable.length === 0;
+    retryBtn.textContent = t('result.retryFailed');
+  }
 
   const needs = $('#dr-needs-attention');
   if (failed.length === 0) {
@@ -1743,6 +1884,125 @@ function openResult(job) {
 function closeResult() {
   closeModal('dr-result');
   state.activeJob = null;
+}
+
+// ─── Retry failed + diagnostics ─────────────────────────────────────────
+
+/**
+ * Return the File objects for rows that failed in the given job and
+ * still have their original bytes attached in `state.activeJob.rows`.
+ * Skips server-routed "coming soon" rows — those never reached the
+ * worker, so "retry" on them would just re-surface the same routing.
+ * @param {import('@okn/job/dispatcher.js').Job} job
+ * @returns {Array<{ id: string, file: File, name: string }>}
+ */
+function findRetryableRows(job) {
+  const failedIds = new Set(
+    job.files
+      .filter((f) => f.status !== 'done' && f.error?.class !== 'server-large-batch-soon')
+      .map((f) => f.id)
+  );
+  const out = [];
+  const rows = state.activeJob?.rows ?? [];
+  for (const r of rows) {
+    if (!failedIds.has(r.id)) continue;
+    if (!r.file) continue;
+    out.push({ id: r.id, file: r.file, name: r.name });
+  }
+  return out;
+}
+
+async function retryFailedJob() {
+  const job = state.lastFinishedJob;
+  if (!job) return;
+  const retryable = findRetryableRows(job);
+  if (retryable.length === 0) {
+    openToast(t('result.retryNone'));
+    return;
+  }
+  const zoneId = job.zone;
+  const files = retryable.map((r) => r.file);
+  closeResult();
+  await handleFilesDropped(zoneId, files);
+}
+
+/**
+ * Build a sanitised diagnostics bundle and copy it to the clipboard.
+ * Excludes user identity and anything from attribution so users can
+ * paste it into bug reports without leaking secrets.
+ */
+async function copyDiagnostics() {
+  const job = state.lastFinishedJob;
+  const activeSettings = job ? sanitiseSettingsForDiag(job.settings) : null;
+  const routing = state.activeJob?.routing
+    ? {
+        perFile: Array.from(state.activeJob.routing.perFile.entries()),
+        explain: state.activeJob.routing.explain
+      }
+    : null;
+
+  const diag = {
+    tool: 'okn-darkroom',
+    generatedAt: new Date().toISOString(),
+    locale: (typeof getLocale === 'function') ? getLocale() : undefined,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+    job: job ? {
+      id: job.id,
+      zone: job.zone,
+      state: job.state,
+      durationMs: job.durationMs,
+      routing: job.routing,
+      settings: activeSettings,
+      files: job.files.map((f) => ({
+        id: f.id,
+        name: f.name,
+        size: f.size,
+        status: f.status,
+        outputName: f.outputName,
+        outputSize: f.outputSize,
+        error: f.error ? {
+          class: f.error.class,
+          message: f.error.message,
+          retryable: f.error.retryable
+        } : undefined
+      }))
+    } : null,
+    routingSnapshot: routing
+  };
+
+  const text = JSON.stringify(diag, null, 2);
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      openToast(t('result.copied'));
+    } else {
+      throw new Error('no clipboard API');
+    }
+  } catch (err) {
+    // Fallback: dump to console. Most bug reports happen in dev-tools open.
+    console.log('[darkroom diagnostics]\n' + text);
+    openToast(t('result.copyFailed'));
+  }
+}
+
+/**
+ * Drop potentially-identifying bits from a settings bundle before
+ * sharing diagnostics. We keep shape + zone-relevant knobs but scrub
+ * freeform fields that could carry personal context.
+ */
+function sanitiseSettingsForDiag(settings) {
+  if (!settings || typeof settings !== 'object') return settings;
+  /** @type {any} */
+  const clone = JSON.parse(JSON.stringify(settings));
+  if (clone.extra) {
+    if (typeof clone.extra.event === 'string')    clone.extra.event = '<redacted>';
+    if (typeof clone.extra.location === 'string') clone.extra.location = '<redacted>';
+  }
+  if (clone.metadata) {
+    // Keep policy/mode flags; drop template strings that mention the user.
+    delete clone.metadata.attribution;
+  }
+  return clone;
 }
 
 // ─── History replay & remove ────────────────────────────────────────────

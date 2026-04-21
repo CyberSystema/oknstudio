@@ -917,7 +917,7 @@ body::after{
     </div>
     <div class="dr-panel-body">
       <div class="dr-processing-bar"><div id="dr-processing-bar-fill" class="dr-processing-bar-fill"></div></div>
-      <div id="dr-processing-banner" class="dr-processing-banner">Starting…</div>
+      <div id="dr-processing-banner" class="dr-processing-banner" aria-live="polite" aria-atomic="true">Starting…</div>
       <div id="dr-processing-list" class="dr-processing-list"></div>
     </div>
     <div class="dr-panel-foot" style="justify-content:flex-end">
@@ -933,10 +933,14 @@ body::after{
       <h2 class="dr-panel-h1">Done</h2>
     </div>
     <div class="dr-panel-body">
-      <div id="dr-result-banner" class="dr-result-banner">—</div>
+      <div id="dr-result-banner" class="dr-result-banner" aria-live="polite" aria-atomic="true">—</div>
       <div id="dr-needs-attention"></div>
     </div>
-    <div class="dr-panel-foot" style="justify-content:flex-end">
+    <div class="dr-panel-foot" style="justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="dr-result-retry" class="dr-btn dr-btn-ghost" data-action="result-retry" hidden>Retry failed</button>
+        <button type="button" class="dr-btn dr-btn-subtle" data-action="result-copy-diag">Copy diagnostics</button>
+      </div>
       <button type="button" class="dr-btn dr-btn-primary" data-action="result-close">Close</button>
     </div>
   </div>
@@ -1040,7 +1044,8 @@ body::after{
 <div id="dr-shortcuts" class="dr-shortcuts-panel" aria-hidden="true">
   <div class="dr-shortcuts-title">Keyboard shortcuts</div>
   <div class="dr-shortcuts-row"><span>Show this list</span><code>?</code></div>
-  <div class="dr-shortcuts-row"><span>Process</span><code>Enter</code></div>
+  <div class="dr-shortcuts-row"><span>Process (in dry-run)</span><code>⌘/Ctrl · Enter</code></div>
+  <div class="dr-shortcuts-row"><span>Jump to zone in active tab</span><code>1 – 9</code></div>
   <div class="dr-shortcuts-row"><span>Cancel / close</span><code>Esc</code></div>
   <div class="dr-shortcuts-row"><span>Open settings</span><code>,</code></div>
 </div>
@@ -1066,6 +1071,15 @@ body::after{
 }
 </script>
 <script type="module" src="./lib/app.js"></script>
+
+<!-- Service worker: precaches the Darkroom shell for offline use. -->
+<script>
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', { scope: '/darkroom/' }).catch(() => { /* ignore */ });
+    });
+  }
+</script>
 
 </body>
 </html>
