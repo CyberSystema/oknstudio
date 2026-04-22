@@ -125,7 +125,7 @@ Set via the Cloudflare Pages dashboard or `wrangler pages secret put`:
 | `CLOUDFLARE_API_TOKEN` | Pages deploy permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Your account ID |
 | `RESEND_API_KEY` | API key for weekly email delivery (Resend) |
-| `WEEKLY_DIGEST_FROM` | Verified sender, e.g. `OKN Digest <digest@orthodoxkorea.org>` |
+| `WEEKLY_DIGEST_FROM` | Verified sender, e.g. `OKN Digest <digest@updates.cybersystema.com>` |
 | `WEEKLY_DIGEST_RECIPIENTS` | Comma-separated target emails for weekly digest |
 | `B2_KEY_ID` | B2 key with **read+write** (used by bucket-map to list everything) |
 | `B2_APP_KEY` | B2 key (read+write variant) |
@@ -196,7 +196,7 @@ interpolation.
 ### Required secrets
 
 - `RESEND_API_KEY`
-- `WEEKLY_DIGEST_FROM`
+- `WEEKLY_DIGEST_FROM` (e.g. `OKN Updates <okn@updates.cybersystema.com>`)
 - `WEEKLY_DIGEST_RECIPIENT` (single email) or
 - `WEEKLY_DIGEST_RECIPIENTS` (list separated by comma, semicolon, or newline)
 
@@ -204,7 +204,7 @@ interpolation.
 
 ```bash
 WEEKLY_DIGEST_DRY_RUN=true \
-WEEKLY_DIGEST_FROM="OKN Digest <digest@orthodoxkorea.org>" \
+WEEKLY_DIGEST_FROM="OKN Digest <digest@updates.cybersystema.com>" \
 WEEKLY_DIGEST_RECIPIENTS="you@example.com" \
 node tools/weekly-digest.mjs
 ```

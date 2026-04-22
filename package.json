@@ -1,5 +1,6 @@
 {
   "name": "oknstudio",
+  "type": "module",
   "private": true,
   "description": "OKN Studio — Orthodox Korea Network digital workspace",
   "scripts": {
