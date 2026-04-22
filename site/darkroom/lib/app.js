@@ -91,7 +91,10 @@ const ZONE_IMPL = {
 };
 
 const PARTIAL_LIVE_ZONES = new Set([
-  'colour-space',
+  'colour-space'
+]);
+
+const SERVER_ONLY_ZONES = new Set([
   'raw-develop'
 ]);
 
@@ -101,21 +104,33 @@ const SERVER_ONLY_COLOUR_TARGETS = new Set([
 ]);
 
 function zoneAvailability(zoneId) {
-  return PARTIAL_LIVE_ZONES.has(zoneId)
-    ? {
-        tone: 'partial',
-        label: t('zone.status.partial'),
-        title: t('zone.status.partial.title')
-      }
-    : {
-        tone: 'live',
-        label: t('zone.status.live'),
-        title: ''
-      };
+  if (SERVER_ONLY_ZONES.has(zoneId)) {
+    return {
+      tone: 'off',
+      label: t('zone.status.serverOnly'),
+      title: t('zone.status.serverOnly.title')
+    };
+  }
+  if (PARTIAL_LIVE_ZONES.has(zoneId)) {
+    return {
+      tone: 'partial',
+      label: t('zone.status.partial'),
+      title: t('zone.status.partial.title')
+    };
+  }
+  return {
+    tone: 'live',
+    label: t('zone.status.live'),
+    title: ''
+  };
+}
+
+function isZoneServerOnly(zoneId) {
+  return SERVER_ONLY_ZONES.has(zoneId);
 }
 
 function isRawDevelopLocked(zoneId) {
-  return zoneId === 'raw-develop';
+  return isZoneServerOnly(zoneId);
 }
 
 function isServerOnlyColourTarget(targetProfile) {
@@ -1246,7 +1261,7 @@ const ZONE_RENDERERS = {
     const processingDisabled = true;
 
     return `
-      <article class="dr-zone" data-zone="${zone.id}">
+      <article class="dr-zone dr-zone-off" data-zone="${zone.id}" aria-disabled="true">
         ${zoneHead(zone, title, desc)}
         ${buildDropzone(zone, { disabled: processingDisabled, disabledTitle: t('zone.raw-develop.unavailable') })}
 

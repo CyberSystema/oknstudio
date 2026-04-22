@@ -265,11 +265,18 @@ body::after{
 }
 .dr-zone-status.is-live{color:var(--signal);border-color:var(--line-signal);background:var(--signal-dim)}
 .dr-zone-status.is-partial{color:var(--warn);border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.08)}
+.dr-zone-status.is-off{color:var(--text-faint);border-color:var(--line);background:rgba(255,255,255,0.02)}
 .dr-zone-status.is-coming{color:var(--text-faint);border-color:var(--line)}
 .dr-zone-status .dr-dot{width:5px;height:5px;border-radius:50%}
 .dr-zone-status.is-live .dr-dot{background:var(--signal);box-shadow:0 0 6px var(--signal);animation:pulse 2s ease-in-out infinite}
 .dr-zone-status.is-partial .dr-dot{background:var(--warn);box-shadow:0 0 6px var(--warn);animation:pulse 2s ease-in-out infinite}
+.dr-zone-status.is-off .dr-dot{background:var(--text-faint)}
 .dr-zone-status.is-coming .dr-dot{background:var(--text-faint)}
+.dr-zone-off{opacity:0.72;filter:saturate(0.6)}
+.dr-zone-off .dr-zone-glyph{opacity:0.5}
+.dr-zone-off .dr-zone-title{color:var(--text-faint)}
+.dr-zone-off .dr-select,.dr-zone-off .dr-input,.dr-zone-off .dr-range,.dr-zone-off .dr-checkbox{pointer-events:none}
+.dr-zone-off .dr-advanced-summary{pointer-events:none;opacity:0.6}
 
 .dr-zone-coming{
   border-top:1px dashed var(--line);padding-top:16px;

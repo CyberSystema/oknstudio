@@ -115,6 +115,8 @@ export const en = {
   'zone.status.live': 'Live',
   'zone.status.partial': 'Partially live',
   'zone.status.partial.title': 'Some processing options stay disabled until the processing server is ready.',
+  'zone.status.serverOnly': 'Server-only · offline',
+  'zone.status.serverOnly.title': 'This module runs entirely on the processing server, which isn’t live yet.',
 
   'dropzone.instructions': 'Drop photos or click to browse',
   'dropzone.serverLocked': 'This processor is disabled until the processing server is ready',

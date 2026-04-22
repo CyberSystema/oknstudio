@@ -116,6 +116,8 @@ export const ko = {
   'zone.status.live': '실행 가능',
   'zone.status.partial': '부분 실행 가능',
   'zone.status.partial.title': '일부 처리 옵션은 처리 서버가 준비될 때까지 비활성화됩니다.',
+  'zone.status.serverOnly': '서버 전용 · 오프라인',
+  'zone.status.serverOnly.title': '이 모듈은 처리 서버에서만 실행되며 아직 가동되지 않았습니다.',
 
   'dropzone.instructions': '사진을 드롭하거나 클릭하여 선택',
   'dropzone.serverLocked': '처리 서버가 준비될 때까지 이 프로세서는 비활성화됩니다',
