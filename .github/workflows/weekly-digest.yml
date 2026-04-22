@@ -27,7 +27,8 @@ jobs:
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       WEEKLY_DIGEST_CLAUDE_MODEL: claude-haiku-4-5
-      WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES: '5'
+      WEEKLY_DIGEST_CLAUDE_MAX_TOKENS: '650'
+      WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES: '4'
       WEEKLY_DIGEST_SUMMARY_MODEL: intfloat/multilingual-e5-large-instruct
 
     steps:

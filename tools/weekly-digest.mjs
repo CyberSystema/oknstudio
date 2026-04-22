@@ -109,7 +109,7 @@ async function fetchWordPressPosts(siteUrl, afterIso) {
   const url = new URL('/wp-json/wp/v2/posts', siteUrl);
   url.searchParams.set('after', afterIso);
   url.searchParams.set('per_page', '100');
-  url.searchParams.set('_fields', 'date,link,title,excerpt,content');
+  url.searchParams.set('_fields', 'date,link,title,excerpt,content,featured_media');
 
   const res = await fetch(url.toString(), {
     headers: {
@@ -125,6 +125,14 @@ async function fetchWordPressPosts(siteUrl, afterIso) {
   const data = await res.json();
   if (!Array.isArray(data)) return [];
 
+  const mediaIds = [...new Set(
+    data
+      .map((item) => Number(item?.featured_media || 0))
+      .filter((id) => Number.isFinite(id) && id > 0),
+  )];
+
+  const mediaMap = await fetchWordPressFeaturedMedia(siteUrl, mediaIds);
+
   return data
     .map((item) => ({
       title: decodeEntities(stripHtml(item?.title?.rendered || 'Untitled post')),
@@ -132,8 +140,49 @@ async function fetchWordPressPosts(siteUrl, afterIso) {
       date: item?.date || new Date().toISOString(),
       excerpt: toPlainText(item?.excerpt?.rendered || ''),
       content: toPlainText(item?.content?.rendered || ''),
+      imageUrl: mediaMap.get(Number(item?.featured_media || 0)) || '',
     }))
     .filter((item) => item.title && item.link);
+}
+
+async function fetchWordPressFeaturedMedia(siteUrl, mediaIds) {
+  const out = new Map();
+  if (!mediaIds.length) return out;
+
+  const url = new URL('/wp-json/wp/v2/media', siteUrl);
+  url.searchParams.set('include', mediaIds.join(','));
+  url.searchParams.set('per_page', String(Math.min(mediaIds.length, 100)));
+  url.searchParams.set('_fields', 'id,source_url,media_details');
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'okn-weekly-digest/1.0',
+      },
+    });
+    if (!res.ok) return out;
+
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return out;
+
+    for (const row of rows) {
+      const sizes = row?.media_details?.sizes || {};
+      const best =
+        sizes?.large?.source_url ||
+        sizes?.medium_large?.source_url ||
+        sizes?.medium?.source_url ||
+        row?.source_url ||
+        '';
+
+      const id = Number(row?.id || 0);
+      if (id > 0 && best) out.set(id, String(best));
+    }
+  } catch {
+    return out;
+  }
+
+  return out;
 }
 
 function parseRss(xml) {
@@ -147,13 +196,16 @@ function parseRss(xml) {
     const titleMatch = chunk.match(/<title>([\s\S]*?)<\/title>/i);
     const linkMatch = chunk.match(/<link>([\s\S]*?)<\/link>/i);
     const pubDateMatch = chunk.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
+    const enclosureMatch = chunk.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*>/i);
+    const mediaContentMatch = chunk.match(/<media:content[^>]*url=["']([^"']+)["'][^>]*>/i);
 
     const title = decodeEntities(stripHtml(titleMatch?.[1] || 'Untitled post'));
     const link = decodeEntities(stripHtml(linkMatch?.[1] || ''));
     const date = new Date((pubDateMatch?.[1] || '').trim()).toISOString();
+    const imageUrl = decodeEntities(stripHtml(mediaContentMatch?.[1] || enclosureMatch?.[1] || ''));
 
     if (title && link && date !== 'Invalid Date') {
-      items.push({ title, link, date, excerpt: '', content: '' });
+      items.push({ title, link, date, excerpt: '', content: '', imageUrl });
     }
 
     itemMatch = itemRegex.exec(xml);
@@ -209,11 +261,32 @@ function summarizationInput(post) {
 }
 
 function cleanSummaryText(summary) {
-  const text = String(summary || '')
+  let text = String(summary || '')
+    // Remove markdown heading and common decorative markers.
+    .replace(/^\s*#{1,6}\s*/gm, '')
+    .replace(/^\s*[-*]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/^\s*σύνοψη\s*[:：]\s*/i, '')
     .replace(/\s+/g, ' ')
     .replace(/\s+([,.;:!?])/g, '$1')
     .trim();
   if (!text) return 'Δεν υπάρχει διαθέσιμη σύνοψη.';
+
+  // If the model output is cut off, trim to the last full sentence.
+  if (!/[.!?;…]$/.test(text)) {
+    const marks = [...text.matchAll(/[.!?;…]/g)].map((m) => m.index ?? -1).filter((i) => i >= 0);
+    const last = marks.length ? marks[marks.length - 1] : -1;
+    if (last >= Math.floor(text.length * 0.45)) {
+      text = text.slice(0, last + 1).trim();
+    }
+  }
+
+  if (!/[.!?;…]$/.test(text)) {
+    text = `${text}.`;
+  }
+
   return text.length > 1200 ? `${text.slice(0, 1197)}...` : text;
 }
 
@@ -277,7 +350,9 @@ async function summarizeWithClaude({ post, maxSentences }) {
   const userPrompt =
     `Τίτλος: ${title}\n\nΠεριεχόμενο:\n${content}\n\n` +
     `Γράψε σύνοψη στα ελληνικά σε ${maxSentences} προτάσεις. ` +
-    `Συμπεριέλαβε μόνο συγκεκριμένα γεγονότα. Μην επαναλαμβάνεις τον τίτλο.`;
+    `Συμπεριέλαβε μόνο συγκεκριμένα γεγονότα. Μην επαναλαμβάνεις τον τίτλο. ` +
+    `Επέστρεψε ΜΟΝΟ το τελικό κείμενο σύνοψης: χωρίς markdown, χωρίς επικεφαλίδες, ` +
+    `χωρίς bullets και χωρίς πρόθεμα όπως "Σύνοψη:".`;
 
   let lastError = '';
   for (const model of modelCandidates) {
@@ -290,7 +365,7 @@ async function summarizeWithClaude({ post, maxSentences }) {
       },
       body: JSON.stringify({
         model,
-        max_tokens: 350,
+        max_tokens: Number(env('WEEKLY_DIGEST_CLAUDE_MAX_TOKENS', '500')),
         temperature: 0,
         messages: [{ role: 'user', content: userPrompt }],
       }),
@@ -387,7 +462,7 @@ async function summarizePostsInGreek(posts, { dryRun, maxSentences }) {
 function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   const fromText = formatDate(new Date(fromMs).toISOString());
   const toText = formatDate(new Date(toMs).toISOString());
-  const rangeText = `${fromText} to ${toText}`;
+  const rangeText = `${fromText} έως ${toText}`;
 
   if (!posts.length) {
     return {
@@ -410,15 +485,43 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   const lines = posts.map((p, idx) => [
     `${idx + 1}. ${p.title} (${formatDate(p.date)})`,
     `${p.link}`,
+    p.imageUrl ? `Εικόνα: ${p.imageUrl}` : '',
     `Σύνοψη: ${p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.'}`,
-  ].join('\n'));
-  const htmlItems = posts
-    .map((p) => {
-      const safeTitle = escapeHtml(p.title);
-      const safeSummary = escapeHtml(p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.');
-      return `<li><a href="${p.link}">${safeTitle}</a> <em>(${formatDate(p.date)})</em><br><strong>Σύνοψη:</strong> ${safeSummary}</li>`;
-    })
-    .join('');
+  ].filter(Boolean).join('\n'));
+
+  const htmlItems = posts.map((p, idx) => {
+    const safeTitle = escapeHtml(p.title);
+    const safeSummary = escapeHtml(p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.');
+    const safeDate = escapeHtml(formatDate(p.date));
+    const safeLink = escapeHtml(p.link);
+    const safeImage = escapeHtml(p.imageUrl || '');
+
+    const imageBlock = safeImage
+      ? `<img src="${safeImage}" alt="${safeTitle}" style="display:block;width:100%;max-width:640px;height:auto;border-radius:14px;margin:0 0 14px 0;border:1px solid #d8dee9;"/>`
+      : '';
+
+    return `
+      <tr>
+        <td style="padding:0 0 18px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;background:#ffffff;border:1px solid #d8dee9;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="padding:18px 18px 8px 18px;font-family:Segoe UI,Arial,sans-serif;color:#334155;font-size:13px;line-height:1.35;">
+                ΑΝΑΡΤΗΣΗ ${idx + 1} · ${safeDate}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 18px 14px 18px;">
+                ${imageBlock}
+                <h2 style="margin:0 0 10px 0;font-family:Georgia,'Times New Roman',serif;color:#0f172a;font-size:24px;line-height:1.25;">${safeTitle}</h2>
+                <p style="margin:0 0 14px 0;font-family:Segoe UI,Arial,sans-serif;color:#334155;font-size:16px;line-height:1.55;">${safeSummary}</p>
+                <a href="${safeLink}" style="display:inline-block;background:#0f172a;color:#ffffff;text-decoration:none;font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1;padding:11px 16px;border-radius:10px;">Διαβάστε την ανάρτηση</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    `;
+  }).join('');
 
   return {
     subject: `Εβδομαδιαίο δελτίο Orthodox Korea: ${posts.length} νέα ελληνική ανάρτηση${posts.length === 1 ? '' : 'ς'}`,
@@ -432,10 +535,36 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
       `Ιστότοπος: ${siteUrl}`,
     ].join('\n'),
     html: [
-      '<p>Χριστός Ανέστη!</p>',
-      `<p>Νέες ελληνικές αναρτήσεις από το <a href="${siteUrl}">${siteUrl}</a> για το διάστημα ${rangeText}:</p>`,
-      `<ol>${htmlItems}</ol>`,
-      `<p><a href="${siteUrl}">Επίσκεψη στο Orthodox Korea</a></p>`,
+      '<!doctype html>',
+      '<html lang="el">',
+      '<head>',
+      '<meta charset="utf-8">',
+      '<meta name="viewport" content="width=device-width,initial-scale=1">',
+      '<title>Εβδομαδιαίο Δελτίο Orthodox Korea</title>',
+      '</head>',
+      '<body style="margin:0;padding:0;background:#f5f7fb;">',
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f5f7fb;">',
+      '<tr><td align="center" style="padding:24px 12px;">',
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;max-width:720px;">',
+      '<tr>',
+      '<td style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#334155 100%);border-radius:18px;padding:26px 24px;color:#ffffff;">',
+      '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:12px;letter-spacing:1.2px;opacity:.82;">ORTHODOX KOREA · WEEKLY BRIEF</div>',
+      '<h1 style="margin:8px 0 10px 0;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:1.15;font-weight:700;">Χριστός Ανέστη!</h1>',
+      `<p style="margin:0;font-family:Segoe UI,Arial,sans-serif;font-size:16px;line-height:1.5;opacity:.92;">Νέες ελληνικές αναρτήσεις για το διάστημα ${escapeHtml(rangeText)}.</p>`,
+      '</td>',
+      '</tr>',
+      '<tr><td style="height:14px;"></td></tr>',
+      htmlItems,
+      '<tr>',
+      '<td style="padding:14px 6px 2px 6px;text-align:center;font-family:Segoe UI,Arial,sans-serif;color:#64748b;font-size:13px;line-height:1.5;">',
+      `Πηγή: <a href="${escapeHtml(siteUrl)}" style="color:#334155;">${escapeHtml(siteUrl)}</a>`,
+      '</td>',
+      '</tr>',
+      '</table>',
+      '</td></tr>',
+      '</table>',
+      '</body>',
+      '</html>',
     ].join(''),
   };
 }
