@@ -44,7 +44,10 @@ def sentence_quality(sentence: str) -> bool:
     # Prefer Greek-heavy, prose-like lines.
     if greek < 15:
         return False
-    if s.count("@")==1 and " " not in s:
+    if s.count("@") == 1 and " " not in s:
+        return False
+    # Reject fragments with unbalanced parentheses (cut-off mid-sentence artifacts).
+    if s.count("(") != s.count(")"):
         return False
     return True
 
@@ -78,7 +81,8 @@ def cosine_similarity_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return a_norm @ b_norm.T
 
 
-def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME) -> str:
+def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME, title: str = "") -> str:
+    # Sentences come only from the body text, never from the title.
     sentences = split_sentences(text)
     if not sentences:
         return "Δεν υπάρχει επαρκές κείμενο για σύνοψη."
@@ -89,7 +93,9 @@ def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME) -
     model = get_model(model_name)
 
     sent_embeddings = model.encode(sentences, normalize_embeddings=False)
-    doc_embedding = model.encode([" ".join(sentences)], normalize_embeddings=False)
+    # Include title in document context so relevance scoring stays on-topic.
+    doc_context = " ".join(part for part in [title, " ".join(sentences)] if part)
+    doc_embedding = model.encode([doc_context], normalize_embeddings=False)
 
     sims = cosine_similarity_matrix(sent_embeddings, doc_embedding).reshape(-1)
 
@@ -144,8 +150,8 @@ def main() -> int:
     max_sentences = int(payload.get("max_sentences") or 3)
     model_name = str(payload.get("model_name") or MODEL_NAME).strip() or MODEL_NAME
 
-    source = "\n\n".join(part for part in [title, text] if part)
-    summary = summarize(source, max_sentences=max_sentences, model_name=model_name)
+    # Pass title separately so it is used for context but not as a sentence candidate.
+    summary = summarize(text, max_sentences=max_sentences, model_name=model_name, title=title)
 
     print(json.dumps({"summary": summary}, ensure_ascii=False))
     return 0

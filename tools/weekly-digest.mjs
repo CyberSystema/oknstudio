@@ -52,11 +52,23 @@ function decodeEntities(text) {
   return String(text || '')
     .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
     .replace(/&#x([\da-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    // Common named entities not covered by numeric decoding
+    .replace(/&hellip;/g, '\u2026')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&rsquo;/g, '\u2019')
+    .replace(/&lsquo;/g, '\u2018')
+    .replace(/&rdquo;/g, '\u201D')
+    .replace(/&ldquo;/g, '\u201C')
+    .replace(/&mdash;/g, '\u2014')
+    .replace(/&ndash;/g, '\u2013')
+    .replace(/&laquo;/g, '\u00AB')
+    .replace(/&raquo;/g, '\u00BB')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
 }
 
 function escapeHtml(text) {
@@ -69,7 +81,9 @@ function escapeHtml(text) {
 }
 
 function toPlainText(html) {
-  return decodeEntities(stripHtml(html || ''));
+  const text = decodeEntities(stripHtml(html || ''));
+  // Strip WordPress read-more markers: [&hellip;] decoded to […] or [...]
+  return text.replace(/\[\s*[\u2026\.]{1,3}\s*\]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function formatDate(value) {
@@ -183,10 +197,12 @@ function isGreekPost(post) {
 }
 
 function summarizationInput(post) {
-  const chunks = [post?.title || '', post?.excerpt || '', post?.content || '']
-    .filter(Boolean)
-    .join('\n\n');
-  return chunks.slice(0, 9000);
+  // Prefer full content over excerpt to avoid duplicated sentences.
+  // The title is sent separately in the payload and must NOT be included here.
+  const content = post?.content || '';
+  const excerpt = post?.excerpt || '';
+  const body = content.length >= excerpt.length ? content : excerpt;
+  return body.slice(0, 9000);
 }
 
 function cleanSummaryText(summary) {
