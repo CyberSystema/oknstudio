@@ -89,8 +89,7 @@ body::after{
   display:flex;align-items:center;justify-content:space-between;
   font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;color:var(--text-dim);
 }
-.brand{display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none}
-.brand:hover{color:var(--ok)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text)}
 .brand svg{width:22px;height:22px}
 .brand .slash{color:var(--text-ghost)}
 .brand .studio{color:var(--ok)}
@@ -441,7 +440,7 @@ button.ghost:hover{background:rgba(255,255,255,0.03);color:var(--text)}
 <header class="chrome">
   <div class="chrome-inner">
     <div class="chrome-left">
-      <a href="/" class="brand" aria-label="Back to OKN Studio home">
+      <div class="brand">
         <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
           <line x1="16" y1="4" x2="16" y2="12"></line>
           <line x1="16" y1="20" x2="16" y2="28"></line>
@@ -454,8 +453,8 @@ button.ghost:hover{background:rgba(255,255,255,0.03);color:var(--text)}
           <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"></circle>
         </svg>
         <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
-      </a>
-      <a href="/" class="chrome-back" id="chrome-back" aria-label="Go back">← Back</a>
+      </div>
+      <a href="/" class="chrome-back" id="chrome-back" aria-label="Back to Studio">← Studio</a>
     </div>
     <div class="chrome-right">
       <span id="clock-utc">KST —</span>
