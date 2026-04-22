@@ -37,8 +37,6 @@ oknstudio/
 │   ├── index.html                 ← Signal Studio landing
 │   ├── 404.html                   ← "Signal Lost"
 │   ├── favicon.svg                ← Network-cross mark
-│   ├── og-image.svg               ← Social preview (vector)
-│   ├── og-image.png               ← Social preview (rendered, built via tools/og/)
 │   ├── analytics/
 │   │   ├── index.html             ← Analytics hub
 │   │   ├── report.html            ← Generated report (Signal Studio dark)
@@ -63,6 +61,7 @@ oknstudio/
 ├── assets/                        ← Logo sources (baked into reports via base64)
 ├── functions/                     ← Cloudflare Functions
 │   ├── _middleware.js             ← Site-wide HMAC auth + Signal Studio login page
+│   ├── share.js                   ← Dynamic share-card SVG (edge-rendered, public, parametric)
 │   └── api/
 │       ├── analytics/upload.js    ← Upload endpoint
 │       └── media/
@@ -74,11 +73,7 @@ oknstudio/
 │   ├── data/                      ← Raw CSV exports
 │   └── history/                   ← Historical runs
 ├── tools/                         ← Operational tooling
-│   ├── bucket-map.py              ← Daily B2 → Google Drive HTML map
-│   └── og/                        ← OG-image build pipeline
-│       ├── render.html            ← Pixel source (loads Google Fonts)
-│       ├── build.sh               ← Headless-Chrome screenshot → site/og-image.png
-│       └── README.md
+│   └── bucket-map.py              ← Daily B2 → Google Drive HTML map
 └── .github/workflows/
     ├── analytics.yml              ← Weekly ML pipeline + report generation
     ├── bucket-map.yml             ← Daily B2 structure → Drive
@@ -159,20 +154,28 @@ rclone config dump | \
 
 Copy the entire JSON string and paste it as the `RCLONE_GDRIVE_TOKEN` secret.
 
-### Build the OG image
+### Social share card
 
-One-time:
+The `og:image` for every page is rendered dynamically on the edge by
+[`functions/share.js`](functions/share.js) and served unauthenticated at
+`/share` as `image/svg+xml`. There is no build step.
 
-```bash
-chmod +x tools/og/build.sh
+The endpoint is parametric — each page supplies its own card by
+query-stringing the values it wants:
+
+```
+/share
+  ?variant=landing|module|article|status
+  &title=<string>
+  &sub=<string>
+  &kicker=<string>
+  &tone=mint|ok|warn|down|violet|amber
+  &chips=Analytics,Media,Darkroom,Reports   # landing variant only
+  &meter=0-100                               # status variant only
 ```
 
-Then whenever `tools/og/render.html` changes:
-
-```bash
-./tools/og/build.sh
-git add site/og-image.png
-```
+All inputs are length-capped, XML-escaped, and enum-validated before
+interpolation.
 
 ## Design
 

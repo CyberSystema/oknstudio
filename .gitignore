@@ -38,8 +38,6 @@ wrangler.toml.local
 
 # ── Generated (rebuilt on every deploy) ───────────────
 site/assets/
-site/og/og-image.png
-site/og/og-status.png
 
 # ── OS ────────────────────────────────────────────────
 .DS_Store

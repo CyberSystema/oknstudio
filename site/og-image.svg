@@ -15,15 +15,15 @@
   Safe zone: all critical text within 80px side / 60px top-bottom
   margins, so platform-side cropping doesn't lose anything essential.
 
-  Vector-native — renders perfectly in browsers. For PNG output used
-  in og:image meta (Twitter/Facebook), run tools/og/build.sh.
+  Vector-native — renders in modern crawlers directly. The canonical
+  production Open Graph endpoint is served dynamically at /og by
+  functions/og.js; this file remains as a static fallback source.
   ═══════════════════════════════════════════════════════════════════
 -->
 
 <defs>
   <!-- Load brand fonts (renders in browser; falls back gracefully for
-       static rasterisers. The canonical PNG is rendered by Chrome
-       via tools/og/render.html, which guarantees font loading.) -->
+       static rasterisers.) -->
   <style type="text/css">
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500&amp;display=swap');
     .display { font-family: 'Sora', system-ui, sans-serif; }

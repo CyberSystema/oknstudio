@@ -80,6 +80,15 @@ export async function onRequest(context) {
     });
   }
 
+  // ── Unauthenticated public surfaces (social crawlers, favicon) ──
+  // These must be reachable without a session so link-unfurlers can
+  // fetch the share card and the favicon.
+  const PUBLIC_PATHS = new Set(['/share', '/favicon.svg']);
+  if (PUBLIC_PATHS.has(url.pathname) && request.method === 'GET') {
+    const res = await next();
+    return applySecurityHeaders(res);
+  }
+
   // ── Logout (POST only — CSRF-safe by SameSite=Lax cookie) ──
   if (url.pathname === '/_logout' && request.method === 'POST') {
     return handleLogout(request, env, context);
@@ -449,12 +458,13 @@ function loginHTML({ pageTitle, kicker, heading, accent, sub, action, hiddenFiel
 <meta property="og:title" content="OKN Studio \u2014 Orthodox Korea Network">
 <meta property="og:description" content="The signal studio of the Orthodox Korea Network.">
 <meta property="og:url" content="https://oknstudio.cybersystema.com/">
-<meta property="og:image" content="https://oknstudio.cybersystema.com/og-image.png">
+<meta property="og:image" content="https://oknstudio.cybersystema.com/share?variant=module&amp;kicker=Secure%20Channel&amp;title=Authenticate&amp;sub=Encrypted%20entry%20to%20OKN%20Studio.&amp;tone=violet">
+<meta property="og:image:type" content="image/svg+xml">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="OKN Studio">
-<meta name="twitter:image" content="https://oknstudio.cybersystema.com/og-image.png">
+<meta name="twitter:image" content="https://oknstudio.cybersystema.com/share?variant=module&amp;kicker=Secure%20Channel&amp;title=Authenticate&amp;sub=Encrypted%20entry%20to%20OKN%20Studio.&amp;tone=violet">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
