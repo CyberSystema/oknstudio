@@ -1308,10 +1308,12 @@ function bindGlobalEvents() {
     }
     if (e.key === ',') { e.preventDefault(); openSettings(); }
 
-    // 1–9 — jump to the nth zone in the active tab. Scrolls it into
-    // view and focuses its dropzone so Enter/Space opens the picker.
+    // 1–9 — jump to the nth WIRED zone in the active tab. Scrolls it
+    // into view and focuses its dropzone so Enter/Space opens the picker.
+    // Non-wired (“Coming soon”) zones are skipped so focus never lands on
+    // a dropzone that rejects everything.
     if (/^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
-      const zones = ZONES_BY_TAB[state.activeTab] ?? [];
+      const zones = (ZONES_BY_TAB[state.activeTab] ?? []).filter((z) => WIRED_ZONES.has(z.id));
       const idx = Number(e.key) - 1;
       const zone = zones[idx];
       if (zone) {
@@ -1532,14 +1534,17 @@ function updateCustomPreview(zoneId) {
 
 // ─── Intake → dry-run → processing flow ─────────────────────────────────
 
-async function handleFilesDropped(zoneId, files) {
+async function handleFilesDropped(zoneId, files, options = {}) {
   const zone = ZONES.find((z) => z.id === zoneId);
   if (!zone || !WIRED_ZONES.has(zoneId)) return;
 
   const { accepted, rejected } = await intake(files, zone);
 
   const settings = state.zoneSettings[zoneId];
-  const skipDryRun = !!state.user?.dryRunSkip?.[zoneId];
+  // Retries always re-show the dry-run so the user can re-review the
+  // configuration before processing again — even if they’d previously
+  // opted to skip the dry-run for this zone.
+  const skipDryRun = !options.forceDryRun && !!state.user?.dryRunSkip?.[zoneId];
 
   state.activeJob = { zoneId, rows: accepted, rejected, settings, dispatcher: null };
 
@@ -1904,6 +1909,16 @@ function openResult(job) {
   if (!panel.hasAttribute('role')) panel.setAttribute('role', 'dialog');
   const handler = trapTabWithin(panel);
   modalState.set('dr-result', { prev: /** @type {HTMLElement | null} */ (document.activeElement), handler });
+
+  // Move focus inside the dialog — prefer the primary Close button so
+  // keyboard users can dismiss immediately. Fall back to Retry if Close
+  // is missing (shouldn't happen) or the panel itself.
+  const focusTarget = /** @type {HTMLElement | null} */ (
+    $('#dr-result-close')
+    ?? (retryBtn && !retryBtn.hidden ? retryBtn : null)
+    ?? panel
+  );
+  focusTarget?.focus?.();
 }
 
 function closeResult() {
@@ -1948,7 +1963,8 @@ async function retryFailedJob() {
   const zoneId = job.zone;
   const files = retryable.map((r) => r.file);
   closeResult();
-  await handleFilesDropped(zoneId, files);
+  // Force dry-run on retry so the user can re-review config before reprocessing.
+  await handleFilesDropped(zoneId, files, { forceDryRun: true });
 }
 
 /**
@@ -1980,14 +1996,20 @@ async function copyDiagnostics() {
       settings: activeSettings,
       files: job.files.map((f) => ({
         id: f.id,
-        name: f.name,
+        // Hash filenames — filenames can contain PII ("IMG_alice-venue.heic").
+        // Keep extension for debugging (format-specific bugs) + size + status.
+        nameHash: hashShort(f.name),
+        ext: extOf(f.name),
         size: f.size,
         status: f.status,
-        outputName: f.outputName,
+        outputExt: f.outputName ? extOf(f.outputName) : undefined,
         outputSize: f.outputSize,
         error: f.error ? {
           class: f.error.class,
-          message: f.error.message,
+          // Strip absolute paths from messages (browser decode errors can
+          // include blob: URLs; native File API won't surface fs paths, but
+          // zone processors might).
+          message: redactErrorMessage(f.error.message),
           retryable: f.error.retryable
         } : undefined
       }))
@@ -2008,6 +2030,42 @@ async function copyDiagnostics() {
     console.log('[darkroom diagnostics]\n' + text);
     openToast(t('result.copyFailed'));
   }
+}
+
+/**
+ * Short non-cryptographic hash for filenames in diagnostics. Just enough
+ * bits to correlate rows in a single report without reversing to the
+ * original name.
+ * @param {string} s
+ */
+function hashShort(s) {
+  let h = 2166136261 >>> 0; // FNV-1a
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return 'f_' + h.toString(16).padStart(8, '0');
+}
+
+/** @param {string} name */
+function extOf(name) {
+  const m = /\.[a-z0-9]{1,8}$/i.exec(name);
+  return m ? m[0].toLowerCase() : '';
+}
+
+/**
+ * Strip absolute paths, blob:/file: URLs, and long home-directory tails
+ * from error messages so diagnostics don\u2019t leak filesystem context.
+ * @param {string | undefined} msg
+ */
+function redactErrorMessage(msg) {
+  if (!msg) return msg;
+  return String(msg)
+    .replace(/blob:[^\s)"']+/gi, 'blob:[redacted]')
+    .replace(/file:\/\/[^\s)"']+/gi, 'file://[redacted]')
+    .replace(/\/Users\/[^\s/)"']+(?:\/[^\s)"']+)*/g, '/Users/[redacted]')
+    .replace(/\/home\/[^\s/)"']+(?:\/[^\s)"']+)*/g, '/home/[redacted]')
+    .replace(/[A-Z]:\\\\[^\s)"']+/g, '[redacted-path]');
 }
 
 /**
