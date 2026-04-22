@@ -70,10 +70,6 @@ async function probeTarget(target, requestUrl, cookie) {
       },
       signal: ctrl.signal,
       redirect: 'manual',
-      cf: {
-        cacheTtl: 0,
-        cacheEverything: false,
-      },
     });
 
     const ms = Date.now() - started;
