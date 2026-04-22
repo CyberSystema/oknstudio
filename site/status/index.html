@@ -89,10 +89,19 @@ body::after{
   display:flex;align-items:center;justify-content:space-between;
   font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;color:var(--text-dim);
 }
-.brand{display:flex;align-items:center;gap:10px;color:var(--text)}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none}
+.brand:hover{color:var(--ok)}
 .brand svg{width:22px;height:22px}
 .brand .slash{color:var(--text-ghost)}
 .brand .studio{color:var(--ok)}
+.chrome-back{
+  color:var(--text-dim);text-decoration:none;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;
+  border:1px solid var(--line);border-radius:4px;padding:4px 9px;
+  transition:color 0.15s,border-color 0.15s;
+}
+.chrome-back:hover{color:var(--ok);border-color:rgba(94,234,212,0.35)}
+.chrome-left{display:flex;align-items:center;gap:14px}
 .chrome-right{display:flex;align-items:center;gap:16px}
 .chrome-right .sep{color:var(--text-ghost)}
 .live{display:flex;align-items:center;gap:8px}
@@ -431,19 +440,22 @@ button.ghost:hover{background:rgba(255,255,255,0.03);color:var(--text)}
 
 <header class="chrome">
   <div class="chrome-inner">
-    <div class="brand">
-      <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
-        <line x1="16" y1="4" x2="16" y2="12"></line>
-        <line x1="16" y1="20" x2="16" y2="28"></line>
-        <line x1="4" y1="16" x2="12" y2="16"></line>
-        <line x1="20" y1="16" x2="28" y2="16"></line>
-        <circle cx="16" cy="4" r="2" fill="#5eead4" stroke="none"></circle>
-        <circle cx="16" cy="28" r="2" fill="#5eead4" stroke="none"></circle>
-        <circle cx="4" cy="16" r="2" fill="#5eead4" stroke="none"></circle>
-        <circle cx="28" cy="16" r="2" fill="#5eead4" stroke="none"></circle>
-        <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"></circle>
-      </svg>
-      <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+    <div class="chrome-left">
+      <a href="/" class="brand" aria-label="Back to OKN Studio home">
+        <svg viewBox="0 0 32 32" fill="none" stroke="#5eead4" stroke-width="1.5">
+          <line x1="16" y1="4" x2="16" y2="12"></line>
+          <line x1="16" y1="20" x2="16" y2="28"></line>
+          <line x1="4" y1="16" x2="12" y2="16"></line>
+          <line x1="20" y1="16" x2="28" y2="16"></line>
+          <circle cx="16" cy="4" r="2" fill="#5eead4" stroke="none"></circle>
+          <circle cx="16" cy="28" r="2" fill="#5eead4" stroke="none"></circle>
+          <circle cx="4" cy="16" r="2" fill="#5eead4" stroke="none"></circle>
+          <circle cx="28" cy="16" r="2" fill="#5eead4" stroke="none"></circle>
+          <circle cx="16" cy="16" r="3" fill="#5eead4" stroke="none"></circle>
+        </svg>
+        <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
+      </a>
+      <a href="/" class="chrome-back" id="chrome-back" aria-label="Go back">← Back</a>
     </div>
     <div class="chrome-right">
       <span id="clock-utc">KST —</span>
@@ -1146,6 +1158,17 @@ function wireGlobal(){
     if (!incidents.length) return;
     incidents.length = 0; lsSet(LS_INCIDENTS, incidents); renderIncidents();
   });
+
+  // Back button: go to previous page if available, else home
+  const back = $('#chrome-back');
+  if (back){
+    back.addEventListener('click', (e) => {
+      if (window.history.length > 1 && document.referrer && new URL(document.referrer).origin === window.location.origin){
+        e.preventDefault();
+        window.history.back();
+      }
+    });
+  }
 
   window.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'r' && !e.shiftKey){

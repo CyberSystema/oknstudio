@@ -120,6 +120,10 @@ body::after{content:'';position:fixed;top:-300px;right:-300px;width:800px;height
       <span class="btn-arrow">←</span>
       Return to Studio
     </a>
+    <a href="#" class="btn btn-ghost" id="go-back" onclick="if(window.history.length>1){event.preventDefault();window.history.back();}">
+      <span class="btn-arrow">←</span>
+      Go Back
+    </a>
     <a href="/media/" class="btn btn-ghost">
       Go to Media
       <span class="btn-arrow">→</span>
