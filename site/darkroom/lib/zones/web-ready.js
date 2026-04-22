@@ -104,7 +104,7 @@ export async function createWebReadyProcessor(settings) {
     // ─── 2. Decode / orient / resize / re-encode via worker pool ───────
 
     const buffer = await row.file.arrayBuffer();  // main-thread read; small cost
-    const encodedResult = /** @type {{buffer:ArrayBuffer,width:number,height:number,encoded:{mime:string,quality:number},elapsed:number}} */ (
+    const encodedResult = /** @type {{buffer:ArrayBuffer,width:number,height:number,encoded:{mime:string,quality:number},elapsed:number,warnings?:string[]}} */ (
       await pool.run({
         kind: 'image-encode',
         payload: {

@@ -130,7 +130,7 @@ export async function createSocialProcessor(settings) {
     // ─── Decode + crop/resize + encode via worker ──────────────────────
 
     const buffer = await row.file.arrayBuffer();
-    const encoded = /** @type {{buffer:ArrayBuffer,width:number,height:number,encoded:{mime:string,quality:number},elapsed:number}} */ (
+    const encoded = /** @type {{buffer:ArrayBuffer,width:number,height:number,encoded:{mime:string,quality:number},elapsed:number,warnings?:string[]}} */ (
       await pool.run({
         kind: 'image-encode',
         payload: {

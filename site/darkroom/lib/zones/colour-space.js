@@ -128,7 +128,7 @@ export async function createColourSpaceProcessor(settings) {
     if (signal.aborted) throw new DispatchError('cancelled', 'Cancelled');
 
     const buffer = await row.file.arrayBuffer();
-    const encoded = /** @type {{buffer:ArrayBuffer,encoded:{mime:string}}} */ (
+    const encoded = /** @type {{buffer:ArrayBuffer,encoded:{mime:string},warnings?:string[]}} */ (
       await pool.run({
         kind: 'image-encode',
         payload: {

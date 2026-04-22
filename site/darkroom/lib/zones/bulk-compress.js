@@ -202,7 +202,7 @@ export async function createBulkCompressProcessor(settings) {
 
     // ─── Encode at the chosen quality ─────────────────────────────────
     const buffer = await row.file.arrayBuffer();
-    const result = /** @type {{buffer:ArrayBuffer,width:number,height:number,encoded:{mime:string,quality:number},elapsed:number}} */ (
+    const result = /** @type {{buffer:ArrayBuffer,width:number,height:number,encoded:{mime:string,quality:number},elapsed:number,warnings?:string[]}} */ (
       await pool.run({
         kind: 'image-encode',
         payload: {
