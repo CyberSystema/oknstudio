@@ -26,7 +26,7 @@ jobs:
       WEEKLY_DIGEST_FROM: ${{ secrets.WEEKLY_DIGEST_FROM }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      WEEKLY_DIGEST_CLAUDE_MODEL: claude-3-5-haiku-20241022
+      WEEKLY_DIGEST_CLAUDE_MODEL: claude-3-5-haiku-latest
       WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES: '5'
       WEEKLY_DIGEST_SUMMARY_MODEL: intfloat/multilingual-e5-large-instruct
 
@@ -43,6 +43,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: 📁 Ensure HF cache dir
+        run: mkdir -p ~/.cache/huggingface
 
       - name: 🗂️ Cache Hugging Face models
         uses: actions/cache@v4
@@ -66,5 +69,5 @@ jobs:
           echo "| | |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| Job | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Trigger | \\`${{ github.event_name }}\\` |" >> $GITHUB_STEP_SUMMARY
+          echo '| Trigger | `${{ github.event_name }}` |' >> $GITHUB_STEP_SUMMARY
           echo "| Schedule | Mondays 00:15 UTC (09:15 KST) |" >> $GITHUB_STEP_SUMMARY

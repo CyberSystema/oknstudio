@@ -223,10 +223,15 @@ async function summarizeWithClaude({ post, maxSentences }) {
   const apiKey = env('ANTHROPIC_API_KEY');
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
 
-  // claude-3-5-haiku-20241022: $0.80/MTok in + $4/MTok out.
-  // 3 posts/week × 52 = 156 posts/year, with 6000 chars (~1500 tokens input)
-  // and ~300 output tokens each → roughly ~$0.37/year. $5 lasts ~13 years.
-  const model = env('WEEKLY_DIGEST_CLAUDE_MODEL', 'claude-3-5-haiku-20241022');
+  // claude-3-5-haiku pricing is low enough for weekly use.
+  // Keep an explicit model env, but auto-fallback across known valid IDs
+  // because Anthropic account access varies by model/version.
+  const preferredModel = env('WEEKLY_DIGEST_CLAUDE_MODEL', 'claude-3-5-haiku-latest');
+  const modelCandidates = [
+    preferredModel,
+    'claude-3-5-haiku-latest',
+    'claude-3-haiku-20240307',
+  ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
   // 6000 chars (~1500 tokens) gives richer context while staying very low cost.
   const content = summarizationInput(post).slice(0, 6000);
   const title = post.title || '';
@@ -236,30 +241,38 @@ async function summarizeWithClaude({ post, maxSentences }) {
     `Γράψε σύνοψη στα ελληνικά σε ${maxSentences} προτάσεις. ` +
     `Συμπεριέλαβε μόνο συγκεκριμένα γεγονότα. Μην επαναλαμβάνεις τον τίτλο.`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 350,
-      temperature: 0,
-      messages: [{ role: 'user', content: userPrompt }],
-    }),
-  });
+  let lastError = '';
+  for (const model of modelCandidates) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 350,
+        temperature: 0,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 200)}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      lastError = `model=${model} status=${res.status} body=${body.slice(0, 200)}`;
+      // If the model is unavailable for this account, try next candidate.
+      if (res.status === 404 || res.status === 400) continue;
+      throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 200)}`);
+    }
+
+    const data = await res.json();
+    const summary = String(data?.content?.[0]?.text || '').trim();
+    if (!summary) throw new Error('Anthropic API returned empty response');
+    return summary;
   }
 
-  const data = await res.json();
-  const summary = String(data?.content?.[0]?.text || '').trim();
-  if (!summary) throw new Error('Anthropic API returned empty response');
-  return summary;
+  throw new Error(`Anthropic model resolution failed: ${lastError || 'no candidate model succeeded'}`);
 }
 
 function summarizeInGreekWithLocalModel({ post, maxSentences }) {
