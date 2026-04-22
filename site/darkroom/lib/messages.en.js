@@ -112,8 +112,12 @@ export const en = {
   'zone.coming.tag': 'Ships in Phase {n}',
   'zone.coming.now': 'Coming soon',
   'zone.coming.sub': 'Arriving in a later build. The card stays in place so the workflow has a home.',
+  'zone.status.live': 'Live',
+  'zone.status.partial': 'Partially live',
+  'zone.status.partial.title': 'Some processing options stay disabled until the processing server is ready.',
 
   'dropzone.instructions': 'Drop photos or click to browse',
+  'dropzone.serverLocked': 'This processor is disabled until the processing server is ready',
   'dropzone.accepted': 'Accepted: {formats}',
   'dropzone.hover': 'Release to add',
   'dropzone.rejected': '{count} files couldn\u2019t be accepted by this zone',
@@ -317,6 +321,7 @@ export const en = {
   'zone.colour-space.format':            'Output format',
   'zone.colour-space.quality':           'Quality',
   'zone.colour-space.tagSlug':           'Tag filename with profile slug',
+  'zone.colour-space.serverOptionsLocked': 'Adobe RGB and ProPhoto stay disabled until the processing server is online.',
 
   // ─── Archive zone ──────────────────────────────────────────────
   'zone.archive.event':            'Event name (required)',

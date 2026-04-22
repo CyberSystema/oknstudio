@@ -113,8 +113,12 @@ export const ko = {
   'zone.coming.tag': '{n}단계 출시 예정',
   'zone.coming.now': '준비 중',
   'zone.coming.sub': '다음 빌드에 도착합니다. 워크플로 자리를 유지하기 위해 카드는 그대로 둡니다.',
+  'zone.status.live': '실행 가능',
+  'zone.status.partial': '부분 실행 가능',
+  'zone.status.partial.title': '일부 처리 옵션은 처리 서버가 준비될 때까지 비활성화됩니다.',
 
   'dropzone.instructions': '사진을 드롭하거나 클릭하여 선택',
+  'dropzone.serverLocked': '처리 서버가 준비될 때까지 이 프로세서는 비활성화됩니다',
   'dropzone.accepted': '허용 포맷: {formats}',
   'dropzone.hover': '놓으면 추가됩니다',
   'dropzone.rejected': '이 존에서 받을 수 없는 파일 {count}개',
@@ -318,6 +322,7 @@ export const ko = {
   'zone.colour-space.format':            '출력 포맷',
   'zone.colour-space.quality':           '품질',
   'zone.colour-space.tagSlug':           '파일명에 프로파일 슬러그 표시',
+  'zone.colour-space.serverOptionsLocked': 'Adobe RGB와 ProPhoto는 처리 서버가 온라인이 될 때까지 비활성화됩니다.',
 
   // ─── Archive ─────────────────────────────────────────────────
   'zone.archive.event':                  '이벤트명 (필수)',

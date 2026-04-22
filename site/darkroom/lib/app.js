@@ -90,6 +90,46 @@ const ZONE_IMPL = {
   }
 };
 
+const PARTIAL_LIVE_ZONES = new Set([
+  'colour-space',
+  'raw-develop'
+]);
+
+const SERVER_ONLY_COLOUR_TARGETS = new Set([
+  'adobe-rgb',
+  'prophoto'
+]);
+
+function zoneAvailability(zoneId) {
+  return PARTIAL_LIVE_ZONES.has(zoneId)
+    ? {
+        tone: 'partial',
+        label: t('zone.status.partial'),
+        title: t('zone.status.partial.title')
+      }
+    : {
+        tone: 'live',
+        label: t('zone.status.live'),
+        title: ''
+      };
+}
+
+function isRawDevelopLocked(zoneId) {
+  return zoneId === 'raw-develop';
+}
+
+function isServerOnlyColourTarget(targetProfile) {
+  return SERVER_ONLY_COLOUR_TARGETS.has(String(targetProfile ?? ''));
+}
+
+function normaliseZoneSettingsForClient(zoneId, settings) {
+  if (!settings) return settings;
+  if (zoneId === 'colour-space' && isServerOnlyColourTarget(settings.extra?.targetProfile)) {
+    settings.extra.targetProfile = 'srgb';
+  }
+  return settings;
+}
+
 // ─── Utilities ──────────────────────────────────────────────────────────
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -236,7 +276,10 @@ export async function boot() {
     if (!ZONE_IMPL[zone.id]) continue;
     const defaults = ZONE_IMPL[zone.id].defaults();
     const remembered = state.user.zoneDefaults?.[zone.id];
-    state.zoneSettings[zone.id] = mergeSettings(defaults, remembered);
+    state.zoneSettings[zone.id] = normaliseZoneSettingsForClient(
+      zone.id,
+      mergeSettings(defaults, remembered)
+    );
   }
 
   renderAll();
@@ -393,21 +436,25 @@ function renderZoneCard(zone) {
 // data-zone / data-control attributes so handleZoneControl can route
 // change events back into state.
 
-function buildDropzone(zone) {
+function buildDropzone(zone, options = {}) {
+  const disabled = !!options.disabled;
+  const prompt = disabled ? t('dropzone.serverLocked') : t('dropzone.instructions');
   return `
-    <div class="dr-dropzone"
-      data-zone="${zone.id}" data-dropzone
-      tabindex="0" role="button"
-      aria-label="${esc(t('dropzone.instructions'))}">
+    <div class="dr-dropzone${disabled ? ' is-disabled' : ''}"
+      data-zone="${zone.id}" ${disabled ? '' : 'data-dropzone'}
+      tabindex="${disabled ? '-1' : '0'}" role="button"
+      aria-disabled="${disabled ? 'true' : 'false'}"
+      aria-label="${esc(prompt)}"
+      ${disabled ? `title="${esc(options.disabledTitle ?? prompt)}"` : ''}>
       <div class="dr-dropzone-inner">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="dr-dropzone-glyph">
           <path d="M24 32 L24 12"/><path d="M16 20 L24 12 L32 20"/><path d="M12 36 L36 36"/>
         </svg>
-        <p class="dr-dropzone-prompt">${esc(t('dropzone.instructions'))}</p>
+        <p class="dr-dropzone-prompt">${esc(prompt)}</p>
         <p class="dr-dropzone-accepted">${esc(t('dropzone.accepted', { formats: 'JPEG · PNG · HEIC · TIFF · WebP · RAW' }))}</p>
       </div>
       <input type="file" multiple class="dr-file-input" data-zone="${zone.id}"
-        accept="image/*,.cr2,.cr3,.nef,.arw,.dng,.raf,.orf,.rw2,.pef" hidden />
+        accept="image/*,.cr2,.cr3,.nef,.arw,.dng,.raf,.orf,.rw2,.pef" hidden ${disabled ? 'disabled' : ''} />
     </div>
   `;
 }
@@ -429,13 +476,16 @@ function buildZoneQueue(zone) {
 function buildZoneQueueInner(zoneId) {
   const q = state.zoneQueues[zoneId] ?? { rows: [], rejected: [] };
   const n = q.rows.length;
+  const processLocked = isRawDevelopLocked(zoneId);
+  const processLockTitle = processLocked ? t('zone.raw-develop.unavailable') : '';
   if (n === 0) {
     return `
       <p class="dr-queue-empty">${esc(t('zone.queue.empty'))}</p>
       <div class="dr-queue-actions">
         <button type="button" class="dr-btn dr-btn-primary dr-queue-process"
           data-action="zone-process" data-zone="${zoneId}" disabled
-          aria-disabled="true">
+          aria-disabled="true"
+          ${processLockTitle ? `title="${esc(processLockTitle)}"` : ''}>
           ${esc(t('zone.queue.process', { n: 0 }))}
         </button>
       </div>
@@ -460,7 +510,9 @@ function buildZoneQueueInner(zoneId) {
     <ul class="dr-queue-list">${items}</ul>
     <div class="dr-queue-actions">
       <button type="button" class="dr-btn dr-btn-primary dr-queue-process"
-        data-action="zone-process" data-zone="${zoneId}">
+        data-action="zone-process" data-zone="${zoneId}"
+        ${processLocked ? 'disabled aria-disabled="true"' : ''}
+        ${processLockTitle ? `title="${esc(processLockTitle)}"` : ''}>
         ${esc(t('zone.queue.process', { n }))}
       </button>
     </div>
@@ -568,6 +620,7 @@ function buildRenameAdvanced(zone, rename) {
 }
 
 function zoneHead(zone, title, desc) {
+  const availability = zoneAvailability(zone.id);
   return `
     <div class="dr-zone-head">
       <div class="dr-zone-glyph">${zone.glyph}</div>
@@ -575,7 +628,9 @@ function zoneHead(zone, title, desc) {
         <h3 class="dr-zone-title">${esc(title)}</h3>
         <p class="dr-zone-desc">${esc(desc)}</p>
       </div>
-      <div class="dr-zone-status is-live"><span class="dr-dot"></span>Live</div>
+      <div class="dr-zone-status is-${availability.tone}"${availability.title ? ` title="${esc(availability.title)}"` : ''}>
+        <span class="dr-dot"></span>${esc(availability.label)}
+      </div>
     </div>
   `;
 }
@@ -1061,6 +1116,8 @@ const ZONE_RENDERERS = {
     const settings = state.zoneSettings[zone.id];
     const rename = settings.rename;
     const ex = settings.extra;
+    const targetProfile = isServerOnlyColourTarget(ex.targetProfile) ? 'srgb' : ex.targetProfile;
+    ex.targetProfile = targetProfile;
     const meta = settings.metadata;
     const showCustom = rename.preset === 'custom';
     const showEvent  = needsEventToken(rename);
@@ -1075,11 +1132,12 @@ const ZONE_RENDERERS = {
           <label class="dr-field dr-field-wide">
             <span class="dr-field-label">${esc(t('zone.colour-space.target'))}</span>
             <select class="dr-select" data-zone="${zone.id}" data-control="targetProfile">
-              <option value="srgb"       ${ex.targetProfile === 'srgb'       ? 'selected' : ''}>${esc(t('zone.colour-space.target.srgb'))}</option>
-              <option value="display-p3" ${ex.targetProfile === 'display-p3' ? 'selected' : ''}>${esc(t('zone.colour-space.target.display-p3'))}</option>
-              <option value="adobe-rgb"  ${ex.targetProfile === 'adobe-rgb'  ? 'selected' : ''}>${esc(t('zone.colour-space.target.adobe-rgb'))}</option>
-              <option value="prophoto"   ${ex.targetProfile === 'prophoto'   ? 'selected' : ''}>${esc(t('zone.colour-space.target.prophoto'))}</option>
+              <option value="srgb"       ${targetProfile === 'srgb'       ? 'selected' : ''}>${esc(t('zone.colour-space.target.srgb'))}</option>
+              <option value="display-p3" ${targetProfile === 'display-p3' ? 'selected' : ''}>${esc(t('zone.colour-space.target.display-p3'))}</option>
+              <option value="adobe-rgb"  disabled>${esc(t('zone.colour-space.target.adobe-rgb'))}</option>
+              <option value="prophoto"   disabled>${esc(t('zone.colour-space.target.prophoto'))}</option>
             </select>
+            <span class="dr-hint">${esc(t('zone.colour-space.serverOptionsLocked'))}</span>
           </label>
 
           <label class="dr-field">
@@ -1185,16 +1243,17 @@ const ZONE_RENDERERS = {
     const showCustom = rename.preset === 'custom';
     const showEvent  = needsEventToken(rename);
     const qPct = Math.round((ex.quality ?? 0.92) * 100);
+    const processingDisabled = true;
 
     return `
       <article class="dr-zone" data-zone="${zone.id}">
         ${zoneHead(zone, title, desc)}
-        ${buildDropzone(zone)}
+        ${buildDropzone(zone, { disabled: processingDisabled, disabledTitle: t('zone.raw-develop.unavailable') })}
 
         <div class="dr-zone-controls">
           <label class="dr-field">
             <span class="dr-field-label">${esc(t('zone.raw-develop.outputFormat'))}</span>
-            <select class="dr-select" data-zone="${zone.id}" data-control="rawOutputFormat">
+            <select class="dr-select" data-zone="${zone.id}" data-control="rawOutputFormat" disabled aria-disabled="true">
               <option value="image/jpeg" ${ex.outputFormat === 'image/jpeg' ? 'selected' : ''}>JPEG</option>
               <option value="image/tiff" ${ex.outputFormat === 'image/tiff' ? 'selected' : ''}>TIFF (16-bit)</option>
             </select>
@@ -1202,7 +1261,7 @@ const ZONE_RENDERERS = {
 
           <label class="dr-field">
             <span class="dr-field-label">${esc(t('zone.raw-develop.whiteBalance'))}</span>
-            <select class="dr-select" data-zone="${zone.id}" data-control="whiteBalance">
+            <select class="dr-select" data-zone="${zone.id}" data-control="whiteBalance" disabled aria-disabled="true">
               <option value="as-shot"  ${ex.whiteBalance === 'as-shot'  ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.as-shot'))}</option>
               <option value="auto"     ${ex.whiteBalance === 'auto'     ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.auto'))}</option>
               <option value="daylight" ${ex.whiteBalance === 'daylight' ? 'selected' : ''}>${esc(t('zone.raw-develop.whiteBalance.daylight'))}</option>
@@ -1216,7 +1275,7 @@ const ZONE_RENDERERS = {
               <span class="dr-field-value" data-zone="${zone.id}" data-ev>${(ex.exposure ?? 0).toFixed(1)}</span>
             </span>
             <input type="range" min="-3" max="3" step="0.1" class="dr-range"
-              data-zone="${zone.id}" data-control="exposure" value="${ex.exposure ?? 0}" />
+              data-zone="${zone.id}" data-control="exposure" value="${ex.exposure ?? 0}" disabled aria-disabled="true" />
           </label>
 
           <label class="dr-field dr-field-wide">
@@ -1226,7 +1285,7 @@ const ZONE_RENDERERS = {
             </span>
             <input type="range" min="60" max="98" step="1" class="dr-range"
               data-zone="${zone.id}" data-control="quality" value="${qPct}"
-              ${ex.outputFormat === 'image/tiff' ? 'disabled' : ''} />
+              disabled aria-disabled="true" />
           </label>
 
           <p class="dr-hint dr-field-wide" style="margin-top:4px">
@@ -1611,6 +1670,11 @@ function handleZoneControl(e) {
 
     // ─── Colour-space unique controls ────────────────────────────
     case 'targetProfile':
+      if (isServerOnlyColourTarget(el.value)) {
+        openToast(t('zone.colour-space.serverOptionsLocked'));
+        renderZones();
+        return;
+      }
       settings.extra.targetProfile = el.value;
       break;
     case 'tagOutputSlug':
@@ -2406,9 +2470,12 @@ function sanitiseSettingsForDiag(settings) {
 function replayHistoryEntry(id, startedAt) {
   const entry = state.history.find((e) => e.id === id && e.startedAt === startedAt);
   if (!entry) return;
-  state.zoneSettings[entry.zone] = mergeSettings(
-    ZONE_IMPL[entry.zone]?.defaults ? ZONE_IMPL[entry.zone].defaults() : {},
-    entry.settings
+  state.zoneSettings[entry.zone] = normaliseZoneSettingsForClient(
+    entry.zone,
+    mergeSettings(
+      ZONE_IMPL[entry.zone]?.defaults ? ZONE_IMPL[entry.zone].defaults() : {},
+      entry.settings
+    )
   );
   const zone = ZONES.find((z) => z.id === entry.zone);
   if (zone) {
