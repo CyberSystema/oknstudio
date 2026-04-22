@@ -205,6 +205,7 @@ export const en = {
   'routing.explain.per-file-oversize': 'Some files exceed {n}\u202fMB each \u2014 those specific files will route to the processing server once it\u2019s live.',
   'routing.serverNotLive': 'The processing server isn\u2019t live yet. These files will land in \u201cNeeds attention\u201d instead of being processed.',
   'routing.blockedAllServer': 'This batch needs the processing server, which isn\u2019t live yet. Reduce the file count, shrink the batch size, or pick a zone that runs in-browser.',
+  'routing.blockedAnyServer': 'This batch includes files that need the processing server, which isn\u2019t live yet. Remove those files or reduce the batch until every file can run in-browser.',
   'routing.viewSettings': 'Adjust thresholds',
 
   'server.pill.green': 'Processing server online',

@@ -206,6 +206,7 @@ export const ko = {
   'routing.explain.per-file-oversize': '개별 파일 {n}\u202fMB를 초과하는 파일이 있습니다 — 해당 파일만 처리 서버로 라우팅됩니다.',
   'routing.serverNotLive': '처리 서버가 아직 가동되지 않았습니다. 해당 파일은 처리 대신 “확인 필요”로 이동합니다.',
   'routing.blockedAllServer': '이 배치는 처리 서버가 필요하지만 아직 가동되지 않았습니다. 파일 수를 줄이거나 배치 크기를 줄이거나 브라우저에서 실행되는 존을 선택하세요.',
+  'routing.blockedAnyServer': '이 배치에는 처리 서버가 필요한 파일이 포함되어 있지만 아직 서버가 가동되지 않았습니다. 모든 파일이 브라우저에서 실행될 수 있도록 해당 파일을 제거하거나 배치 크기를 줄이세요.',
   'routing.viewSettings': '임계값 조정',
 
   'server.pill.green': '처리 서버 온라인',

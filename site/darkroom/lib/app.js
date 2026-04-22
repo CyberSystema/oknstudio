@@ -1871,9 +1871,11 @@ function openDryRun() {
   const routing = state.activeJob.routing;
   const summary = summariseRouting(routing);
 
-  // All rows route to server AND the server isn't live yet → block Process.
-  // (Server-only options/services aren't acceptable in browser-only mode.)
-  const allServer = summary.server > 0 && summary.browser === 0;
+  // Any server-routed file blocks the batch while the processing server
+  // is offline. Mixed browser/server batches are no longer allowed to run
+  // partially; the user asked to block all server-side processing and show
+  // a clear message instead.
+  const blockedByServerRouting = summary.server > 0;
 
   if (summary.server > 0) {
     const ex = routing.explain;
@@ -1888,7 +1890,7 @@ function openDryRun() {
     warnings.push(t('routing.serverNotLive'));
   }
 
-  const blockTip = allServer ? t('routing.blockedAllServer') : '';
+  const blockTip = blockedByServerRouting ? t('routing.blockedAnyServer') : '';
 
   $('#dr-dryrun-warnings').innerHTML = [
     ...(blockTip ? [`<div class="dr-warning dr-warning-block" role="alert">${esc(blockTip)}</div>`] : []),
@@ -1897,9 +1899,9 @@ function openDryRun() {
 
   const processBtn = /** @type {HTMLButtonElement | null} */ ($('#dr-dryrun-process'));
   if (processBtn) {
-    processBtn.disabled = allServer;
-    processBtn.setAttribute('aria-disabled', allServer ? 'true' : 'false');
-    if (allServer) processBtn.title = t('routing.blockedAllServer');
+    processBtn.disabled = blockedByServerRouting;
+    processBtn.setAttribute('aria-disabled', blockedByServerRouting ? 'true' : 'false');
+    if (blockedByServerRouting) processBtn.title = t('routing.blockedAnyServer');
     else processBtn.removeAttribute('title');
   }
 
@@ -1978,13 +1980,14 @@ function closeDryRunAndReset() {
 async function startProcessing() {
   if (!state.activeJob) return;
 
-  // Hard-guard: if every row is server-routed (and the server isn't live),
+  // Hard-guard: if any row is server-routed (and the server isn't live),
   // Process is not acceptable. The dry-run already disables the button and
   // shows a tip; this catches keyboard / programmatic triggers too.
   const routingSummary = state.activeJob.routing
     ? summariseRouting(state.activeJob.routing)
     : null;
-  if (routingSummary && routingSummary.server > 0 && routingSummary.browser === 0) {
+  if (routingSummary && routingSummary.server > 0) {
+    openToast(t('routing.blockedAnyServer'));
     return;
   }
 
