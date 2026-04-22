@@ -125,7 +125,7 @@ function zoneAvailability(zoneId) {
   return {
     tone: 'live',
     label: t('zone.status.live'),
-    title: ''
+    title: t('zone.status.live.title')
   };
 }
 

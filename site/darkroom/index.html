@@ -216,6 +216,25 @@ body::after{
 .zones-grid{
   display:grid;grid-template-columns:repeat(2,1fr);gap:16px;
 }
+.dr-status-legend{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;
+  margin:0 0 20px;padding:14px 16px;
+  border:1px solid var(--line);border-radius:6px;
+  background:var(--surface);
+}
+.dr-status-legend-title{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--text-faint);
+  padding-right:6px;border-right:1px solid var(--line);margin-right:4px;
+}
+.dr-status-legend-item{
+  display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);
+}
+.dr-status-legend-hint{color:var(--text-dim);line-height:1.4}
+@media (max-width:720px){
+  .dr-status-legend-title{border-right:none;padding-right:0;margin-right:0;width:100%}
+  .dr-status-legend-item{width:100%}
+}
 
 .dr-zone{
   position:relative;
@@ -264,13 +283,13 @@ body::after{
   border:1px solid;border-radius:3px;flex-shrink:0;
 }
 .dr-zone-status.is-live{color:var(--signal);border-color:var(--line-signal);background:var(--signal-dim)}
-.dr-zone-status.is-partial{color:var(--warn);border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.08)}
-.dr-zone-status.is-off{color:var(--text-faint);border-color:var(--line);background:rgba(255,255,255,0.02)}
+.dr-zone-status.is-partial{color:var(--warn);border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.1)}
+.dr-zone-status.is-off{color:var(--danger);border-color:rgba(248,113,113,0.35);background:rgba(248,113,113,0.08)}
 .dr-zone-status.is-coming{color:var(--text-faint);border-color:var(--line)}
 .dr-zone-status .dr-dot{width:5px;height:5px;border-radius:50%}
 .dr-zone-status.is-live .dr-dot{background:var(--signal);box-shadow:0 0 6px var(--signal);animation:pulse 2s ease-in-out infinite}
 .dr-zone-status.is-partial .dr-dot{background:var(--warn);box-shadow:0 0 6px var(--warn);animation:pulse 2s ease-in-out infinite}
-.dr-zone-status.is-off .dr-dot{background:var(--text-faint)}
+.dr-zone-status.is-off .dr-dot{background:var(--danger);box-shadow:0 0 6px rgba(248,113,113,0.55)}
 .dr-zone-status.is-coming .dr-dot{background:var(--text-faint)}
 .dr-zone-off{opacity:0.72;filter:saturate(0.6)}
 .dr-zone-off .dr-zone-glyph{opacity:0.5}
@@ -954,6 +973,21 @@ body::after{
 
 <!-- ═══════════ ZONES ═══════════ -->
 <main class="zones-wrap">
+  <div class="dr-status-legend" role="note" aria-labelledby="dr-status-legend-title">
+    <span id="dr-status-legend-title" class="dr-status-legend-title" data-i18n="status.legend.title">Module availability</span>
+    <span class="dr-status-legend-item">
+      <span class="dr-zone-status is-live" aria-hidden="true"><span class="dr-dot"></span><span data-i18n="zone.status.live">Live</span></span>
+      <span class="dr-status-legend-hint" data-i18n="status.legend.live">Runs entirely in your browser</span>
+    </span>
+    <span class="dr-status-legend-item">
+      <span class="dr-zone-status is-partial" aria-hidden="true"><span class="dr-dot"></span><span data-i18n="zone.status.partial">Partially live</span></span>
+      <span class="dr-status-legend-hint" data-i18n="status.legend.partial">Some options wait for the processing server</span>
+    </span>
+    <span class="dr-status-legend-item">
+      <span class="dr-zone-status is-off" aria-hidden="true"><span class="dr-dot"></span><span data-i18n="zone.status.serverOnly">Server-only · coming soon</span></span>
+      <span class="dr-status-legend-hint" data-i18n="status.legend.serverOnly">Entire module needs the processing server — not available yet</span>
+    </span>
+  </div>
   <div id="dr-zones" class="zones-grid"></div>
 </main>
 

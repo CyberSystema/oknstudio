@@ -10,7 +10,7 @@
  * Cache-busting: bump CACHE_NAME whenever shipping a breaking change.
  */
 
-const CACHE_NAME = 'okn-darkroom-v2';
+const CACHE_NAME = 'okn-darkroom-v3';
 
 // Keep this list short and predictable — everything else is picked up
 // by the runtime cache. These are the files the Darkroom shell always
