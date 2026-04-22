@@ -24,9 +24,9 @@ html{overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimiz
   --warn:#fbbf24;
   --danger:#f87171;
   --text:#e8edf2;
-  --text-dim:rgba(232,237,242,0.55);
-  --text-faint:rgba(232,237,242,0.32);
-  --text-ghost:rgba(232,237,242,0.18);
+  --text-dim:rgba(232,237,242,0.72);
+  --text-faint:rgba(232,237,242,0.55);
+  --text-ghost:rgba(232,237,242,0.38);
   --line:rgba(255,255,255,0.06);
   --line-2:rgba(255,255,255,0.1);
   --line-signal:rgba(94,234,212,0.25);
@@ -240,15 +240,15 @@ a:hover{color:var(--signal-bright);text-decoration:underline}
 </nav>
 <style>
 .studio-nav{display:flex;align-items:center;gap:10px;padding:12px 24px;background:rgba(10,15,20,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.06em;position:sticky;top:0;z-index:999}
-.studio-nav a{color:rgba(232,237,242,0.55);text-decoration:none;transition:color 0.15s}
+.studio-nav a{color:rgba(232,237,242,0.72);text-decoration:none;transition:color 0.15s}
 .studio-nav a:hover{color:#5eead4;text-decoration:none}
 .sn-home{color:#e8edf2 !important;display:flex;align-items:center;gap:10px;font-weight:500;flex-shrink:0}
 .sn-home svg{width:22px;height:22px}
 .sn-home .slash{color:#2b323a}
 .sn-home .studio{color:#5eead4}
-.sn-sep{color:rgba(232,237,242,0.18)}
+.sn-sep{color:rgba(232,237,242,0.38)}
 .sn-current{color:#5eead4;letter-spacing:0.1em}
-.sn-ver{margin-left:auto;color:rgba(232,237,242,0.32);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:3px 9px;border:1px solid rgba(255,255,255,0.06);border-radius:3px;background:rgba(255,255,255,0.02)}
+.sn-ver{margin-left:auto;color:rgba(232,237,242,0.55);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:3px 9px;border:1px solid rgba(255,255,255,0.06);border-radius:3px;background:rgba(255,255,255,0.02)}
 @media(max-width:560px){
   .studio-nav{padding:10px 16px;gap:8px}
   .sn-sep:first-of-type{display:none}
