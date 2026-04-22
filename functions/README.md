@@ -16,6 +16,12 @@ Edge serverless routes. Every request to the site runs through
 | `GET /api/admin/overview` | `api/admin/overview.js` | Runtime/env readiness summary for owner admin dashboard. |
 | `GET /api/admin/probes` | `api/admin/probes.js` | Synthetic checks for first-party routes with latency and status reporting. |
 | `GET /api/admin/auth-events` | `api/admin/auth-events.js` | Paged auth audit events from `AUDIT_LOG_KV`. |
+| `GET /api/admin/logs` | `api/admin/logs.js` | Paged unified activity logs with category/level/path/text filters. |
+| `POST /api/admin/logs` | `api/admin/logs.js` | Appends manual structured events (admin/user/ops) to unified log stream. |
+| `GET /api/admin/control-center` | `api/admin/control-center.js` | Aggregated admin modules: alerts, queue/dead-letter, approvals, service map, synthetic history, SLO, presets, quality audit, knowledge base, session intelligence, integrity, brute-force intel. |
+| `POST /api/admin/control-center` | `api/admin/control-center.js` | Executes admin module actions (rule/task/preset/approval/kb/session operations). |
+| `GET /api/user/workspace` | `api/user/workspace.js` | Non-admin shared workspace data (presets, approvals, queue visibility, dead-letter visibility, knowledge base, quality-audit runner). |
+| `POST /api/user/workspace` | `api/user/workspace.js` | Non-admin submission actions (approval request submit). |
 
 ## Required environment
 
@@ -45,6 +51,19 @@ All set via Cloudflare Pages → Project → Settings → Environment Variables.
   (success / failure) is persisted for 180 days under `auth:<ts>:<ip>`.
   Auth events are also emitted to `console.log` so Cloudflare Logpush
   captures them regardless.
+- `LOGS_KV` — Optional Workers KV namespace for unified operational logs
+  under `log:*`. If absent, unified logs fall back to `AUDIT_LOG_KV`.
+- `LOG_RETENTION_DAYS` — Optional retention window (default 180 days) for
+  unified logs.
+
+## Session security controls
+
+The control-center endpoint can persist two security control records in KV:
+
+- `cc:security:force_logout_before` — tokens issued before this timestamp are
+  rejected by middleware (global force logout).
+- `cc:security:block_ip:<ip>` — explicit IP block checked by middleware before
+  normal auth flow.
 
 ## Security notes
 

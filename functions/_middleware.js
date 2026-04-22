@@ -15,6 +15,7 @@ const ADMIN_COOKIE = 'okns_admin';
 const MAX_BODY = 10 * 1024;
 const MAX_AGE = 30 * 24 * 60 * 60;       // 30 days (seconds)
 const ADMIN_MAX_AGE = 8 * 60 * 60;       // 8 hours (seconds)
+const LOG_RETENTION_DAYS = 180;
 const RATE_WINDOW = 15 * 60 * 1000;      // 15 min (ms)
 const RATE_MAX = 5;
 // In-memory fallback if RATE_LIMIT_KV binding is not configured.
@@ -69,16 +70,54 @@ function applySecurityHeaders(response) {
 export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
+  const startedAt = Date.now();
+  const requestId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 10)}`;
+  const requestIp = request.headers.get('CF-Connecting-IP') || '';
+
+  const finish = (response, meta = {}) => {
+    queueLogEvent(context, {
+      level: meta.level || levelFromStatus(response.status),
+      category: meta.category || 'request',
+      event: meta.event || 'request_complete',
+      requestId,
+      message: meta.message || `${request.method} ${url.pathname} -> ${response.status}`,
+      method: request.method,
+      path: url.pathname,
+      query: url.search || '',
+      status: response.status,
+      ms: Date.now() - startedAt,
+      ip: maskIp(requestIp),
+      country: request.headers.get('CF-IPCountry') || '',
+      colo: request.headers.get('CF-Connecting-Colo') || '',
+      ua: safeUserAgent(request.headers.get('User-Agent') || ''),
+      tags: Array.isArray(meta.tags) ? meta.tags : [],
+    });
+    return applySecurityHeaders(response);
+  };
 
   // ── Unauthenticated healthcheck (for uptime monitors) ──
   if (url.pathname === '/_health' && request.method === 'GET') {
-    return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
+    return finish(new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store',
         ...SECURITY_HEADERS,
       },
+    }), {
+      category: 'system',
+      event: 'healthcheck',
+      level: 'info',
+    });
+  }
+
+  // ── Early security block: explicit blocked IPs ──
+  if (requestIp && await isBlockedIp(env, requestIp)) {
+    return finish(new Response('Access denied', { status: 403 }), {
+      category: 'security',
+      event: 'blocked_ip_rejected',
+      level: 'warning',
+      message: `Blocked IP rejected for ${request.method} ${url.pathname}`,
     });
   }
 
@@ -88,31 +127,43 @@ export async function onRequest(context) {
   const PUBLIC_PATHS = new Set(['/share', '/favicon.svg']);
   if (PUBLIC_PATHS.has(url.pathname) && request.method === 'GET') {
     const res = await next();
-    return applySecurityHeaders(res);
+    return finish(res, { category: 'request', event: 'public_surface_request' });
   }
 
   // ── Logout (POST only — CSRF-safe by SameSite=Lax cookie) ──
   if (url.pathname === '/_logout' && request.method === 'POST') {
-    return handleLogout(request, env, context);
+    const res = await handleLogout(request, env, context);
+    return finish(res, { category: 'auth', event: 'site_logout' });
   }
 
   // ── Site login POST ──
   if (url.pathname === '/_auth' && request.method === 'POST') {
-    return handleSiteLogin(request, env, context);
+    const res = await handleSiteLogin(request, env, context);
+    return finish(res, {
+      category: 'auth',
+      event: 'site_login_attempt',
+      level: res.status >= 400 ? 'warning' : 'info',
+    });
   }
 
   // ── Admin login/logout ──
   if (url.pathname === '/_admin_auth' && request.method === 'POST') {
-    return handleAdminLogin(request, env, context);
+    const res = await handleAdminLogin(request, env, context);
+    return finish(res, {
+      category: 'auth',
+      event: 'admin_login_attempt',
+      level: res.status >= 400 ? 'warning' : 'info',
+    });
   }
   if (url.pathname === '/_admin_logout' && request.method === 'POST') {
-    return handleAdminLogout(request, env, context);
+    const res = await handleAdminLogout(request, env, context);
+    return finish(res, { category: 'auth', event: 'admin_logout' });
   }
 
   // ── Check site session ──
   const siteCookie = parseCookie(request, SITE_COOKIE);
   if (!siteCookie || !(await verifySession(siteCookie, env))) {
-    return htmlResponse(loginHTML({
+    return finish(htmlResponse(loginHTML({
       pageTitle: 'Authenticate — OKN Studio',
       kicker: 'Secure Channel',
       heading: 'Enter',
@@ -124,14 +175,18 @@ export async function onRequest(context) {
       error: '',
       chromeRight: '<div class="auth-label"><span class="dot"></span>Auth Required</div>',
       footLeft: '<span class="secure">\u25c9 Encrypted</span>',
-    }), 401);
+    }), 401), {
+      category: 'security',
+      event: 'site_auth_required',
+      level: 'warning',
+    });
   }
 
   // ── Admin-only surfaces (second factor) ──
   if (isAdminPath(url.pathname)) {
     const adminCookie = parseCookie(request, ADMIN_COOKIE);
     if (!adminCookie || !(await verifyAdminSession(adminCookie, env))) {
-      return htmlResponse(loginHTML({
+      return finish(htmlResponse(loginHTML({
         pageTitle: 'Admin Authenticate — OKN Studio',
         kicker: 'Admin Channel',
         heading: 'Enter',
@@ -143,13 +198,26 @@ export async function onRequest(context) {
         error: '',
         chromeRight: '<div class="auth-label"><span class="dot"></span>Admin Required</div>',
         footLeft: '<span class="secure">◉ Owner Access</span>',
-      }), 401);
+      }), 401), {
+        category: 'security',
+        event: 'admin_auth_required',
+        level: 'warning',
+      });
     }
   }
 
   // ── Authenticated — pass through with hardened headers ──
-  const response = await next();
-  return applySecurityHeaders(response);
+  try {
+    const response = await next();
+    return finish(response);
+  } catch {
+    return finish(new Response('Internal error', { status: 500 }), {
+      category: 'error',
+      event: 'middleware_exception',
+      level: 'error',
+      message: `Unhandled middleware error for ${request.method} ${url.pathname}`,
+    });
+  }
 }
 
 // ══════════════════════════════════════
@@ -366,6 +434,8 @@ async function verifySession(token, env) {
   const timestamp = Number(tsPart);
   if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > Date.now()) return false;
   if (Date.now() - timestamp > MAX_AGE * 1000) return false;
+  const forceLogoutBefore = await getForceLogoutBefore(env);
+  if (forceLogoutBefore && timestamp < forceLogoutBefore) return false;
 
   let secret;
   try { secret = requireSecret(env); } catch { return false; }
@@ -405,6 +475,8 @@ async function verifyAdminSession(token, env) {
   const timestamp = Number(parts[1]);
   if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > Date.now()) return false;
   if (Date.now() - timestamp > ADMIN_MAX_AGE * 1000) return false;
+  const forceLogoutBefore = await getForceLogoutBefore(env);
+  if (forceLogoutBefore && timestamp < forceLogoutBefore) return false;
 
   let secret;
   try { secret = requireSecret(env); } catch { return false; }
@@ -546,6 +618,138 @@ async function recordAuthEvent(env, event) {
       // Ignore KV outage.
     }
   }
+}
+
+/**
+ * @param {any} context
+ * @param {{
+ *  level?: string,
+ *  category?: string,
+ *  event?: string,
+ *  message?: string,
+ *  requestId?: string,
+ *  method?: string,
+ *  path?: string,
+ *  query?: string,
+ *  status?: number,
+ *  ms?: number,
+ *  ip?: string,
+ *  country?: string,
+ *  colo?: string,
+ *  ua?: string,
+ *  tags?: string[],
+ * }} event
+ */
+function queueLogEvent(context, event) {
+  const { env } = context;
+  const p = recordLogEvent(env, event);
+  if (context && typeof context.waitUntil === 'function') {
+    try { context.waitUntil(p); } catch { /* ignore */ }
+  }
+}
+
+/**
+ * Persists a structured operational log event.
+ * Uses LOGS_KV when configured; falls back to AUDIT_LOG_KV.
+ */
+async function recordLogEvent(env, event) {
+  const ns = getLogsNamespace(env);
+  const record = {
+    t: new Date().toISOString(),
+    level: normalizeLevel(event.level),
+    category: normalizeCategory(event.category),
+    event: String(event.event || 'event').slice(0, 64),
+    message: String(event.message || '').slice(0, 600),
+    requestId: String(event.requestId || '').slice(0, 80),
+    method: String(event.method || '').slice(0, 12),
+    path: String(event.path || '').slice(0, 400),
+    query: String(event.query || '').slice(0, 800),
+    status: Number.isFinite(event.status) ? Number(event.status) : null,
+    ms: Number.isFinite(event.ms) ? Number(event.ms) : null,
+    ip: String(event.ip || '').slice(0, 80),
+    country: String(event.country || '').slice(0, 8),
+    colo: String(event.colo || '').slice(0, 16),
+    ua: safeUserAgent(String(event.ua || '')),
+    tags: Array.isArray(event.tags) ? event.tags.slice(0, 12).map((v) => String(v).slice(0, 24)) : [],
+  };
+
+  try {
+    console.log('ops_log', JSON.stringify(record));
+  } catch {
+    // Ignore console failures.
+  }
+
+  if (!ns) return;
+  try {
+    const key = `log:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    const retentionDays = Number(env.LOG_RETENTION_DAYS || LOG_RETENTION_DAYS);
+    const ttl = Math.max(1, Number.isFinite(retentionDays) ? retentionDays : LOG_RETENTION_DAYS) * 24 * 60 * 60;
+    await ns.put(key, JSON.stringify(record), { expirationTtl: ttl });
+  } catch {
+    // Ignore log storage outages.
+  }
+}
+
+function getLogsNamespace(env) {
+  if (!env) return null;
+  return env.LOGS_KV || env.AUDIT_LOG_KV || null;
+}
+
+async function getForceLogoutBefore(env) {
+  const ns = getLogsNamespace(env);
+  if (!ns) return 0;
+  try {
+    const rec = await ns.get('cc:security:force_logout_before', { type: 'json' });
+    const t = Number(rec && rec.t);
+    return Number.isFinite(t) ? t : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function isBlockedIp(env, ip) {
+  const ns = getLogsNamespace(env);
+  if (!ns) return false;
+  try {
+    const rec = await ns.get(`cc:security:block_ip:${ip}`, { type: 'json' });
+    return !!rec;
+  } catch {
+    return false;
+  }
+}
+
+function normalizeLevel(level) {
+  const v = String(level || 'info').toLowerCase();
+  if (v === 'debug' || v === 'info' || v === 'warning' || v === 'error') return v;
+  return 'info';
+}
+
+function normalizeCategory(category) {
+  const v = String(category || 'request').toLowerCase();
+  const allowed = new Set(['request', 'auth', 'security', 'system', 'ops', 'error', 'admin', 'user']);
+  return allowed.has(v) ? v : 'ops';
+}
+
+function safeUserAgent(ua) {
+  return String(ua || '').slice(0, 240).replace(/[\r\n]/g, ' ');
+}
+
+function levelFromStatus(status) {
+  if (!Number.isFinite(status)) return 'info';
+  if (status >= 500) return 'error';
+  if (status >= 400) return 'warning';
+  return 'info';
+}
+
+function maskIp(ip) {
+  if (!ip) return 'unknown';
+  if (ip.includes(':')) {
+    const parts = ip.split(':');
+    return parts.slice(0, 2).join(':') + ':xxxx';
+  }
+  const parts = ip.split('.');
+  if (parts.length !== 4) return 'x.x.x.x';
+  return `${parts[0]}.${parts[1]}.x.x`;
 }
 
 // ══════════════════════════════════════

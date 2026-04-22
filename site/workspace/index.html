@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Workspace — OKN Studio</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Manrope:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c1219;--bg2:#121b25;--line:rgba(255,255,255,.12);--text:#eaf1f8;--muted:#9fb0c1;--ok:#78f5c7;--warn:#ffd58c;--danger:#ff8e8e;--mono:'IBM Plex Mono',monospace;--body:'Manrope',sans-serif;--display:'Space Grotesk',sans-serif}
+body{font-family:var(--body);color:var(--text);background:radial-gradient(circle at 10% -10%,rgba(120,245,199,.12),transparent 35%),linear-gradient(180deg,#0c1219,#0a1016)}
+.wrap{max-width:1400px;margin:0 auto;padding:22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.title{font-family:var(--display);font-size:30px}
+.subtitle{margin-top:6px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);padding:8px 12px;border-radius:8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{border:1px solid var(--line);border-radius:12px;background:rgba(14,21,30,.82);overflow:hidden}
+.panel-head{padding:12px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center}
+.panel-title{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.panel-body{padding:12px}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{padding:7px 6px;border-bottom:1px dashed rgba(255,255,255,.07);text-align:left;vertical-align:top}
+.table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.small{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.field{display:grid;gap:6px;margin-bottom:8px}
+.field label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+input,textarea{width:100%;border:1px solid var(--line);background:var(--bg2);color:var(--text);border-radius:8px;padding:9px 10px}
+textarea{min-height:92px;resize:vertical}
+.status-ok{color:var(--ok)}
+.status-warn{color:var(--warn)}
+.status-danger{color:var(--danger)}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">Workspace</div>
+      <div class="subtitle">Shared user tools: presets, quality audit, approvals, queue visibility, knowledge base.</div>
+    </div>
+    <div>
+      <a href="/" class="btn" style="text-decoration:none;display:inline-flex;align-items:center">Back Home</a>
+      <button class="btn" id="refreshAll">Refresh</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title">Batch Presets Library</div></div>
+      <div class="panel-body"><table class="table" id="presetTable"><thead><tr><th>Name</th><th>Platform</th><th>Format</th></tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title">Fast Quality Audit</div><button class="btn" id="runAudit">Run</button></div>
+      <div class="panel-body">
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
+          <div class="field"><label for="auditWidth">Width</label><input id="auditWidth" type="text" value="1920"></div>
+          <div class="field"><label for="auditHeight">Height</label><input id="auditHeight" type="text" value="1080"></div>
+          <div class="field"><label for="auditCodec">Codec</label><input id="auditCodec" type="text" value="h264"></div>
+          <div class="field"><label for="auditSize">Size MB</label><input id="auditSize" type="text" value="40"></div>
+        </div>
+        <div id="auditOut" class="small">No audit run yet.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title">Approval Workflow</div><button class="btn" id="submitApproval">Submit</button></div>
+      <div class="panel-body">
+        <div class="field"><label for="approvalSubject">Subject</label><input id="approvalSubject" type="text" placeholder="Upload June campaign batch"></div>
+        <div class="field"><label for="approvalType">Type</label><input id="approvalType" type="text" value="upload"></div>
+        <div class="field"><label for="approvalDetails">Details</label><textarea id="approvalDetails" placeholder="Why this should be approved."></textarea></div>
+        <table class="table" id="approvalTable"><thead><tr><th>Subject</th><th>Type</th><th>Status</th><th>Updated</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div class="panel-title">Queue Visibility + Dead Letter</div></div>
+      <div class="panel-body">
+        <table class="table" id="queueTable"><thead><tr><th>ID</th><th>Type</th><th>Retries</th><th>State</th></tr></thead><tbody></tbody></table>
+        <div class="small" style="margin-top:8px">Dead letter items:</div>
+        <table class="table" id="deadTable"><thead><tr><th>ID</th><th>Reason</th><th>When</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <section class="panel" style="grid-column:1/-1">
+      <div class="panel-head"><div class="panel-title">Internal Knowledge Base</div></div>
+      <div class="panel-body">
+        <div class="field"><label for="kbSearch">Search</label><input id="kbSearch" type="text" placeholder="Search title or content"></div>
+        <table class="table" id="kbTable"><thead><tr><th>Title</th><th>Summary</th><th>Updated</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  let snapshot = null;
+
+  const els = {
+    presetBody: document.querySelector('#presetTable tbody'),
+    approvalBody: document.querySelector('#approvalTable tbody'),
+    queueBody: document.querySelector('#queueTable tbody'),
+    deadBody: document.querySelector('#deadTable tbody'),
+    kbBody: document.querySelector('#kbTable tbody'),
+    kbSearch: document.getElementById('kbSearch'),
+    auditOut: document.getElementById('auditOut'),
+    auditWidth: document.getElementById('auditWidth'),
+    auditHeight: document.getElementById('auditHeight'),
+    auditCodec: document.getElementById('auditCodec'),
+    auditSize: document.getElementById('auditSize'),
+    approvalSubject: document.getElementById('approvalSubject'),
+    approvalType: document.getElementById('approvalType'),
+    approvalDetails: document.getElementById('approvalDetails'),
+  };
+
+  document.getElementById('refreshAll').addEventListener('click', load);
+  document.getElementById('runAudit').addEventListener('click', runAudit);
+  document.getElementById('submitApproval').addEventListener('click', submitApproval);
+  els.kbSearch.addEventListener('input', renderKnowledge);
+
+  load();
+
+  async function load(){
+    const res = await fetch('/api/user/workspace?module=init', { cache:'no-store' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) return;
+    snapshot = data;
+    renderAll();
+  }
+
+  function renderAll(){
+    renderPresets();
+    renderApprovals();
+    renderQueue();
+    renderKnowledge();
+  }
+
+  function renderPresets(){
+    const rows = Array.isArray(snapshot.presets) ? snapshot.presets : [];
+    els.presetBody.innerHTML = rows.map(function(row){
+      return '<tr><td>' + esc(row.name || row.id) + '</td><td>' + esc(row.platform || '-') + '</td><td>' + esc(row.format || '-') + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" class="small">No presets yet.</td></tr>';
+  }
+
+  function renderApprovals(){
+    const rows = Array.isArray(snapshot.approvals) ? snapshot.approvals : [];
+    els.approvalBody.innerHTML = rows.map(function(row){
+      var cls = row.status === 'approved' ? 'status-ok' : row.status === 'rejected' ? 'status-danger' : 'status-warn';
+      return '<tr><td>' + esc(row.subject || '-') + '</td><td>' + esc(row.type || '-') + '</td><td class="' + cls + '">' + esc(row.status || 'pending') + '</td><td>' + esc(fmt(row.updatedAt || row.createdAt)) + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="small">No approval requests yet.</td></tr>';
+  }
+
+  function renderQueue(){
+    const rows = Array.isArray(snapshot.queue) ? snapshot.queue : [];
+    const dead = Array.isArray(snapshot.deadLetters) ? snapshot.deadLetters : [];
+    els.queueBody.innerHTML = rows.map(function(row){
+      return '<tr><td><span class="small">' + esc(row.id || '-') + '</span></td><td>' + esc(row.type || '-') + '</td><td>' + esc(String(row.retries || 0)) + '/' + esc(String(row.maxRetries || 3)) + '</td><td>' + esc(row.state || 'queued') + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="small">Queue is empty.</td></tr>';
+    els.deadBody.innerHTML = dead.map(function(row){
+      return '<tr><td><span class="small">' + esc(row.id || '-') + '</span></td><td>' + esc(row.deadReason || '-') + '</td><td>' + esc(fmt(row.deadAt || row.updatedAt)) + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" class="small">No dead-letter items.</td></tr>';
+  }
+
+  function renderKnowledge(){
+    const q = String(els.kbSearch.value || '').trim().toLowerCase();
+    const rows = (Array.isArray(snapshot.knowledge) ? snapshot.knowledge : []).filter(function(row){
+      if (!q) return true;
+      var hay = (String(row.title || '') + ' ' + String(row.body || '')).toLowerCase();
+      return hay.includes(q);
+    });
+    els.kbBody.innerHTML = rows.map(function(row){
+      return '<tr><td>' + esc(row.title || row.id) + '</td><td>' + esc(String(row.body || '').slice(0, 260) || '-') + '</td><td>' + esc(fmt(row.updatedAt || row.createdAt)) + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" class="small">No matching articles.</td></tr>';
+  }
+
+  async function runAudit(){
+    const params = new URLSearchParams({
+      module: 'quality-audit',
+      width: String(els.auditWidth.value || ''),
+      height: String(els.auditHeight.value || ''),
+      codec: String(els.auditCodec.value || ''),
+      sizeMb: String(els.auditSize.value || ''),
+    });
+    const res = await fetch('/api/user/workspace?' + params.toString(), { cache:'no-store' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      els.auditOut.textContent = 'Quality audit failed.';
+      return;
+    }
+    const r = data.result || {};
+    els.auditOut.textContent = 'Score ' + String(r.score || 0) + ' · Pass ' + String(!!r.pass) + ' · Issues ' + String((r.issues || []).length);
+  }
+
+  async function submitApproval(){
+    const subject = String(els.approvalSubject.value || '').trim();
+    if (!subject) return;
+    const type = String(els.approvalType.value || 'upload').trim();
+    const details = String(els.approvalDetails.value || '').trim();
+    const res = await fetch('/api/user/workspace', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ action:'approval.submit', record:{ subject: subject, type: type, details: details } }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) return;
+    els.approvalSubject.value = '';
+    els.approvalDetails.value = '';
+    await load();
+  }
+
+  function fmt(v){
+    if (!v) return '-';
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleString();
+  }
+
+  function esc(v){
+    return String(v)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+  }
+})();
+</script>
+</body>
+</html>

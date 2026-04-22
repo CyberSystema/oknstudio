@@ -17,12 +17,14 @@ export async function onRequestGet(context) {
     b2Media: hasEnv(env, 'B2_KEY_ID') && hasEnv(env, 'B2_APP_KEY') && hasEnv(env, 'B2_ENDPOINT') && hasEnv(env, 'B2_BUCKET'),
     rateLimitKv: !!env.RATE_LIMIT_KV,
     auditKv: !!env.AUDIT_LOG_KV,
+    logStore: !!(env.LOGS_KV || env.AUDIT_LOG_KV),
   };
 
   const warnings = [];
   if (!checks.adminAuth) warnings.push('ADMIN_PASSWORD_HASH is missing. Admin gate cannot be used safely.');
   if (!checks.rateLimitKv) warnings.push('RATE_LIMIT_KV not bound. Rate limits reset on isolate restart.');
   if (!checks.auditKv) warnings.push('AUDIT_LOG_KV not bound. Historical auth audit log is unavailable.');
+  if (!checks.logStore) warnings.push('No LOGS_KV/AUDIT_LOG_KV bound. Unified activity logs are unavailable.');
 
   const [authSummary, rateSummary] = await Promise.all([
     summarizeAuth(env),

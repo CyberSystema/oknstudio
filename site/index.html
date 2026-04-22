@@ -768,6 +768,30 @@ body::after{
   margin-bottom:12px;
 }
 
+.module-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 8px;
+  margin-bottom:12px;
+  border:1px solid rgba(96,165,250,0.35);
+  border-radius:3px;
+  background:rgba(96,165,250,0.1);
+  color:#93c5fd;
+  font-family:var(--font-mono);
+  font-size:9px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+}
+.module-badge::before{
+  content:'';
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#93c5fd;
+  box-shadow:0 0 8px rgba(147,197,253,0.8);
+}
+
 .module-desc{
   font-size:14px;
   line-height:1.5;
@@ -1336,7 +1360,7 @@ body::after{
       </div>
       <div></div>
       <div class="section-meta">
-        <div>STATUS · <span class="val">4 LIVE</span></div>
+        <div>STATUS · <span class="val">5 LIVE</span></div>
         <div>BUILD · <span class="val">2026.042</span></div>
       </div>
     </div>
@@ -1438,6 +1462,31 @@ body::after{
         </div>
       </a>
 
+      <!-- WORKSPACE -->
+      <a href="/workspace/" class="module">
+        <div class="module-top">
+          <div class="module-glyph">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="1.5"/>
+              <path d="M8 9 L16 9"/>
+              <path d="M8 13 L14 13"/>
+              <path d="M8 17 L12 17"/>
+              <circle cx="17" cy="16" r="2"/>
+            </svg>
+          </div>
+          <div class="module-status status-live"><span class="s-dot"></span>Live</div>
+        </div>
+        <h3 class="module-name">Workspace</h3>
+        <div class="module-badge">User Tools</div>
+        <p class="module-desc">
+          Shared user workspace for presets, quality audit, approval requests, queue visibility, and the internal knowledge base.
+        </p>
+        <div class="module-foot">
+          <span class="module-path">/workspace</span>
+          <span class="module-go">Open <span>→</span></span>
+        </div>
+      </a>
+
     </div>
   </div>
 </section>
@@ -1447,8 +1496,8 @@ body::after{
   <div class="metrics-grid">
     <div class="metric">
       <div class="metric-label"><span class="idx">01</span>Modules</div>
-      <div class="metric-value">04<span class="unit">ACTIVE</span></div>
-      <div class="metric-sub">4 live</div>
+      <div class="metric-value">05<span class="unit">ACTIVE</span></div>
+      <div class="metric-sub">5 live</div>
     </div>
     <div class="metric">
       <div class="metric-label"><span class="idx">02</span>ML Models</div>
@@ -1579,6 +1628,7 @@ body::after{
       <a href="/media/">Media</a>
       <a href="/analytics/upload">Ingest</a>
       <a href="/darkroom/">Darkroom</a>
+      <a href="/workspace/">Workspace</a>
       <a href="https://github.com/CyberSystema" target="_blank" rel="noopener">Source</a>
     </nav>
   </div>

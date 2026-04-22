@@ -225,10 +225,52 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
 
 .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)}
 
+.log-filter-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.filter-chips{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}
+.filter-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:999px;border:1px solid var(--line-soft);background:rgba(255,255,255,0.02);font-size:11px;color:var(--text-dim)}
+.filter-chip input{accent-color:var(--accent)}
+
+.level-pill,.cat-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:3px 8px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--line-soft)}
+.level-debug{color:#9ab0c5}
+.level-info{color:var(--ok)}
+.level-warning{color:var(--warn)}
+.level-error{color:var(--danger)}
+.cat-pill{color:#b7c3d0}
+.live-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;border:1px solid var(--line-soft);font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)}
+.live-pill .dot{width:7px;height:7px;border-radius:50%;background:#7f8c99}
+.live-pill.is-on{border-color:rgba(120,245,199,0.35);color:var(--accent);background:rgba(120,245,199,0.08)}
+.live-pill.is-on .dot{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+.cmdk-overlay{position:fixed;inset:0;z-index:70;background:rgba(4,8,12,0.72);backdrop-filter:blur(4px);display:none}
+.cmdk-overlay.is-open{display:block}
+.cmdk{
+  width:min(760px,calc(100vw - 24px));
+  margin:10vh auto 0;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(12,19,28,0.98);
+  box-shadow:0 24px 70px rgba(0,0,0,0.45);
+  overflow:hidden;
+}
+.cmdk-head{padding:12px;border-bottom:1px solid var(--line-soft)}
+.cmdk-input{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);color:var(--text);padding:10px 12px;font:500 14px/1.4 var(--body)}
+.cmdk-input:focus{outline:none;border-color:rgba(120,245,199,0.55);box-shadow:0 0 0 3px rgba(120,245,199,0.14)}
+.cmdk-list{max-height:56vh;overflow:auto}
+.cmdk-empty{padding:14px;color:var(--text-faint);font-size:13px}
+.cmdk-item{
+  width:100%;border:none;background:transparent;color:var(--text);cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 12px;border-bottom:1px dashed var(--line-soft);text-align:left;
+}
+.cmdk-item:hover,.cmdk-item.is-active{background:rgba(120,245,199,0.09)}
+.cmdk-name{font-size:13px}
+.cmdk-meta{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--text-faint);text-transform:uppercase}
+
 @media(max-width:1200px){
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   .grid{grid-template-columns:1fr}
   .head{grid-template-columns:1fr}
+  .log-filter-grid{grid-template-columns:1fr 1fr}
 }
 
 @media(max-width:700px){
@@ -237,6 +279,7 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
   .wrap{padding:18px 12px 60px}
   .hero{padding:18px}
   h1{font-size:29px}
+  .log-filter-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -251,6 +294,7 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
       <a href="/">studio home</a>
     </div>
     <div class="ch-actions">
+      <button id="openCommandPalette">Command Palette</button>
       <button id="refreshAll" class="btn-accent">Refresh All</button>
       <form method="POST" action="/_admin_logout">
         <button type="submit" class="btn-danger">Admin Sign Out</button>
@@ -393,7 +437,173 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
       </div>
     </article>
   </section>
+
+  <section class="panel" style="margin-top:14px">
+    <div class="panel-head">
+      <div class="panel-title">Unified Activity Logs</div>
+      <div>
+        <span class="live-pill" id="logLivePill"><span class="dot"></span><span id="logLiveText">paused</span></span>
+        <span class="badge" id="logCount">0 rows</span>
+        <button id="logToggleLive">Start Live</button>
+        <button id="logToggleFollow">Follow Newest: On</button>
+        <button id="logRefresh">Refresh</button>
+        <button id="logMore">Load More</button>
+        <button id="logExportCsv">Export CSV</button>
+        <button id="logExportJson">Export JSON</button>
+        <button id="logExportAllCsv">Export All CSV</button>
+        <button id="logExportAllJson">Export All JSON</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="log-filter-grid">
+        <div class="field">
+          <label for="logText">Search text</label>
+          <input id="logText" type="text" placeholder="event, path, message">
+        </div>
+        <div class="field">
+          <label for="logPath">Path contains</label>
+          <input id="logPath" type="text" placeholder="/analytics/ or /api/">
+        </div>
+        <div class="field">
+          <label for="logLevel">Level</label>
+          <input id="logLevel" type="text" value="info,warning,error" placeholder="debug,info,warning,error">
+        </div>
+        <div class="field">
+          <label for="logMinStatus">Min HTTP status</label>
+          <input id="logMinStatus" type="text" placeholder="400">
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:10px">
+        <label>Categories</label>
+        <div class="filter-chips" id="categoryChips">
+          <label class="filter-chip"><input type="checkbox" value="request" checked>request</label>
+          <label class="filter-chip"><input type="checkbox" value="auth" checked>auth</label>
+          <label class="filter-chip"><input type="checkbox" value="security" checked>security</label>
+          <label class="filter-chip"><input type="checkbox" value="system" checked>system</label>
+          <label class="filter-chip"><input type="checkbox" value="ops" checked>ops</label>
+          <label class="filter-chip"><input type="checkbox" value="error" checked>error</label>
+          <label class="filter-chip"><input type="checkbox" value="admin" checked>admin</label>
+          <label class="filter-chip"><input type="checkbox" value="user" checked>user</label>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="logTableWrap" style="max-height:520px">
+        <table class="table" id="logTable">
+          <thead>
+            <tr><th>Time</th><th>Level</th><th>Category</th><th>Event</th><th>Path</th><th>Status</th><th>Latency</th><th>Message</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:14px">
+    <div class="panel-head">
+      <div class="panel-title">Advanced Admin Modules</div>
+      <div>
+        <button id="ccRefresh" class="btn-accent">Refresh Modules</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px">
+        <article class="card"><div class="label">SLO Month</div><div class="value" id="ccSloMonth">-</div><div class="hint" id="ccSloHint">-</div></article>
+        <article class="card"><div class="label">Integrity</div><div class="value" id="ccIntegrity">-</div><div class="hint" id="ccIntegrityHint">-</div></article>
+        <article class="card"><div class="label">Brute Force (24h)</div><div class="value" id="ccBrute">-</div><div class="hint" id="ccBruteHint">-</div></article>
+      </div>
+
+      <div class="grid" style="margin-bottom:12px">
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Alert Rules Engine</div><div><button id="ccAlertAdd">Add Rule</button></div></div>
+          <div class="panel-body">
+            <div class="table-wrap" style="max-height:220px"><table class="table" id="ccAlertTable"><thead><tr><th>Name</th><th>Condition</th><th>Threshold</th><th>State</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Task Queue + Dead Letter</div><div><button id="ccQueueEnqueue">Enqueue</button></div></div>
+          <div class="panel-body">
+            <div class="table-wrap" style="max-height:220px"><table class="table" id="ccQueueTable"><thead><tr><th>ID</th><th>Type</th><th>Retries</th><th>State</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-wrap" style="max-height:150px;margin-top:8px"><table class="table" id="ccDeadTable"><thead><tr><th>Dead Letter ID</th><th>Reason</th><th>Retry</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="grid" style="margin-bottom:12px">
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Approval Workflow</div><div><button id="ccApprovalSubmit">Submit</button></div></div>
+          <div class="panel-body"><div class="table-wrap" style="max-height:220px"><table class="table" id="ccApprovalTable"><thead><tr><th>Subject</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Service Map + Health</div><div><span class="badge" id="ccServiceCount">0 nodes</span></div></div>
+          <div class="panel-body"><div class="table-wrap" style="max-height:220px"><table class="table" id="ccServiceTable"><thead><tr><th>Path</th><th>Calls 24h</th><th>Avg ms</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+        </article>
+      </div>
+
+      <div class="grid" style="margin-bottom:12px">
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Synthetic Checks + Region History</div><div><button id="ccSyntheticRecord">Record Sample</button></div></div>
+          <div class="panel-body"><div class="table-wrap" style="max-height:220px"><table class="table" id="ccSyntheticTable"><thead><tr><th>Time</th><th>Region</th><th>Path</th><th>Status</th><th>Latency</th></tr></thead><tbody></tbody></table></div></div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Batch Presets Library</div><div><button id="ccPresetAdd">Add Preset</button></div></div>
+          <div class="panel-body"><div class="table-wrap" style="max-height:220px"><table class="table" id="ccPresetTable"><thead><tr><th>Name</th><th>Platform</th><th>Format</th><th>Delete</th></tr></thead><tbody></tbody></table></div></div>
+        </article>
+      </div>
+
+      <div class="grid" style="margin-bottom:12px">
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Fast Quality Audit</div><div><button id="ccAuditRun">Run Audit</button></div></div>
+          <div class="panel-body fields">
+            <div class="log-filter-grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+              <div class="field"><label for="ccAuditWidth">Width</label><input id="ccAuditWidth" type="text" value="1920"></div>
+              <div class="field"><label for="ccAuditHeight">Height</label><input id="ccAuditHeight" type="text" value="1080"></div>
+              <div class="field"><label for="ccAuditCodec">Codec</label><input id="ccAuditCodec" type="text" value="h264"></div>
+              <div class="field"><label for="ccAuditSize">Size MB</label><input id="ccAuditSize" type="text" value="45"></div>
+            </div>
+            <div id="ccAuditResult" class="small">No audit run yet.</div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Internal Knowledge Base</div><div><button id="ccKbAdd">Add Article</button></div></div>
+          <div class="panel-body"><div class="table-wrap" style="max-height:220px"><table class="table" id="ccKbTable"><thead><tr><th>Title</th><th>Updated</th><th>Delete</th></tr></thead><tbody></tbody></table></div></div>
+        </article>
+      </div>
+
+      <div class="grid">
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Session Management</div><div><button id="ccForceLogoutAll" class="btn-danger">Force Logout All</button></div></div>
+          <div class="panel-body">
+            <div class="small" id="ccSessionSummary">-</div>
+            <div class="log-filter-grid" style="grid-template-columns:2fr 1fr 1fr;margin-top:10px">
+              <div class="field"><label for="ccBlockIp">Block IP</label><input id="ccBlockIp" type="text" placeholder="203.0.113.10"></div>
+              <div class="field"><label>&nbsp;</label><button id="ccBlockIpBtn">Block</button></div>
+              <div class="field"><label>&nbsp;</label><button id="ccUnblockIpBtn">Unblock</button></div>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><div class="panel-title">Audit Integrity + Brute-force Intel</div><div><span class="badge" id="ccIntelBadge">-</span></div></div>
+          <div class="panel-body">
+            <div class="small" id="ccIntegrityLine">-</div>
+            <div class="table-wrap" style="max-height:180px;margin-top:8px"><table class="table" id="ccBruteTable"><thead><tr><th>Country</th><th>Failed Auth</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
 </main>
+
+<div class="cmdk-overlay" id="cmdkOverlay" aria-hidden="true">
+  <div class="cmdk" role="dialog" aria-modal="true" aria-label="Admin command palette">
+    <div class="cmdk-head">
+      <input id="cmdkInput" class="cmdk-input" type="text" placeholder="Type a command... (Admin only)">
+    </div>
+    <div class="cmdk-list" id="cmdkList"></div>
+    <div class="cmdk-empty" id="cmdkEmpty" hidden>No matching command.</div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -402,6 +612,7 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
   const LS_NOTES = 'okn_admin_notes_v1';
   const LS_JOURNAL = 'okn_admin_journal_v1';
   const LS_CHECKLIST = 'okn_admin_checklist_v1';
+  const LS_CMDK_LAST = 'okn_admin_cmdk_last_v1';
 
   const CHECK_ITEMS = [
     'Verify /_health endpoint and probe baseline before major deploys.',
@@ -414,6 +625,17 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
   let authCursor = null;
   let authHasMore = true;
   let loadingAuth = false;
+  let logCursor = null;
+  let logHasMore = true;
+  let loadingLogs = false;
+  let logLiveTimer = null;
+  let logLiveEnabled = false;
+  let logFollowNewest = true;
+  let currentFilteredLogs = [];
+  let cmdkOpen = false;
+  let cmdkActive = 0;
+  let cmdkItems = [];
+  let ccSnapshot = null;
 
   const els = {
     warnings: document.getElementById('warnings'),
@@ -436,6 +658,17 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
     probeTableBody: document.querySelector('#probeTable tbody'),
     probeStamp: document.getElementById('probeStamp'),
 
+    logTableBody: document.querySelector('#logTable tbody'),
+    logTableWrap: document.getElementById('logTableWrap'),
+    logCount: document.getElementById('logCount'),
+    logLivePill: document.getElementById('logLivePill'),
+    logLiveText: document.getElementById('logLiveText'),
+    logText: document.getElementById('logText'),
+    logPath: document.getElementById('logPath'),
+    logLevel: document.getElementById('logLevel'),
+    logMinStatus: document.getElementById('logMinStatus'),
+    categoryChips: document.getElementById('categoryChips'),
+
     authTableBody: document.querySelector('#authTable tbody'),
     authCount: document.getElementById('authCount'),
 
@@ -443,9 +676,41 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
     journalText: document.getElementById('journalText'),
     journalTableBody: document.querySelector('#journalTable tbody'),
     checklist: document.getElementById('checklist'),
+
+    ccSloMonth: document.getElementById('ccSloMonth'),
+    ccSloHint: document.getElementById('ccSloHint'),
+    ccIntegrity: document.getElementById('ccIntegrity'),
+    ccIntegrityHint: document.getElementById('ccIntegrityHint'),
+    ccBrute: document.getElementById('ccBrute'),
+    ccBruteHint: document.getElementById('ccBruteHint'),
+    ccAlertTableBody: document.querySelector('#ccAlertTable tbody'),
+    ccQueueTableBody: document.querySelector('#ccQueueTable tbody'),
+    ccDeadTableBody: document.querySelector('#ccDeadTable tbody'),
+    ccApprovalTableBody: document.querySelector('#ccApprovalTable tbody'),
+    ccServiceTableBody: document.querySelector('#ccServiceTable tbody'),
+    ccServiceCount: document.getElementById('ccServiceCount'),
+    ccSyntheticTableBody: document.querySelector('#ccSyntheticTable tbody'),
+    ccPresetTableBody: document.querySelector('#ccPresetTable tbody'),
+    ccAuditWidth: document.getElementById('ccAuditWidth'),
+    ccAuditHeight: document.getElementById('ccAuditHeight'),
+    ccAuditCodec: document.getElementById('ccAuditCodec'),
+    ccAuditSize: document.getElementById('ccAuditSize'),
+    ccAuditResult: document.getElementById('ccAuditResult'),
+    ccKbTableBody: document.querySelector('#ccKbTable tbody'),
+    ccSessionSummary: document.getElementById('ccSessionSummary'),
+    ccBlockIp: document.getElementById('ccBlockIp'),
+    ccIntegrityLine: document.getElementById('ccIntegrityLine'),
+    ccIntelBadge: document.getElementById('ccIntelBadge'),
+    ccBruteTableBody: document.querySelector('#ccBruteTable tbody'),
+
+    cmdkOverlay: document.getElementById('cmdkOverlay'),
+    cmdkInput: document.getElementById('cmdkInput'),
+    cmdkList: document.getElementById('cmdkList'),
+    cmdkEmpty: document.getElementById('cmdkEmpty'),
   };
 
   document.getElementById('refreshAll').addEventListener('click', refreshAll);
+  document.getElementById('openCommandPalette').addEventListener('click', openCommandPalette);
   document.getElementById('runProbes').addEventListener('click', runProbes);
   document.getElementById('loadAuth').addEventListener('click', function(){ resetAuthAndLoad(); });
   document.getElementById('moreAuth').addEventListener('click', function(){ loadAuthEvents(false); });
@@ -453,6 +718,56 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
   document.getElementById('addJournal').addEventListener('click', addJournalEntry);
   document.getElementById('exportJournal').addEventListener('click', exportJournal);
   document.getElementById('resetChecklist').addEventListener('click', resetChecklist);
+  document.getElementById('logRefresh').addEventListener('click', function(){ resetLogsAndLoad(); });
+  document.getElementById('logMore').addEventListener('click', function(){ loadActivityLogs(false); });
+  document.getElementById('logToggleLive').addEventListener('click', toggleLogLiveMode);
+  document.getElementById('logToggleFollow').addEventListener('click', toggleLogFollowNewest);
+  document.getElementById('logExportCsv').addEventListener('click', function(){ exportFilteredLogs('csv'); });
+  document.getElementById('logExportJson').addEventListener('click', function(){ exportFilteredLogs('json'); });
+  document.getElementById('logExportAllCsv').addEventListener('click', function(){ exportAllMatching('csv'); });
+  document.getElementById('logExportAllJson').addEventListener('click', function(){ exportAllMatching('json'); });
+  document.getElementById('ccRefresh').addEventListener('click', refreshControlCenter);
+  document.getElementById('ccAlertAdd').addEventListener('click', addAlertRule);
+  document.getElementById('ccQueueEnqueue').addEventListener('click', enqueueTask);
+  document.getElementById('ccApprovalSubmit').addEventListener('click', submitApproval);
+  document.getElementById('ccSyntheticRecord').addEventListener('click', recordSyntheticSample);
+  document.getElementById('ccPresetAdd').addEventListener('click', addPreset);
+  document.getElementById('ccAuditRun').addEventListener('click', runQualityAudit);
+  document.getElementById('ccKbAdd').addEventListener('click', addKnowledgeArticle);
+  document.getElementById('ccForceLogoutAll').addEventListener('click', forceLogoutAll);
+  document.getElementById('ccBlockIpBtn').addEventListener('click', blockIp);
+  document.getElementById('ccUnblockIpBtn').addEventListener('click', unblockIp);
+
+  els.cmdkOverlay.addEventListener('click', function(event){
+    if (event.target === els.cmdkOverlay) closeCommandPalette();
+  });
+  els.cmdkInput.addEventListener('input', renderCommandPalette);
+  els.cmdkInput.addEventListener('keydown', onCmdkKeyDown);
+
+  document.addEventListener('keydown', function(event){
+    const key = String(event.key || '').toLowerCase();
+    const isPalette = (event.metaKey || event.ctrlKey) && key === 'k';
+    if (isPalette) {
+      event.preventDefault();
+      if (cmdkOpen) closeCommandPalette();
+      else openCommandPalette();
+      return;
+    }
+
+    if (!cmdkOpen) return;
+    if (key === 'escape') {
+      event.preventDefault();
+      closeCommandPalette();
+    }
+  });
+
+  els.categoryChips.querySelectorAll('input[type="checkbox"]').forEach(function(node){
+    node.addEventListener('change', function(){ resetLogsAndLoad(); });
+  });
+  els.logText.addEventListener('change', function(){ resetLogsAndLoad(); });
+  els.logPath.addEventListener('change', function(){ resetLogsAndLoad(); });
+  els.logLevel.addEventListener('change', function(){ resetLogsAndLoad(); });
+  els.logMinStatus.addEventListener('change', function(){ resetLogsAndLoad(); });
 
   boot();
 
@@ -462,6 +777,359 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
     renderJournal();
     refreshAll();
     setInterval(runProbes, 60000);
+    initCommands();
+  }
+
+  function initCommands(){
+    cmdkItems = [
+      { id:'refresh-all', name:'Refresh all admin panels', meta:'dashboard', run:function(){ refreshAll(); } },
+      { id:'run-probes', name:'Run endpoint probes now', meta:'observability', run:function(){ runProbes(); } },
+      { id:'reload-auth', name:'Reload auth events', meta:'security', run:function(){ resetAuthAndLoad(); } },
+      { id:'reload-logs', name:'Reload unified logs', meta:'logs', run:function(){ resetLogsAndLoad(); } },
+      { id:'logs-live-toggle', name:'Toggle live logs', meta:'logs', run:function(){ toggleLogLiveMode(); } },
+      { id:'logs-follow-toggle', name:'Toggle follow newest', meta:'logs', run:function(){ toggleLogFollowNewest(); } },
+      { id:'export-logs-csv', name:'Export current logs as CSV', meta:'logs export', run:function(){ exportFilteredLogs('csv'); } },
+      { id:'export-logs-json', name:'Export current logs as JSON', meta:'logs export', run:function(){ exportFilteredLogs('json'); } },
+      { id:'export-all-csv', name:'Export all matching logs as CSV', meta:'logs export', run:function(){ exportAllMatching('csv'); } },
+      { id:'export-all-json', name:'Export all matching logs as JSON', meta:'logs export', run:function(){ exportAllMatching('json'); } },
+      { id:'save-notes', name:'Save owner notes', meta:'notes', run:function(){ saveNotes(); } },
+      { id:'focus-notes', name:'Focus owner notes editor', meta:'notes', run:function(){ els.ownerNotes.focus(); } },
+      { id:'focus-log-search', name:'Focus log search field', meta:'logs', run:function(){ els.logText.focus(); } },
+      { id:'sign-out-admin', name:'Sign out admin session', meta:'security', run:function(){ document.querySelector('form[action="/_admin_logout"] button').click(); } },
+    ];
+  }
+
+  function openCommandPalette(){
+    cmdkOpen = true;
+    cmdkActive = 0;
+    els.cmdkOverlay.classList.add('is-open');
+    els.cmdkOverlay.setAttribute('aria-hidden', 'false');
+    els.cmdkInput.value = localStorage.getItem(LS_CMDK_LAST) || '';
+    renderCommandPalette();
+    els.cmdkInput.focus();
+    emitAdminLog({ level:'info', category:'admin', event:'open_command_palette', message:'Admin command palette opened' });
+  }
+
+  function closeCommandPalette(){
+    cmdkOpen = false;
+    els.cmdkOverlay.classList.remove('is-open');
+    els.cmdkOverlay.setAttribute('aria-hidden', 'true');
+    localStorage.setItem(LS_CMDK_LAST, String(els.cmdkInput.value || '').slice(0, 120));
+  }
+
+  function getCommandMatches(){
+    const q = String(els.cmdkInput.value || '').trim().toLowerCase();
+    if (!q) return cmdkItems.slice();
+    return cmdkItems.filter(function(item){
+      const haystack = (item.name + ' ' + item.meta + ' ' + item.id).toLowerCase();
+      return haystack.includes(q);
+    });
+  }
+
+  function renderCommandPalette(){
+    const matches = getCommandMatches();
+    if (cmdkActive >= matches.length) cmdkActive = matches.length ? matches.length - 1 : 0;
+
+    els.cmdkList.innerHTML = matches.map(function(item, idx){
+      const active = idx === cmdkActive ? ' is-active' : '';
+      return '<button class="cmdk-item' + active + '" data-cmd-id="' + escapeHtml(item.id) + '">' +
+        '<span class="cmdk-name">' + escapeHtml(item.name) + '</span>' +
+        '<span class="cmdk-meta">' + escapeHtml(item.meta) + '</span>' +
+      '</button>';
+    }).join('');
+
+    els.cmdkEmpty.hidden = matches.length > 0;
+
+    els.cmdkList.querySelectorAll('.cmdk-item').forEach(function(btn, idx){
+      btn.addEventListener('mouseenter', function(){ cmdkActive = idx; renderCommandPalette(); });
+      btn.addEventListener('click', function(){ executeCommand(matches[idx]); });
+    });
+  }
+
+  function onCmdkKeyDown(event){
+    const matches = getCommandMatches();
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (matches.length) cmdkActive = (cmdkActive + 1) % matches.length;
+      renderCommandPalette();
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (matches.length) cmdkActive = (cmdkActive - 1 + matches.length) % matches.length;
+      renderCommandPalette();
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (!matches.length) return;
+      executeCommand(matches[cmdkActive] || matches[0]);
+    }
+  }
+
+  function executeCommand(item){
+    if (!item || typeof item.run !== 'function') return;
+    closeCommandPalette();
+    item.run();
+    emitAdminLog({ level:'info', category:'admin', event:'run_command_palette_action', message:'Command executed: ' + item.id });
+  }
+
+  async function refreshControlCenter(){
+    try {
+      const res = await fetch('/api/admin/control-center', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error('cc_failed');
+      ccSnapshot = data;
+      renderControlCenter(data);
+    } catch {
+      els.ccSloHint.textContent = 'Failed to load control-center modules.';
+    }
+  }
+
+  function renderControlCenter(data){
+    renderCcTop(data);
+    renderCcAlerts(data.alerts || []);
+    renderCcQueue(data.queue || [], data.deadLetters || []);
+    renderCcApprovals(data.approvals || []);
+    renderCcService(data.serviceMap || {});
+    renderCcSynthetic(data.syntheticHistory || []);
+    renderCcPresets(data.presets || []);
+    renderCcKnowledge(data.knowledge || []);
+    renderCcSecurity(data.sessions || {}, data.integrity || {}, data.bruteForce || {});
+  }
+
+  function renderCcTop(data){
+    const slo = data.slo || {};
+    const integrity = data.integrity || {};
+    const brute = data.bruteForce || {};
+    els.ccSloMonth.textContent = escapeHtml(slo.month || '-');
+    els.ccSloHint.textContent = 'Availability ' + escapeHtml(String(slo.availability || '-')) + '% / Objective ' + escapeHtml(String(slo.objective || '-')) + '%';
+    els.ccIntegrity.textContent = integrity.ok ? 'OK' : 'ALERT';
+    els.ccIntegrityHint.textContent = integrity.ok ? 'Hash chain healthy' : ('Broken at ' + escapeHtml(String(integrity.brokenAt || '-')));
+    els.ccBrute.textContent = escapeHtml(String(brute.failedAuthEvents || 0));
+    els.ccBruteHint.textContent = 'failed auth signals in log sample';
+  }
+
+  function renderCcAlerts(rows){
+    els.ccAlertTableBody.innerHTML = rows.map(function(row){
+      return '<tr><td>' + escapeHtml(row.name || row.id) + '</td><td>' + escapeHtml(row.condition || '-') + '</td><td>' + escapeHtml(String(row.threshold || '-')) + '</td><td>' + escapeHtml(row.enabled === false ? 'disabled' : 'enabled') + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="small">No alert rules yet.</td></tr>';
+  }
+
+  function renderCcQueue(queueRows, deadRows){
+    els.ccQueueTableBody.innerHTML = queueRows.map(function(row){
+      return '<tr>' +
+        '<td><span class="small">' + escapeHtml(row.id || '-') + '</span></td>' +
+        '<td>' + escapeHtml(row.type || '-') + '</td>' +
+        '<td>' + escapeHtml(String(row.retries || 0)) + '/' + escapeHtml(String(row.maxRetries || 3)) + '</td>' +
+        '<td>' + escapeHtml(row.state || 'queued') + '</td>' +
+        '<td><button data-cc-dead="' + escapeHtml(row.id || '') + '">dead-letter</button></td>' +
+      '</tr>';
+    }).join('') || '<tr><td colspan="5" class="small">Queue is empty.</td></tr>';
+
+    els.ccDeadTableBody.innerHTML = deadRows.map(function(row){
+      return '<tr>' +
+        '<td><span class="small">' + escapeHtml(row.id || '-') + '</span></td>' +
+        '<td>' + escapeHtml(row.deadReason || '-') + '</td>' +
+        '<td><button data-cc-retry="' + escapeHtml(row.id || '') + '">retry</button></td>' +
+      '</tr>';
+    }).join('') || '<tr><td colspan="3" class="small">Dead letter queue is empty.</td></tr>';
+
+    els.ccQueueTableBody.querySelectorAll('[data-cc-dead]').forEach(function(node){
+      node.addEventListener('click', function(){ deadLetterTask(node.getAttribute('data-cc-dead')); });
+    });
+    els.ccDeadTableBody.querySelectorAll('[data-cc-retry]').forEach(function(node){
+      node.addEventListener('click', function(){ retryDeadLetterTask(node.getAttribute('data-cc-retry')); });
+    });
+  }
+
+  function renderCcApprovals(rows){
+    els.ccApprovalTableBody.innerHTML = rows.map(function(row){
+      return '<tr>' +
+        '<td>' + escapeHtml(row.subject || row.id || '-') + '</td>' +
+        '<td>' + escapeHtml(row.type || '-') + '</td>' +
+        '<td>' + escapeHtml(row.status || 'pending') + '</td>' +
+        '<td><button data-cc-approve="' + escapeHtml(row.id || '') + '">approve</button></td>' +
+      '</tr>';
+    }).join('') || '<tr><td colspan="4" class="small">No pending approvals.</td></tr>';
+
+    els.ccApprovalTableBody.querySelectorAll('[data-cc-approve]').forEach(function(node){
+      node.addEventListener('click', function(){ approveItem(node.getAttribute('data-cc-approve')); });
+    });
+  }
+
+  function renderCcService(map){
+    const nodes = Array.isArray(map.nodes) ? map.nodes : [];
+    els.ccServiceCount.textContent = nodes.length + ' nodes';
+    els.ccServiceTableBody.innerHTML = nodes.map(function(node){
+      return '<tr><td><span class="small">' + escapeHtml(node.path || '-') + '</span></td><td>' + escapeHtml(String(node.calls24h || 0)) + '</td><td>' + escapeHtml(node.avgMs === null || node.avgMs === undefined ? '-' : String(node.avgMs)) + '</td><td>' + escapeHtml(node.status || 'ok') + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="small">No service nodes available.</td></tr>';
+  }
+
+  function renderCcSynthetic(rows){
+    els.ccSyntheticTableBody.innerHTML = rows.slice(0, 200).map(function(row){
+      return '<tr><td><span class="small">' + escapeHtml(fmtDate(row.t)) + '</span></td><td>' + escapeHtml(row.region || '-') + '</td><td><span class="small">' + escapeHtml(row.path || '-') + '</span></td><td>' + escapeHtml(String(row.status || '-')) + '</td><td>' + escapeHtml(String(row.ms || '-')) + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="small">No synthetic history records yet.</td></tr>';
+  }
+
+  function renderCcPresets(rows){
+    els.ccPresetTableBody.innerHTML = rows.map(function(row){
+      return '<tr><td>' + escapeHtml(row.name || row.id) + '</td><td>' + escapeHtml(row.platform || '-') + '</td><td>' + escapeHtml(row.format || '-') + '</td><td><button data-cc-preset-del="' + escapeHtml(row.id || '') + '">delete</button></td></tr>';
+    }).join('') || '<tr><td colspan="4" class="small">No presets yet.</td></tr>';
+
+    els.ccPresetTableBody.querySelectorAll('[data-cc-preset-del]').forEach(function(node){
+      node.addEventListener('click', function(){ deletePreset(node.getAttribute('data-cc-preset-del')); });
+    });
+  }
+
+  function renderCcKnowledge(rows){
+    els.ccKbTableBody.innerHTML = rows.map(function(row){
+      return '<tr><td>' + escapeHtml(row.title || row.id) + '</td><td><span class="small">' + escapeHtml(fmtDate(row.updatedAt || row.createdAt)) + '</span></td><td><button data-cc-kb-del="' + escapeHtml(row.id || '') + '">delete</button></td></tr>';
+    }).join('') || '<tr><td colspan="3" class="small">Knowledge base is empty.</td></tr>';
+
+    els.ccKbTableBody.querySelectorAll('[data-cc-kb-del]').forEach(function(node){
+      node.addEventListener('click', function(){ deleteKnowledge(node.getAttribute('data-cc-kb-del')); });
+    });
+  }
+
+  function renderCcSecurity(sessions, integrity, brute){
+    els.ccSessionSummary.textContent = 'Auth events 24h: ' + escapeHtml(String(sessions.authEvents24h || 0)) + ' · Suspicious: ' + escapeHtml(String(sessions.suspicious24h || 0));
+    els.ccIntegrityLine.textContent = 'Integrity checked: ' + escapeHtml(String(integrity.checked || 0)) + ' · Head: ' + escapeHtml(String(integrity.head || '-'));
+    els.ccIntelBadge.textContent = 'Top Countries: ' + escapeHtml(String((brute.topCountries || []).length));
+    els.ccBruteTableBody.innerHTML = (brute.topCountries || []).map(function(item){
+      return '<tr><td>' + escapeHtml(item.key || '??') + '</td><td>' + escapeHtml(String(item.value || 0)) + '</td></tr>';
+    }).join('') || '<tr><td colspan="2" class="small">No brute-force geo data.</td></tr>';
+  }
+
+  async function ccPost(action, payload){
+    const res = await fetch('/api/admin/control-center', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action, ...(payload || {}) }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error((data && data.error) || 'cc_action_failed');
+    return data;
+  }
+
+  async function addAlertRule(){
+    const name = prompt('Alert rule name (e.g. API Error Rate)');
+    if (!name) return;
+    const condition = prompt('Condition (e.g. error_rate_gt)') || 'error_rate_gt';
+    const threshold = prompt('Threshold (e.g. 5)') || '5';
+    await ccPost('alert.upsert', { record: { name, condition, threshold: Number(threshold) || threshold, enabled: true } });
+    await refreshControlCenter();
+  }
+
+  async function enqueueTask(){
+    const type = prompt('Task type (e.g. publish, upload, transcode)') || 'generic';
+    const payload = prompt('Task payload summary') || '';
+    await ccPost('queue.enqueue', { record: { type, payload, state: 'queued', retries: 0, maxRetries: 3 } });
+    await refreshControlCenter();
+  }
+
+  async function deadLetterTask(id){
+    if (!id) return;
+    await ccPost('queue.deadletter', { id, reason: 'manual triage' });
+    await refreshControlCenter();
+  }
+
+  async function retryDeadLetterTask(id){
+    if (!id) return;
+    await ccPost('queue.retry', { id });
+    await refreshControlCenter();
+  }
+
+  async function submitApproval(){
+    const subject = prompt('Approval subject (publish/upload item)');
+    if (!subject) return;
+    const type = prompt('Approval type (publish/upload)') || 'publish';
+    await ccPost('approval.submit', { record: { subject, type, status: 'pending' } });
+    await refreshControlCenter();
+  }
+
+  async function approveItem(id){
+    if (!id || !ccSnapshot) return;
+    const row = (ccSnapshot.approvals || []).find(function(v){ return v.id === id; });
+    if (!row) return;
+    await ccPost('approval.review', { record: { ...row, status: 'approved' } });
+    await refreshControlCenter();
+  }
+
+  async function recordSyntheticSample(){
+    const region = prompt('Region code (e.g. ap-northeast, eu-west)') || 'global';
+    const path = prompt('Path to check', '/_health') || '/_health';
+    const status = Number(prompt('Status code', '200')) || 200;
+    const ms = Number(prompt('Latency ms', '120')) || 120;
+    await ccPost('synthetic.record', { record: { region, path, status, ms } });
+    await refreshControlCenter();
+  }
+
+  async function addPreset(){
+    const name = prompt('Preset name') || '';
+    if (!name) return;
+    const platform = prompt('Platform (instagram/tiktok/youtube)', 'instagram') || 'instagram';
+    const format = prompt('Format (e.g. 1080x1920 h264)', '1080x1920 h264') || '1080x1920 h264';
+    await ccPost('preset.upsert', { record: { name, platform, format } });
+    await refreshControlCenter();
+  }
+
+  async function deletePreset(id){
+    if (!id) return;
+    await ccPost('preset.delete', { id });
+    await refreshControlCenter();
+  }
+
+  async function runQualityAudit(){
+    const params = new URLSearchParams({
+      module: 'quality-audit',
+      width: String(els.ccAuditWidth.value || ''),
+      height: String(els.ccAuditHeight.value || ''),
+      codec: String(els.ccAuditCodec.value || ''),
+      sizeMb: String(els.ccAuditSize.value || ''),
+    });
+    const res = await fetch('/api/admin/control-center?' + params.toString(), { cache: 'no-store' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      els.ccAuditResult.textContent = 'Audit failed.';
+      return;
+    }
+    const r = data.result || {};
+    els.ccAuditResult.textContent = 'Score: ' + String(r.score || 0) + ' · Pass: ' + String(!!r.pass) + ' · Issues: ' + String((r.issues || []).length);
+  }
+
+  async function addKnowledgeArticle(){
+    const title = prompt('Knowledge article title');
+    if (!title) return;
+    const body = prompt('Body/summary') || '';
+    await ccPost('kb.upsert', { record: { title, body } });
+    await refreshControlCenter();
+  }
+
+  async function deleteKnowledge(id){
+    if (!id) return;
+    await ccPost('kb.delete', { id });
+    await refreshControlCenter();
+  }
+
+  async function forceLogoutAll(){
+    await ccPost('session.forceLogoutAll', { reason: 'owner_manual' });
+    await refreshControlCenter();
+    alert('All active sessions are now invalidated.');
+  }
+
+  async function blockIp(){
+    const ip = String(els.ccBlockIp.value || '').trim();
+    if (!ip) return;
+    await ccPost('session.blockIp', { ip, reason: 'owner_manual_block' });
+    await refreshControlCenter();
+  }
+
+  async function unblockIp(){
+    const ip = String(els.ccBlockIp.value || '').trim();
+    if (!ip) return;
+    await ccPost('session.unblockIp', { ip });
+    await refreshControlCenter();
   }
 
   async function refreshAll(){
@@ -469,6 +1137,8 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
       loadOverview(),
       runProbes(),
       resetAuthAndLoad(),
+      resetLogsAndLoad(),
+      refreshControlCenter(),
     ]);
   }
 
@@ -537,9 +1207,91 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
 
       els.probeStamp.textContent = 'updated ' + fmtTime(data.generatedAt || new Date().toISOString());
       pushJournal('Ran probes across ' + rows.length + ' targets.');
+      emitAdminLog({
+        level: 'info',
+        category: 'admin',
+        event: 'run_probes',
+        message: 'Manual probe run completed',
+        data: { targets: rows.length },
+      });
     } catch (err) {
       els.probeTableBody.innerHTML = '<tr><td colspan="5" class="state-bad">Failed to run probes.</td></tr>';
       els.probeStamp.textContent = 'probe failed';
+    }
+  }
+
+  function resetLogsAndLoad(){
+    logCursor = null;
+    logHasMore = true;
+    currentFilteredLogs = [];
+    els.logTableBody.innerHTML = '';
+    return loadActivityLogs(true);
+  }
+
+  async function loadActivityLogs(replace){
+    if (loadingLogs || !logHasMore) return;
+    loadingLogs = true;
+
+    try {
+      const categories = selectedCategories();
+      let url = '/api/admin/logs?limit=80';
+      if (logCursor) url += '&cursor=' + encodeURIComponent(logCursor);
+      if (categories.length) url += '&categories=' + encodeURIComponent(categories.join(','));
+
+      const levels = String(els.logLevel.value || '').trim();
+      if (levels) url += '&levels=' + encodeURIComponent(levels);
+
+      const text = String(els.logText.value || '').trim();
+      if (text) url += '&text=' + encodeURIComponent(text);
+
+      const path = String(els.logPath.value || '').trim();
+      if (path) url += '&path=' + encodeURIComponent(path);
+
+      const minStatus = String(els.logMinStatus.value || '').trim();
+      if (minStatus) url += '&minStatus=' + encodeURIComponent(minStatus);
+
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error('logs_failed');
+
+      const rows = Array.isArray(data.logs) ? data.logs : [];
+      if (replace) currentFilteredLogs = rows.slice();
+      else currentFilteredLogs = currentFilteredLogs.concat(rows);
+      const html = rows.map(function(row){
+        const level = row.level || 'info';
+        const category = row.category || 'ops';
+        const safeStatus = Number.isFinite(row.status) ? String(row.status) : '-';
+        const safeMs = Number.isFinite(row.ms) ? String(row.ms) + ' ms' : '-';
+        return '<tr>' +
+          '<td><span class="small">' + escapeHtml(fmtDate(row.t)) + '</span></td>' +
+          '<td><span class="level-pill level-' + escapeHtml(level) + '">' + escapeHtml(level) + '</span></td>' +
+          '<td><span class="cat-pill">' + escapeHtml(category) + '</span></td>' +
+          '<td><span class="small">' + escapeHtml(row.event || '-') + '</span></td>' +
+          '<td><span class="small">' + escapeHtml((row.path || '-') + (row.query || '')) + '</span></td>' +
+          '<td>' + escapeHtml(safeStatus) + '</td>' +
+          '<td>' + escapeHtml(safeMs) + '</td>' +
+          '<td>' + escapeHtml(row.message || '-') + '</td>' +
+        '</tr>';
+      }).join('');
+
+      if (replace) els.logTableBody.innerHTML = html;
+      else els.logTableBody.insertAdjacentHTML('beforeend', html);
+
+      if (logLiveEnabled && logFollowNewest) {
+        scrollToNewestLogRow();
+      }
+
+      logCursor = data.cursor || null;
+      logHasMore = !data.listComplete;
+      const totalRows = els.logTableBody.querySelectorAll('tr').length;
+      els.logCount.textContent = totalRows + ' rows' + (logHasMore ? ' + more' : '');
+    } catch {
+      if (replace) {
+        els.logTableBody.innerHTML = '<tr><td colspan="8" class="state-bad">Failed to load activity logs.</td></tr>';
+      }
+      logHasMore = false;
+    } finally {
+      loadingLogs = false;
     }
   }
 
@@ -595,6 +1347,12 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
   function saveNotes(){
     localStorage.setItem(LS_NOTES, els.ownerNotes.value || '');
     pushJournal('Saved owner notes.');
+    emitAdminLog({
+      level: 'info',
+      category: 'admin',
+      event: 'save_notes',
+      message: 'Owner notes updated in browser local storage',
+    });
   }
 
   function loadNotes(){
@@ -606,6 +1364,12 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
     if (!text) return;
     pushJournal(text);
     els.journalText.value = '';
+    emitAdminLog({
+      level: 'info',
+      category: 'admin',
+      event: 'journal_entry',
+      message: text,
+    });
   }
 
   function pushJournal(text){
@@ -690,6 +1454,213 @@ textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-
     localStorage.removeItem(LS_CHECKLIST);
     renderChecklist();
     pushJournal('Reset runbook checklist state.');
+    emitAdminLog({
+      level: 'warning',
+      category: 'admin',
+      event: 'reset_checklist',
+      message: 'Runbook checklist state reset',
+    });
+  }
+
+  function selectedCategories(){
+    const out = [];
+    els.categoryChips.querySelectorAll('input[type="checkbox"]').forEach(function(node){
+      if (node.checked) out.push(node.value);
+    });
+    return out;
+  }
+
+  function toggleLogLiveMode(){
+    logLiveEnabled = !logLiveEnabled;
+    const btn = document.getElementById('logToggleLive');
+    if (logLiveEnabled) {
+      btn.textContent = 'Pause Live';
+      els.logLivePill.classList.add('is-on');
+      els.logLiveText.textContent = 'live';
+      startLogLiveTimer();
+      resetLogsAndLoad();
+      emitAdminLog({
+        level: 'info',
+        category: 'admin',
+        event: 'logs_live_start',
+        message: 'Unified logs live mode enabled',
+      });
+    } else {
+      btn.textContent = 'Start Live';
+      els.logLivePill.classList.remove('is-on');
+      els.logLiveText.textContent = 'paused';
+      stopLogLiveTimer();
+      emitAdminLog({
+        level: 'info',
+        category: 'admin',
+        event: 'logs_live_pause',
+        message: 'Unified logs live mode paused',
+      });
+    }
+  }
+
+  function startLogLiveTimer(){
+    stopLogLiveTimer();
+    logLiveTimer = setInterval(function(){
+      if (!loadingLogs) resetLogsAndLoad();
+    }, 7000);
+  }
+
+  function stopLogLiveTimer(){
+    if (logLiveTimer) {
+      clearInterval(logLiveTimer);
+      logLiveTimer = null;
+    }
+  }
+
+  function exportFilteredLogs(format){
+    if (!currentFilteredLogs.length) {
+      pushJournal('No filtered logs available for export.');
+      return;
+    }
+    if (format === 'json') {
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        count: currentFilteredLogs.length,
+        filters: collectCurrentLogFilters(),
+        logs: currentFilteredLogs,
+      };
+      downloadBlob('application/json', JSON.stringify(payload, null, 2), fileNameFor('json'));
+      pushJournal('Exported filtered logs as JSON.');
+      emitAdminLog({ level: 'info', category: 'admin', event: 'export_logs_json', message: 'Filtered logs exported as JSON', data: { count: currentFilteredLogs.length } });
+      return;
+    }
+
+    const csv = toCsv(currentFilteredLogs);
+    downloadBlob('text/csv;charset=utf-8', csv, fileNameFor('csv'));
+    pushJournal('Exported filtered logs as CSV.');
+    emitAdminLog({ level: 'info', category: 'admin', event: 'export_logs_csv', message: 'Filtered logs exported as CSV', data: { count: currentFilteredLogs.length } });
+  }
+
+  async function exportAllMatching(format){
+    try {
+      const rows = await fetchAllMatchingLogs();
+      if (!rows.length) {
+        pushJournal('No matching logs found for export-all.');
+        return;
+      }
+
+      if (format === 'json') {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          mode: 'server_full_scan',
+          count: rows.length,
+          filters: collectCurrentLogFilters(),
+          logs: rows,
+        };
+        downloadBlob('application/json', JSON.stringify(payload, null, 2), fileNameFor('json'));
+        pushJournal('Exported all matching logs as JSON.');
+        emitAdminLog({ level: 'info', category: 'admin', event: 'export_all_logs_json', message: 'Server-side export-all JSON completed', data: { count: rows.length } });
+        return;
+      }
+
+      const csv = toCsv(rows);
+      downloadBlob('text/csv;charset=utf-8', csv, fileNameFor('csv'));
+      pushJournal('Exported all matching logs as CSV.');
+      emitAdminLog({ level: 'info', category: 'admin', event: 'export_all_logs_csv', message: 'Server-side export-all CSV completed', data: { count: rows.length } });
+    } catch {
+      pushJournal('Export-all failed due to server/log-store limits.');
+    }
+  }
+
+  async function fetchAllMatchingLogs(){
+    const categories = selectedCategories();
+    let url = '/api/admin/logs?all=1';
+    if (categories.length) url += '&categories=' + encodeURIComponent(categories.join(','));
+
+    const levels = String(els.logLevel.value || '').trim();
+    if (levels) url += '&levels=' + encodeURIComponent(levels);
+
+    const text = String(els.logText.value || '').trim();
+    if (text) url += '&text=' + encodeURIComponent(text);
+
+    const path = String(els.logPath.value || '').trim();
+    if (path) url += '&path=' + encodeURIComponent(path);
+
+    const minStatus = String(els.logMinStatus.value || '').trim();
+    if (minStatus) url += '&minStatus=' + encodeURIComponent(minStatus);
+
+    const res = await fetch(url, { cache: 'no-store' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error('export_all_failed');
+
+    if (data.truncated) {
+      pushJournal('Export-all was truncated by server-side safety limits.');
+    }
+    return Array.isArray(data.logs) ? data.logs : [];
+  }
+
+  function collectCurrentLogFilters(){
+    return {
+      categories: selectedCategories(),
+      levels: String(els.logLevel.value || '').trim(),
+      text: String(els.logText.value || '').trim(),
+      path: String(els.logPath.value || '').trim(),
+      minStatus: String(els.logMinStatus.value || '').trim(),
+    };
+  }
+
+  function toCsv(rows){
+    const cols = ['t','level','category','event','path','query','method','status','ms','message','requestId','ip','country','colo'];
+    const head = cols.join(',');
+    const body = rows.map(function(row){
+      return cols.map(function(col){ return csvEscape(row && row[col] !== undefined && row[col] !== null ? row[col] : ''); }).join(',');
+    }).join('\n');
+    return head + '\n' + body;
+  }
+
+  function csvEscape(value){
+    const s = String(value);
+    if (/[,"\n\r]/.test(s)) return '"' + s.replaceAll('"', '""') + '"';
+    return s;
+  }
+
+  function downloadBlob(mime, content, name){
+    const blob = new Blob([content], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function fileNameFor(ext){
+    const stamp = new Date().toISOString().replaceAll(':', '-');
+    return 'okn-unified-logs-' + stamp + '.' + ext;
+  }
+
+  function toggleLogFollowNewest(){
+    logFollowNewest = !logFollowNewest;
+    const btn = document.getElementById('logToggleFollow');
+    btn.textContent = 'Follow Newest: ' + (logFollowNewest ? 'On' : 'Off');
+    if (logFollowNewest) {
+      scrollToNewestLogRow();
+    }
+    emitAdminLog({
+      level: 'info',
+      category: 'admin',
+      event: 'toggle_follow_newest',
+      message: 'Follow newest toggled to ' + (logFollowNewest ? 'on' : 'off'),
+    });
+  }
+
+  function scrollToNewestLogRow(){
+    if (!els.logTableWrap) return;
+    // Newest rows are sorted to the top.
+    els.logTableWrap.scrollTop = 0;
+  }
+
+  function emitAdminLog(payload){
+    fetch('/api/admin/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    }).catch(function(){ /* best effort */ });
   }
 
   function fmtDate(iso){
