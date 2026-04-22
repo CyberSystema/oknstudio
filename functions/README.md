@@ -8,9 +8,14 @@ Edge serverless routes. Every request to the site runs through
 | Path | File | Purpose |
 |------|------|---------|
 | `*` | `_middleware.js` | Site-wide password auth, HSTS, CSP, rate limiting. |
+| `POST /_admin_auth` | `_middleware.js` | Secondary admin-only password gate for `/admin/*` and `/api/admin/*`. |
+| `POST /_admin_logout` | `_middleware.js` | Clears admin-only session cookie. |
 | `POST /api/analytics/upload` | `api/analytics/upload.js` | Accepts batch CSV uploads and commits them to the repo via the GitHub Git Data API as a single atomic commit. |
 | `GET /api/media/list` | `api/media/list.js` | Lists keys in the private B2 bucket (authenticated). |
 | `GET /api/media/download/*` | `api/media/download/[[path]].js` | Range-capable proxy for B2 object downloads. |
+| `GET /api/admin/overview` | `api/admin/overview.js` | Runtime/env readiness summary for owner admin dashboard. |
+| `GET /api/admin/probes` | `api/admin/probes.js` | Synthetic checks for first-party routes with latency and status reporting. |
+| `GET /api/admin/auth-events` | `api/admin/auth-events.js` | Paged auth audit events from `AUDIT_LOG_KV`. |
 
 ## Required environment
 
@@ -19,6 +24,7 @@ All set via Cloudflare Pages → Project → Settings → Environment Variables.
 ### Site auth
 - `SITE_PASSWORD_HASH` — SHA-256 hex hash of the site password.
 - `TOKEN_SECRET`       — Random secret used for HMAC session signing.
+- `ADMIN_PASSWORD_HASH` — SHA-256 hex hash of the owner-only admin password.
 
 ### Upload API
 - `UPLOAD_PASSWORD_HASH`    — SHA-256 hex hash of the team upload password.

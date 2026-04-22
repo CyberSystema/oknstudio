@@ -11,8 +11,10 @@
  */
 
 const SITE_COOKIE = 'okns_auth';
+const ADMIN_COOKIE = 'okns_admin';
 const MAX_BODY = 10 * 1024;
 const MAX_AGE = 30 * 24 * 60 * 60;       // 30 days (seconds)
+const ADMIN_MAX_AGE = 8 * 60 * 60;       // 8 hours (seconds)
 const RATE_WINDOW = 15 * 60 * 1000;      // 15 min (ms)
 const RATE_MAX = 5;
 // In-memory fallback if RATE_LIMIT_KV binding is not configured.
@@ -99,6 +101,14 @@ export async function onRequest(context) {
     return handleSiteLogin(request, env, context);
   }
 
+  // ── Admin login/logout ──
+  if (url.pathname === '/_admin_auth' && request.method === 'POST') {
+    return handleAdminLogin(request, env, context);
+  }
+  if (url.pathname === '/_admin_logout' && request.method === 'POST') {
+    return handleAdminLogout(request, env, context);
+  }
+
   // ── Check site session ──
   const siteCookie = parseCookie(request, SITE_COOKIE);
   if (!siteCookie || !(await verifySession(siteCookie, env))) {
@@ -115,6 +125,26 @@ export async function onRequest(context) {
       chromeRight: '<div class="auth-label"><span class="dot"></span>Auth Required</div>',
       footLeft: '<span class="secure">\u25c9 Encrypted</span>',
     }), 401);
+  }
+
+  // ── Admin-only surfaces (second factor) ──
+  if (isAdminPath(url.pathname)) {
+    const adminCookie = parseCookie(request, ADMIN_COOKIE);
+    if (!adminCookie || !(await verifyAdminSession(adminCookie, env))) {
+      return htmlResponse(loginHTML({
+        pageTitle: 'Admin Authenticate — OKN Studio',
+        kicker: 'Admin Channel',
+        heading: 'Enter',
+        accent: 'Admin',
+        sub: '<span>Restricted</span><span class="divider">·</span><span>Second Gate</span><span class="divider">·</span><span>8-hour</span>',
+        action: '/_admin_auth',
+        hiddenFields: '',
+        redirect: url.pathname,
+        error: '',
+        chromeRight: '<div class="auth-label"><span class="dot"></span>Admin Required</div>',
+        footLeft: '<span class="secure">◉ Owner Access</span>',
+      }), 401);
+    }
   }
 
   // ── Authenticated — pass through with hardened headers ──
@@ -214,6 +244,92 @@ async function handleSiteLogin(request, env, context) {
   }
 }
 
+async function handleAdminLogout(request, env, context) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ev = recordAuthEvent(env, { ip, success: true, reason: 'admin_logout', ua: request.headers.get('User-Agent') || '' });
+  if (context && typeof context.waitUntil === 'function') context.waitUntil(ev);
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      'Location': '/admin/',
+      'Set-Cookie': `${ADMIN_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
+      ...SECURITY_HEADERS,
+    },
+  });
+}
+
+async function handleAdminLogin(request, env, context) {
+  const wait = (p) => {
+    if (context && typeof context.waitUntil === 'function') {
+      try { context.waitUntil(p); } catch { /* ignore */ }
+    }
+  };
+  try {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (await isLimited(`admin:${ip}`, env)) {
+      wait(recordAuthEvent(env, { ip, success: false, reason: 'admin_rate_limited', ua: request.headers.get('User-Agent') || '' }));
+      return htmlResponse(loginHTML({
+        pageTitle: 'Admin Authenticate — OKN Studio',
+        kicker: 'Admin Channel',
+        heading: 'Enter',
+        accent: 'Admin',
+        sub: '<span>Restricted</span><span class="divider">·</span><span>Second Gate</span>',
+        action: '/_admin_auth',
+        hiddenFields: '',
+        redirect: '/admin/',
+        error: 'Too many attempts — wait 15 minutes.',
+        chromeRight: '<div class="auth-label"><span class="dot"></span>Admin Required</div>',
+        footLeft: '<span class="secure">◉ Owner Access</span>',
+      }), 429);
+    }
+
+    if (bodyTooLarge(request)) {
+      return new Response('Payload too large', { status: 413 });
+    }
+
+    const form = await request.formData();
+    const password = form.get('password') || '';
+    const redirect = sanitizeRedirect(form.get('redirect') || '/admin/');
+
+    const stored = (env.ADMIN_PASSWORD_HASH || '').toLowerCase().trim();
+    if (!stored) {
+      return new Response('ADMIN_PASSWORD_HASH not configured', { status: 500 });
+    }
+
+    const hash = await sha256(password);
+    if (!(await timeSafeEqual(hash, stored))) {
+      await recordAttempt(`admin:${ip}`, env);
+      wait(recordAuthEvent(env, { ip, success: false, reason: 'admin_bad_password', ua: request.headers.get('User-Agent') || '' }));
+      return htmlResponse(loginHTML({
+        pageTitle: 'Admin Authenticate — OKN Studio',
+        kicker: 'Admin Channel',
+        heading: 'Enter',
+        accent: 'Admin',
+        sub: '<span>Restricted</span><span class="divider">·</span><span>Second Gate</span><span class="divider">·</span><span>8-hour</span>',
+        action: '/_admin_auth',
+        hiddenFields: '',
+        redirect,
+        error: 'Wrong admin password — please try again.',
+        chromeRight: '<div class="auth-label"><span class="dot"></span>Admin Required</div>',
+        footLeft: '<span class="secure">◉ Owner Access</span>',
+      }), 401);
+    }
+
+    const token = await signAdminSession(env);
+    wait(recordAuthEvent(env, { ip, success: true, reason: 'admin_login', ua: request.headers.get('User-Agent') || '' }));
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': redirect,
+        'Set-Cookie': `${ADMIN_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${ADMIN_MAX_AGE}`,
+      },
+    });
+  } catch {
+    return new Response('Admin authentication error', { status: 500 });
+  }
+}
+
 // ══════════════════════════════════════
 // SESSION HELPERS
 // ══════════════════════════════════════
@@ -250,6 +366,45 @@ async function verifySession(token, env) {
   const timestamp = Number(tsPart);
   if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > Date.now()) return false;
   if (Date.now() - timestamp > MAX_AGE * 1000) return false;
+
+  let secret;
+  try { secret = requireSecret(env); } catch { return false; }
+
+  const sigBytes = unhex(sigHex);
+  if (!sigBytes) return false;
+
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+  );
+  return crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(payload));
+}
+
+async function signAdminSession(env) {
+  const secret = requireSecret(env);
+  const nonce = hex(crypto.getRandomValues(new Uint8Array(16)));
+  const payload = 'admin.' + Date.now().toString() + '.' + nonce;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  return payload + '.' + hex(new Uint8Array(sig));
+}
+
+async function verifyAdminSession(token, env) {
+  if (!token) return false;
+  const lastDot = token.lastIndexOf('.');
+  if (lastDot < 1) return false;
+  const payload = token.slice(0, lastDot);
+  const sigHex = token.slice(lastDot + 1);
+
+  const parts = payload.split('.');
+  if (parts.length !== 3 || parts[0] !== 'admin') return false;
+
+  const timestamp = Number(parts[1]);
+  if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > Date.now()) return false;
+  if (Date.now() - timestamp > ADMIN_MAX_AGE * 1000) return false;
 
   let secret;
   try { secret = requireSecret(env); } catch { return false; }
@@ -412,6 +567,10 @@ function sanitizeRedirect(val) {
 function bodyTooLarge(request) {
   const cl = Number(request.headers.get('Content-Length') || '0');
   return Number.isFinite(cl) && cl > MAX_BODY;
+}
+
+function isAdminPath(pathname) {
+  return pathname === '/admin' || pathname.startsWith('/admin/') || pathname.startsWith('/api/admin/');
 }
 
 function htmlResponse(html, status) {

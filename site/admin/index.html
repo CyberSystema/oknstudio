@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Owner Admin Console - OKN Studio</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#0b1118">
+<meta name="color-scheme" content="dark">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0b1118;
+  --bg-2:#0f1821;
+  --bg-3:#13202c;
+  --surface:rgba(255,255,255,0.035);
+  --surface-2:rgba(255,255,255,0.06);
+  --line:rgba(255,255,255,0.11);
+  --line-soft:rgba(255,255,255,0.06);
+  --text:#ecf2f8;
+  --text-dim:#a8b6c4;
+  --text-faint:#7d8a97;
+  --accent:#78f5c7;
+  --accent-2:#67b5ff;
+  --warn:#ffd58c;
+  --danger:#ff8e8e;
+  --ok:#8df2cd;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --display:'Space Grotesk',system-ui,sans-serif;
+  --body:'Manrope',system-ui,sans-serif;
+}
+
+html,body{min-height:100%}
+body{
+  font-family:var(--body);
+  color:var(--text);
+  background:
+    radial-gradient(circle at 12% 0%,rgba(103,181,255,0.18) 0%,transparent 40%),
+    radial-gradient(circle at 85% 10%,rgba(120,245,199,0.14) 0%,transparent 38%),
+    linear-gradient(180deg,#0b1118 0%,#0a0f15 100%);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-size:34px 34px;
+  mask-image:radial-gradient(ellipse at center,black 22%,transparent 82%);
+}
+
+.chrome{
+  position:sticky;top:0;z-index:20;
+  border-bottom:1px solid var(--line-soft);
+  background:rgba(8,13,19,0.78);
+  backdrop-filter:blur(14px);
+}
+
+.chrome-inner{
+  max-width:1600px;margin:0 auto;
+  padding:12px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+
+.brand{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:0.13em;text-transform:uppercase;
+  color:var(--text-dim);
+}
+.brand .lock{color:var(--accent)}
+.brand a{color:var(--text-dim);text-decoration:none}
+.brand a:hover{color:var(--text)}
+
+.ch-actions{display:flex;align-items:center;gap:8px}
+
+button,.btn{
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  padding:8px 12px;border-radius:8px;
+  font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;
+}
+button:hover,.btn:hover{background:var(--surface-2)}
+.btn-danger{border-color:rgba(255,142,142,0.35);color:var(--danger);background:rgba(255,142,142,0.12)}
+.btn-accent{border-color:rgba(120,245,199,0.4);color:var(--accent);background:rgba(120,245,199,0.13)}
+
+.wrap{position:relative;z-index:1;max-width:1600px;margin:0 auto;padding:30px 22px 80px}
+
+.head{
+  display:grid;grid-template-columns:1.4fr 1fr;gap:18px;
+  margin-bottom:18px;
+}
+
+.hero{
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:26px;
+  background:linear-gradient(140deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;right:-100px;bottom:-100px;width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(120,245,199,0.16),transparent 66%);
+}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid rgba(120,245,199,0.5);
+  color:var(--accent);
+  padding:6px 10px;border-radius:999px;
+  font-family:var(--mono);font-size:10px;letter-spacing:0.13em;text-transform:uppercase;
+}
+.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+
+h1{
+  margin-top:14px;
+  font-family:var(--display);
+  font-size:clamp(28px,3.1vw,52px);
+  line-height:1.03;
+  letter-spacing:-0.02em;
+}
+.sub{margin-top:10px;color:var(--text-dim);max-width:62ch;line-height:1.55}
+
+.meta{
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px;
+  background:rgba(8,13,19,0.55);
+}
+.meta h2{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase;margin-bottom:10px}
+.meta-list{display:grid;gap:8px}
+.meta-item{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:12px}
+.meta-item .k{color:var(--text-faint)}
+.meta-item .v{color:var(--text)}
+
+.alerts{
+  margin-top:12px;
+  border:1px solid rgba(255,213,140,0.35);
+  background:rgba(255,213,140,0.1);
+  color:#f8dba3;
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+  line-height:1.4;
+  display:none;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  background:rgba(13,21,30,0.76);
+}
+.card .label{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--text-faint);text-transform:uppercase}
+.card .value{margin-top:8px;font-family:var(--display);font-size:28px;line-height:1;color:var(--text)}
+.card .hint{margin-top:8px;font-size:12px;color:var(--text-dim)}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.25fr 1fr;
+  gap:14px;
+}
+
+.panel{
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:rgba(9,15,22,0.8);
+}
+.panel-head{
+  padding:12px 14px;
+  border-bottom:1px solid var(--line-soft);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.panel-title{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)}
+.panel-body{padding:14px}
+
+.table-wrap{overflow:auto;max-height:420px}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{padding:8px 6px;border-bottom:1px dashed var(--line-soft);text-align:left;vertical-align:top}
+.table th{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint)}
+.state-ok{color:var(--ok)}
+.state-bad{color:var(--danger)}
+.small{font-family:var(--mono);font-size:11px;color:var(--text-faint)}
+
+.fields{display:grid;gap:10px}
+.field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--text-faint);margin-bottom:6px;text-transform:uppercase}
+textarea,input[type="text"]{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-2);
+  color:var(--text);
+  padding:10px;
+  font:500 13px/1.45 var(--body);
+  outline:none;
+}
+textarea{min-height:120px;resize:vertical}
+textarea:focus,input[type="text"]:focus{border-color:rgba(120,245,199,0.55);box-shadow:0 0 0 3px rgba(120,245,199,0.14)}
+
+.checklist{display:grid;gap:8px}
+.task{display:flex;gap:10px;align-items:flex-start;padding:8px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(255,255,255,0.02)}
+.task input{margin-top:2px}
+.task .text{font-size:13px;line-height:1.4;color:var(--text-dim)}
+
+.footer-note{margin-top:14px;color:var(--text-faint);font-size:12px}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)}
+
+@media(max-width:1200px){
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid{grid-template-columns:1fr}
+  .head{grid-template-columns:1fr}
+}
+
+@media(max-width:700px){
+  .cards{grid-template-columns:1fr}
+  .chrome-inner{padding:10px 12px}
+  .wrap{padding:18px 12px 60px}
+  .hero{padding:18px}
+  h1{font-size:29px}
+}
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="chrome-inner">
+    <div class="brand">
+      <span class="lock">locked</span>
+      <span>okn owner admin</span>
+      <span>|</span>
+      <a href="/">studio home</a>
+    </div>
+    <div class="ch-actions">
+      <button id="refreshAll" class="btn-accent">Refresh All</button>
+      <form method="POST" action="/_admin_logout">
+        <button type="submit" class="btn-danger">Admin Sign Out</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="head">
+    <article class="hero">
+      <div class="kicker"><span class="dot"></span>private owner control room</div>
+      <h1>OKN Studio Admin Console</h1>
+      <p class="sub">This page is second-gated for owner access and focused on operations, auth forensics, endpoint health checks, and admin journaling. It is designed to stay useful as your platform grows.</p>
+      <div class="alerts" id="warnings"></div>
+    </article>
+
+    <aside class="meta">
+      <h2>Runtime Snapshot</h2>
+      <div class="meta-list" id="runtimeMeta">
+        <div class="meta-item"><span class="k">generated</span><span class="v" id="metaGenerated">-</span></div>
+        <div class="meta-item"><span class="k">colo</span><span class="v" id="metaColo">-</span></div>
+        <div class="meta-item"><span class="k">country</span><span class="v" id="metaCountry">-</span></div>
+        <div class="meta-item"><span class="k">ip</span><span class="v" id="metaIp">-</span></div>
+        <div class="meta-item"><span class="k">uptime sec</span><span class="v" id="metaUptime">-</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="cards">
+    <article class="card">
+      <div class="label">Auth Success / Sample</div>
+      <div class="value" id="kpiAuthSuccess">-</div>
+      <div class="hint" id="kpiAuthSample">sample size -</div>
+    </article>
+    <article class="card">
+      <div class="label">Auth Failures / Sample</div>
+      <div class="value" id="kpiAuthFail">-</div>
+      <div class="hint" id="kpiAuthLast">last event -</div>
+    </article>
+    <article class="card">
+      <div class="label">Rate Limit Keys</div>
+      <div class="value" id="kpiRateKeys">-</div>
+      <div class="hint" id="kpiRateSource">kv source -</div>
+    </article>
+    <article class="card">
+      <div class="label">Checks Healthy</div>
+      <div class="value" id="kpiChecks">-</div>
+      <div class="hint" id="kpiChecksList">-</div>
+    </article>
+  </section>
+
+  <section class="grid">
+    <article class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Endpoint Probes</div>
+        <div>
+          <span class="badge" id="probeStamp">never</span>
+          <button id="runProbes">Run Probes</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="fields" style="margin-bottom:10px">
+          <div class="field">
+            <label for="probeTargets">Custom targets (comma separated paths)</label>
+            <input id="probeTargets" type="text" value="/_health,/status/,/analytics/,/media/,/darkroom/,/analytics/upload,/admin/,/api/media/list?prefix=">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="probeTable">
+            <thead>
+              <tr><th>Target</th><th>Status</th><th>Time</th><th>Type</th><th>State</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Owner Notes + Local Journal</div>
+        <div>
+          <button id="saveNotes">Save</button>
+          <button id="exportJournal">Export Journal</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="fields">
+          <div class="field">
+            <label for="ownerNotes">Persistent local notes (this browser only)</label>
+            <textarea id="ownerNotes" placeholder="Write admin notes, deploy reminders, postmortem snippets, and backlog decisions..."></textarea>
+          </div>
+          <div class="field">
+            <label for="journalText">Add log event</label>
+            <textarea id="journalText" placeholder="Example: Rotated upload password hash and validated auth flow."></textarea>
+          </div>
+          <button id="addJournal" class="btn-accent">Add Journal Entry</button>
+          <div class="table-wrap" style="max-height:180px">
+            <table class="table" id="journalTable">
+              <thead><tr><th>When</th><th>Event</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="grid" style="margin-top:14px">
+    <article class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Authentication Event Log</div>
+        <div>
+          <span class="badge" id="authCount">0 rows</span>
+          <button id="loadAuth">Refresh</button>
+          <button id="moreAuth">Load More</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap" style="max-height:420px">
+          <table class="table" id="authTable">
+            <thead>
+              <tr><th>Time</th><th>IP</th><th>Result</th><th>Reason</th><th>User Agent</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Runbook Checklist</div>
+        <div><button id="resetChecklist">Reset</button></div>
+      </div>
+      <div class="panel-body">
+        <div class="checklist" id="checklist"></div>
+        <div class="footer-note">Checklist state is saved in local storage to keep your recurring operations fast and consistent.</div>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  const LS_NOTES = 'okn_admin_notes_v1';
+  const LS_JOURNAL = 'okn_admin_journal_v1';
+  const LS_CHECKLIST = 'okn_admin_checklist_v1';
+
+  const CHECK_ITEMS = [
+    'Verify /_health endpoint and probe baseline before major deploys.',
+    'Review last failed auth events and confirm expected source IPs.',
+    'Confirm ADMIN_PASSWORD_HASH and SITE_PASSWORD_HASH rotation schedule.',
+    'Verify media bucket credentials and /api/media/list response latency.',
+    'Record post-deploy summary in journal with timestamp and risk notes.',
+  ];
+
+  let authCursor = null;
+  let authHasMore = true;
+  let loadingAuth = false;
+
+  const els = {
+    warnings: document.getElementById('warnings'),
+    metaGenerated: document.getElementById('metaGenerated'),
+    metaColo: document.getElementById('metaColo'),
+    metaCountry: document.getElementById('metaCountry'),
+    metaIp: document.getElementById('metaIp'),
+    metaUptime: document.getElementById('metaUptime'),
+
+    kpiAuthSuccess: document.getElementById('kpiAuthSuccess'),
+    kpiAuthSample: document.getElementById('kpiAuthSample'),
+    kpiAuthFail: document.getElementById('kpiAuthFail'),
+    kpiAuthLast: document.getElementById('kpiAuthLast'),
+    kpiRateKeys: document.getElementById('kpiRateKeys'),
+    kpiRateSource: document.getElementById('kpiRateSource'),
+    kpiChecks: document.getElementById('kpiChecks'),
+    kpiChecksList: document.getElementById('kpiChecksList'),
+
+    probeTargets: document.getElementById('probeTargets'),
+    probeTableBody: document.querySelector('#probeTable tbody'),
+    probeStamp: document.getElementById('probeStamp'),
+
+    authTableBody: document.querySelector('#authTable tbody'),
+    authCount: document.getElementById('authCount'),
+
+    ownerNotes: document.getElementById('ownerNotes'),
+    journalText: document.getElementById('journalText'),
+    journalTableBody: document.querySelector('#journalTable tbody'),
+    checklist: document.getElementById('checklist'),
+  };
+
+  document.getElementById('refreshAll').addEventListener('click', refreshAll);
+  document.getElementById('runProbes').addEventListener('click', runProbes);
+  document.getElementById('loadAuth').addEventListener('click', function(){ resetAuthAndLoad(); });
+  document.getElementById('moreAuth').addEventListener('click', function(){ loadAuthEvents(false); });
+  document.getElementById('saveNotes').addEventListener('click', saveNotes);
+  document.getElementById('addJournal').addEventListener('click', addJournalEntry);
+  document.getElementById('exportJournal').addEventListener('click', exportJournal);
+  document.getElementById('resetChecklist').addEventListener('click', resetChecklist);
+
+  boot();
+
+  function boot(){
+    loadNotes();
+    renderChecklist();
+    renderJournal();
+    refreshAll();
+    setInterval(runProbes, 60000);
+  }
+
+  async function refreshAll(){
+    await Promise.all([
+      loadOverview(),
+      runProbes(),
+      resetAuthAndLoad(),
+    ]);
+  }
+
+  async function loadOverview(){
+    try {
+      const res = await fetch('/api/admin/overview', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error('overview_failed');
+
+      els.metaGenerated.textContent = fmtDate(data.generatedAt);
+      els.metaColo.textContent = data.runtime && data.runtime.colo ? data.runtime.colo : '-';
+      els.metaCountry.textContent = data.runtime && data.runtime.country ? data.runtime.country : '-';
+      els.metaIp.textContent = data.runtime && data.runtime.ipMasked ? data.runtime.ipMasked : '-';
+      els.metaUptime.textContent = data.runtime && Number.isFinite(data.runtime.isolateUptimeSec) ? String(data.runtime.isolateUptimeSec) : '-';
+
+      const authSummary = data.authSummary || {};
+      const rateSummary = data.rateSummary || {};
+      const checks = data.checks || {};
+      const checkKeys = Object.keys(checks);
+      const healthy = checkKeys.filter(function(k){ return !!checks[k]; });
+
+      els.kpiAuthSuccess.textContent = String(authSummary.success || 0);
+      els.kpiAuthSample.textContent = 'sample size ' + String(authSummary.sampled || 0);
+      els.kpiAuthFail.textContent = String(authSummary.failed || 0);
+      els.kpiAuthLast.textContent = authSummary.lastEventAt ? ('last event ' + fmtDate(authSummary.lastEventAt)) : 'last event -';
+      els.kpiRateKeys.textContent = String(rateSummary.activeKeys || 0);
+      els.kpiRateSource.textContent = rateSummary.available ? 'backed by KV' : 'fallback mode';
+      els.kpiChecks.textContent = healthy.length + '/' + checkKeys.length;
+      els.kpiChecksList.textContent = healthy.length ? healthy.join(', ') : 'no checks passed';
+
+      if (Array.isArray(data.warnings) && data.warnings.length) {
+        els.warnings.style.display = 'block';
+        els.warnings.innerHTML = data.warnings.map(function(w){ return '- ' + escapeHtml(w); }).join('<br>');
+      } else {
+        els.warnings.style.display = 'none';
+        els.warnings.innerHTML = '';
+      }
+    } catch (err) {
+      els.warnings.style.display = 'block';
+      els.warnings.textContent = 'Failed to load admin overview.';
+    }
+  }
+
+  async function runProbes(){
+    const targets = (els.probeTargets.value || '').trim();
+    const q = targets ? ('?targets=' + encodeURIComponent(targets)) : '';
+
+    try {
+      const res = await fetch('/api/admin/probes' + q, { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error('probes_failed');
+
+      const rows = Array.isArray(data.probes) ? data.probes : [];
+      els.probeTableBody.innerHTML = rows.map(function(p){
+        const ok = !!p.ok;
+        const state = ok ? 'OK' : 'FAIL';
+        const cls = ok ? 'state-ok' : 'state-bad';
+        return '<tr>' +
+          '<td><span class="small">' + escapeHtml(p.target || '-') + '</span></td>' +
+          '<td>' + escapeHtml(String(p.status || 0)) + '</td>' +
+          '<td>' + escapeHtml(String(p.ms || 0)) + ' ms</td>' +
+          '<td><span class="small">' + escapeHtml(p.contentType || p.error || '-') + '</span></td>' +
+          '<td class="' + cls + '">' + state + '</td>' +
+        '</tr>';
+      }).join('');
+
+      els.probeStamp.textContent = 'updated ' + fmtTime(data.generatedAt || new Date().toISOString());
+      pushJournal('Ran probes across ' + rows.length + ' targets.');
+    } catch (err) {
+      els.probeTableBody.innerHTML = '<tr><td colspan="5" class="state-bad">Failed to run probes.</td></tr>';
+      els.probeStamp.textContent = 'probe failed';
+    }
+  }
+
+  function resetAuthAndLoad(){
+    authCursor = null;
+    authHasMore = true;
+    els.authTableBody.innerHTML = '';
+    return loadAuthEvents(true);
+  }
+
+  async function loadAuthEvents(replace){
+    if (loadingAuth || !authHasMore) return;
+    loadingAuth = true;
+
+    try {
+      let url = '/api/admin/auth-events?limit=60';
+      if (authCursor) url += '&cursor=' + encodeURIComponent(authCursor);
+
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error('auth_failed');
+
+      const events = Array.isArray(data.events) ? data.events : [];
+      const html = events.map(function(e){
+        const ok = !!e.success;
+        return '<tr>' +
+          '<td><span class="small">' + escapeHtml(fmtDate(e.t)) + '</span></td>' +
+          '<td><span class="small">' + escapeHtml(e.ip || '-') + '</span></td>' +
+          '<td class="' + (ok ? 'state-ok' : 'state-bad') + '">' + (ok ? 'SUCCESS' : 'FAIL') + '</td>' +
+          '<td><span class="small">' + escapeHtml(e.reason || '-') + '</span></td>' +
+          '<td><span class="small">' + escapeHtml((e.ua || '').slice(0, 120)) + '</span></td>' +
+        '</tr>';
+      }).join('');
+
+      if (replace) els.authTableBody.innerHTML = html;
+      else els.authTableBody.insertAdjacentHTML('beforeend', html);
+
+      authCursor = data.cursor || null;
+      authHasMore = !data.listComplete;
+
+      const totalRows = els.authTableBody.querySelectorAll('tr').length;
+      els.authCount.textContent = totalRows + ' rows' + (authHasMore ? ' + more' : '');
+    } catch (err) {
+      if (replace) {
+        els.authTableBody.innerHTML = '<tr><td colspan="5" class="state-bad">Failed to load auth events.</td></tr>';
+      }
+      authHasMore = false;
+    } finally {
+      loadingAuth = false;
+    }
+  }
+
+  function saveNotes(){
+    localStorage.setItem(LS_NOTES, els.ownerNotes.value || '');
+    pushJournal('Saved owner notes.');
+  }
+
+  function loadNotes(){
+    els.ownerNotes.value = localStorage.getItem(LS_NOTES) || '';
+  }
+
+  function addJournalEntry(){
+    const text = (els.journalText.value || '').trim();
+    if (!text) return;
+    pushJournal(text);
+    els.journalText.value = '';
+  }
+
+  function pushJournal(text){
+    const item = {
+      t: new Date().toISOString(),
+      text: String(text || '').slice(0, 500),
+    };
+    const list = readJournal();
+    list.unshift(item);
+    localStorage.setItem(LS_JOURNAL, JSON.stringify(list.slice(0, 400)));
+    renderJournal();
+  }
+
+  function readJournal(){
+    try {
+      const raw = localStorage.getItem(LS_JOURNAL);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function renderJournal(){
+    const list = readJournal();
+    const rows = list.slice(0, 120).map(function(item){
+      return '<tr><td><span class="small">' + escapeHtml(fmtDate(item.t)) + '</span></td><td>' + escapeHtml(item.text || '') + '</td></tr>';
+    });
+    els.journalTableBody.innerHTML = rows.join('') || '<tr><td colspan="2" class="small">No journal entries yet.</td></tr>';
+  }
+
+  function exportJournal(){
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      entries: readJournal(),
+      notes: els.ownerNotes.value || '',
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'okn-admin-journal-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    pushJournal('Exported local journal JSON.');
+  }
+
+  function renderChecklist(){
+    const state = readChecklist();
+    els.checklist.innerHTML = CHECK_ITEMS.map(function(text, idx){
+      const checked = !!state[idx];
+      return '<label class="task">' +
+        '<input type="checkbox" data-check-idx="' + idx + '" ' + (checked ? 'checked' : '') + '>' +
+        '<span class="text">' + escapeHtml(text) + '</span>' +
+      '</label>';
+    }).join('');
+
+    els.checklist.querySelectorAll('input[type="checkbox"]').forEach(function(node){
+      node.addEventListener('change', onChecklistChange);
+    });
+  }
+
+  function onChecklistChange(){
+    const next = {};
+    els.checklist.querySelectorAll('input[type="checkbox"]').forEach(function(node){
+      const idx = node.getAttribute('data-check-idx');
+      if (node.checked) next[idx] = true;
+    });
+    localStorage.setItem(LS_CHECKLIST, JSON.stringify(next));
+  }
+
+  function readChecklist(){
+    try {
+      const raw = localStorage.getItem(LS_CHECKLIST);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function resetChecklist(){
+    localStorage.removeItem(LS_CHECKLIST);
+    renderChecklist();
+    pushJournal('Reset runbook checklist state.');
+  }
+
+  function fmtDate(iso){
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleString();
+  }
+
+  function fmtTime(iso){
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleTimeString();
+  }
+
+  function escapeHtml(value){
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+})();
+</script>
+
+</body>
+</html>
