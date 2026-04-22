@@ -31,6 +31,17 @@ let active = detectInitialLocale();
 /** @type {Set<(locale: 'en'|'ko') => void>} */
 const listeners = new Set();
 
+// Sync <html lang> with the detected locale on module init. Without
+// this, a visitor whose preference comes from localStorage or
+// navigator.language lands on a page still advertising the authoring
+// default in the DOM, confusing screen readers and any CSS that keys
+// off :lang().
+try {
+  if (globalThis.document?.documentElement && globalThis.document.documentElement.lang !== active) {
+    globalThis.document.documentElement.lang = active;
+  }
+} catch { /* ignore */ }
+
 function detectInitialLocale() {
   try {
     const stored = globalThis.localStorage?.getItem(STORAGE_KEY);

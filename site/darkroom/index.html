@@ -877,16 +877,17 @@ body::after{
       </svg>
       <span>OKN<span class="slash">/</span><span class="studio">Studio</span></span>
     </a>
-    <a href="/" class="back">← Back</a>
+    <a href="/" class="back" data-i18n="chrome.back">← Back</a>
     <span class="divider"></span>
     <span class="path">/ <span class="seg-active">darkroom</span></span>
     <div class="chrome-right">
       <span class="server-pill is-soon"
-        title="Server-side routing is wired but the processing server isn't online yet. Every zone runs in the browser. Large batches that would route to the server land in Needs attention instead of being processed.">
-        <span class="dot"></span>Processing server · coming soon
+        data-i18n-attr="title:server.pill.soonTitle">
+        <span class="dot"></span><span data-i18n="server.pill.soon">Processing server · coming soon</span>
       </span>
-      <button type="button" id="dr-open-settings" class="chrome-btn" aria-label="Open settings">
-        Settings
+      <button type="button" id="dr-open-settings" class="chrome-btn"
+        data-i18n-attr="aria-label:chrome.settings.aria">
+        <span data-i18n="chrome.settings">Settings</span>
         <span class="kbd">,</span>
       </button>
     </div>
@@ -896,14 +897,14 @@ body::after{
 <!-- ═══════════ HERO ═══════════ -->
 <section class="hero">
   <div>
-    <div class="hero-kicker"><span class="dot"></span>PHOTO WORKFLOW&nbsp;&nbsp;·&nbsp;&nbsp;PHASE 2</div>
-    <h1 class="hero-title">Normalise <span class="accent">everything.</span></h1>
-    <p class="hero-tagline">One station for the photo work — rename, resize, strip, attribute, archive. Originals are never touched. Every zone ships browser-capable; large batches route to the processing server once it comes online.</p>
+    <div class="hero-kicker"><span class="dot"></span><span data-i18n="hero.kicker">PHOTO WORKFLOW&nbsp;&nbsp;·&nbsp;&nbsp;PHASE 7</span></div>
+    <h1 class="hero-title" data-i18n-html="hero.title">Normalise <span class="accent">everything.</span></h1>
+    <p class="hero-tagline" data-i18n="hero.tagline">One station for the photo work — rename, resize, strip, attribute, archive. Originals are never touched. Every zone ships browser-capable; large batches route to the processing server once it comes online.</p>
   </div>
   <div class="hero-meta">
-    <div>BUILD · <span class="val">PHASE 2</span></div>
-    <div>WIRED · <span class="val">4 / 9</span></div>
-    <div>PRIVACY · <span class="val">LOCAL</span></div>
+    <div><span data-i18n="hero.meta.build">BUILD</span> · <span class="val">PHASE 7</span></div>
+    <div><span data-i18n="hero.meta.wired">WIRED</span> · <span class="val">9 / 9</span></div>
+    <div><span data-i18n="hero.meta.privacy">PRIVACY</span> · <span class="val" data-i18n="hero.meta.privacyValue">LOCAL</span></div>
   </div>
 </section>
 
@@ -925,7 +926,7 @@ body::after{
   <div class="dr-panel-inner">
     <div class="dr-panel-head">
       <div class="dr-panel-head-title">
-        <h2 id="dr-dryrun-title" class="dr-panel-h1">Ready to process</h2>
+        <h2 id="dr-dryrun-title" class="dr-panel-h1" data-i18n="dryrun.title">Ready to process</h2>
         <span id="dr-dryrun-zone" class="dr-panel-zone"></span>
       </div>
       <span id="dr-dryrun-summary" class="dr-panel-summary"></span>
@@ -935,11 +936,11 @@ body::after{
       <table class="dr-dryrun-table">
         <thead>
           <tr>
-            <th>Original</th>
+            <th data-i18n="dryrun.column.original">Original</th>
             <th></th>
-            <th>Output</th>
-            <th>Size</th>
-            <th>Status</th>
+            <th data-i18n="dryrun.column.output">Output</th>
+            <th data-i18n="dryrun.column.size">Size</th>
+            <th data-i18n="dryrun.column.status">Status</th>
           </tr>
         </thead>
         <tbody id="dr-dryrun-tbody"></tbody>
@@ -948,11 +949,11 @@ body::after{
     <div class="dr-panel-foot">
       <label class="dr-skipfuture">
         <input type="checkbox" id="dr-dryrun-skipfuture" />
-        Skip this step next time for this zone
+        <span data-i18n="dryrun.skipFuture">Skip this step next time for this zone</span>
       </label>
       <div style="display:flex;gap:10px">
-        <button type="button" class="dr-btn dr-btn-ghost" data-action="dryrun-back">Back</button>
-        <button type="button" id="dr-dryrun-process" class="dr-btn dr-btn-primary" data-action="dryrun-process">Process →</button>
+        <button type="button" class="dr-btn dr-btn-ghost" data-action="dryrun-back" data-i18n="dryrun.back">Back</button>
+        <button type="button" id="dr-dryrun-process" class="dr-btn dr-btn-primary" data-action="dryrun-process" data-i18n="dryrun.process">Process →</button>
       </div>
     </div>
   </div>
@@ -962,15 +963,15 @@ body::after{
 <div id="dr-processing" class="dr-panel" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="dr-panel-inner">
     <div class="dr-panel-head">
-      <h2 class="dr-panel-h1">Processing</h2>
+      <h2 class="dr-panel-h1" data-i18n="processing.title">Processing</h2>
     </div>
     <div class="dr-panel-body">
       <div class="dr-processing-bar"><div id="dr-processing-bar-fill" class="dr-processing-bar-fill"></div></div>
-      <div id="dr-processing-banner" class="dr-processing-banner" aria-live="polite" aria-atomic="true">Starting…</div>
+      <div id="dr-processing-banner" class="dr-processing-banner" aria-live="polite" aria-atomic="true" data-i18n="processing.starting">Starting…</div>
       <div id="dr-processing-list" class="dr-processing-list"></div>
     </div>
     <div class="dr-panel-foot" style="justify-content:flex-end">
-      <button type="button" class="dr-btn dr-btn-ghost" data-action="process-cancel">Cancel</button>
+      <button type="button" class="dr-btn dr-btn-ghost" data-action="process-cancel" data-i18n="processing.cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -979,7 +980,7 @@ body::after{
 <div id="dr-result" class="dr-panel" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="dr-panel-inner">
     <div class="dr-panel-head">
-      <h2 class="dr-panel-h1">Done</h2>
+      <h2 class="dr-panel-h1" data-i18n="result.title">Done</h2>
     </div>
     <div class="dr-panel-body">
       <div id="dr-result-banner" class="dr-result-banner" aria-live="polite" aria-atomic="true">—</div>
@@ -987,10 +988,10 @@ body::after{
     </div>
     <div class="dr-panel-foot" style="justify-content:space-between;gap:10px;flex-wrap:wrap">
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" id="dr-result-retry" class="dr-btn dr-btn-ghost" data-action="result-retry" hidden>Retry failed</button>
-        <button type="button" class="dr-btn dr-btn-subtle" data-action="result-copy-diag">Copy diagnostics</button>
+        <button type="button" id="dr-result-retry" class="dr-btn dr-btn-ghost" data-action="result-retry" hidden data-i18n="result.retryFailed">Retry failed</button>
+        <button type="button" class="dr-btn dr-btn-subtle" data-action="result-copy-diag" data-i18n="result.copyDiagnostics">Copy diagnostics</button>
       </div>
-      <button type="button" id="dr-result-close" class="dr-btn dr-btn-primary" data-action="result-close">Close</button>
+      <button type="button" id="dr-result-close" class="dr-btn dr-btn-primary" data-action="result-close" data-i18n="result.close">Close</button>
     </div>
   </div>
 </div>
@@ -1000,68 +1001,68 @@ body::after{
   <div id="dr-settings-backdrop" class="dr-drawer-backdrop"></div>
   <aside class="dr-drawer-panel">
     <div class="dr-drawer-head">
-      <h2 id="dr-settings-title" class="dr-drawer-title">Settings</h2>
-      <button type="button" id="dr-close-settings" class="dr-icon-btn" aria-label="Close">
+      <h2 id="dr-settings-title" class="dr-drawer-title" data-i18n="settings.title">Settings</h2>
+      <button type="button" id="dr-close-settings" class="dr-icon-btn" data-i18n-attr="aria-label:settings.close" aria-label="Close">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 5 L15 15"/><path d="M15 5 L5 15"/></svg>
       </button>
     </div>
 
     <div class="dr-drawer-body">
       <section class="dr-drawer-section">
-        <h3 class="dr-drawer-section-title">Language</h3>
+        <h3 class="dr-drawer-section-title" data-i18n="settings.language.section">Language</h3>
         <label class="dr-field">
-          <span class="dr-field-label">Interface language</span>
+          <span class="dr-field-label" data-i18n="settings.language.label">Interface language</span>
           <select id="set-language" class="dr-input">
             <option value="en">English</option>
             <option value="ko">한국어</option>
           </select>
-          <span class="dr-hint">Applies instantly. Stored in this browser.</span>
+          <span class="dr-hint" data-i18n="settings.language.hint">Applies instantly. Stored in this browser.</span>
         </label>
       </section>
 
       <section class="dr-drawer-section">
-        <h3 class="dr-drawer-section-title">Identity</h3>
+        <h3 class="dr-drawer-section-title" data-i18n="settings.creator.section">Identity</h3>
         <label class="dr-field">
-          <span class="dr-field-label">Your name</span>
-          <input type="text" id="set-creator-name" class="dr-input" placeholder="e.g. Nikolaos Pinatsis" />
-          <span class="dr-hint">Used as EXIF Artist / xmp:Creator in auto-injected attribution.</span>
+          <span class="dr-field-label" data-i18n="settings.creator.name">Your name</span>
+          <input type="text" id="set-creator-name" class="dr-input" data-i18n-attr="placeholder:settings.creator.name.placeholder" placeholder="e.g. Nikolaos Pinatsis" />
+          <span class="dr-hint" data-i18n="settings.creator.name.hint">Used as EXIF Artist / xmp:Creator in auto-injected attribution.</span>
         </label>
         <label class="dr-field">
-          <span class="dr-field-label">Email (optional)</span>
+          <span class="dr-field-label" data-i18n="settings.creator.email">Email (optional)</span>
           <input type="email" id="set-creator-email" class="dr-input" placeholder="you@example.com" />
         </label>
         <label class="dr-field">
-          <span class="dr-field-label">Slug for filenames</span>
+          <span class="dr-field-label" data-i18n="settings.creator.slug">Slug for filenames</span>
           <input type="text" id="set-creator-slug" class="dr-input dr-input-mono" placeholder="nikolaos-pinatsis" />
-          <span class="dr-hint">Used by the {photographer} token in renames.</span>
+          <span class="dr-hint" data-i18n="settings.creator.slug.hint">Used by the {photographer} token in renames.</span>
         </label>
       </section>
 
       <section class="dr-drawer-section">
-        <h3 class="dr-drawer-section-title">Attribution template</h3>
+        <h3 class="dr-drawer-section-title" data-i18n="settings.attribution.section">Attribution template</h3>
         <label class="dr-field">
-          <span class="dr-field-label">Copyright</span>
+          <span class="dr-field-label" data-i18n="settings.attribution.copyright">Copyright</span>
           <input type="text" id="set-attr-copy" class="dr-input" />
         </label>
         <label class="dr-field">
-          <span class="dr-field-label">Rights</span>
+          <span class="dr-field-label" data-i18n="settings.attribution.rights">Rights</span>
           <input type="text" id="set-attr-rights" class="dr-input" />
         </label>
         <label class="dr-field">
-          <span class="dr-field-label">Credit</span>
+          <span class="dr-field-label" data-i18n="settings.attribution.credit">Credit</span>
           <input type="text" id="set-attr-credit" class="dr-input" />
         </label>
         <label class="dr-field">
-          <span class="dr-field-label">Source (optional)</span>
+          <span class="dr-field-label" data-i18n="settings.attribution.source">Source (optional)</span>
           <input type="text" id="set-attr-source" class="dr-input" />
         </label>
       </section>
 
       <section class="dr-drawer-section">
-        <h3 class="dr-drawer-section-title">Export / import</h3>
+        <h3 class="dr-drawer-section-title" data-i18n="settings.ioSection">Export / import</h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button type="button" class="dr-btn dr-btn-ghost" onclick="window.__DARKROOM__.onSettingsExport()">Export settings</button>
-          <label class="dr-btn dr-btn-ghost" style="cursor:pointer">
+          <button type="button" class="dr-btn dr-btn-ghost" data-i18n="settings.export" onclick="window.__DARKROOM__.onSettingsExport()">Export settings</button>
+          <label class="dr-btn dr-btn-ghost" style="cursor:pointer" data-i18n="settings.import">
             Import settings…
             <input type="file" id="set-import" accept="application/json" hidden onchange="window.__DARKROOM__.onSettingsImport(event)" />
           </label>
@@ -1069,34 +1070,34 @@ body::after{
       </section>
 
       <section class="dr-drawer-section">
-        <h3 class="dr-drawer-section-title" style="color:var(--danger)">Panic reset</h3>
-        <p class="dr-hint" style="color:var(--text-dim);font-family:var(--font-body);font-size:13px">
+        <h3 class="dr-drawer-section-title" style="color:var(--danger)" data-i18n="settings.panic.section">Panic reset</h3>
+        <p class="dr-hint" style="color:var(--text-dim);font-family:var(--font-body);font-size:13px" data-i18n="settings.panic.warning">
           Wipes settings, remembered defaults, and job history in this browser. Cannot be undone.
         </p>
         <label class="dr-field">
-          <span class="dr-field-label">Type RESET to confirm</span>
+          <span class="dr-field-label" data-i18n="settings.panic.typeToConfirm">Type RESET to confirm</span>
           <input type="text" id="set-panic-input" class="dr-input dr-input-mono" placeholder="RESET" />
         </label>
-        <button type="button" class="dr-btn dr-btn-danger" onclick="window.__DARKROOM__.onPanicReset()">Reset everything</button>
+        <button type="button" class="dr-btn dr-btn-danger" data-i18n="settings.panic.button" onclick="window.__DARKROOM__.onPanicReset()">Reset everything</button>
         <span id="set-panic-msg" class="dr-hint" style="color:var(--warn)"></span>
       </section>
     </div>
 
     <div class="dr-drawer-foot">
-      <button type="button" class="dr-btn dr-btn-ghost" id="dr-close-settings-foot" onclick="document.getElementById('dr-settings').classList.remove('is-open')">Close</button>
-      <button type="button" class="dr-btn dr-btn-primary" onclick="window.__DARKROOM__.onSettingsSave()" style="margin-left:auto">Save</button>
+      <button type="button" class="dr-btn dr-btn-ghost" id="dr-close-settings-foot" data-i18n="settings.close">Close</button>
+      <button type="button" class="dr-btn dr-btn-primary" id="dr-save-settings-foot" data-i18n="settings.save" style="margin-left:auto">Save</button>
     </div>
   </aside>
 </div>
 
 <!-- ═══════════ SHORTCUTS OVERLAY ═══════════ -->
 <div id="dr-shortcuts" class="dr-shortcuts-panel" aria-hidden="true">
-  <div class="dr-shortcuts-title">Keyboard shortcuts</div>
-  <div class="dr-shortcuts-row"><span>Show this list</span><code>?</code></div>
-  <div class="dr-shortcuts-row"><span>Process (in dry-run)</span><code>⌘/Ctrl · Enter</code></div>
-  <div class="dr-shortcuts-row"><span>Jump to zone in active tab</span><code>1 – 9</code></div>
-  <div class="dr-shortcuts-row"><span>Cancel / close</span><code>Esc</code></div>
-  <div class="dr-shortcuts-row"><span>Open settings</span><code>,</code></div>
+  <div class="dr-shortcuts-title" data-i18n="shortcuts.title">Keyboard shortcuts</div>
+  <div class="dr-shortcuts-row"><span data-i18n="shortcuts.label.show">Show this list</span><code>?</code></div>
+  <div class="dr-shortcuts-row"><span data-i18n="shortcuts.label.process">Process (in dry-run)</span><code>⌘/Ctrl · Enter</code></div>
+  <div class="dr-shortcuts-row"><span data-i18n="shortcuts.label.jump">Jump to zone in active tab</span><code>1 – 9</code></div>
+  <div class="dr-shortcuts-row"><span data-i18n="shortcuts.label.cancel">Cancel / close</span><code>Esc</code></div>
+  <div class="dr-shortcuts-row"><span data-i18n="shortcuts.label.settings">Open settings</span><code>,</code></div>
 </div>
 
 <!-- ═══════════ TOAST ═══════════ -->

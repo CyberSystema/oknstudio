@@ -131,7 +131,7 @@ export function routeJob(files, zoneId, overrides) {
   }
 
   return {
-    job: anyOversized ? 'browser' : 'browser', // job still browser; per-file may differ
+    job: 'browser', // whole job stays browser; per-file map may differ
     perFile,
     explain: {
       reason: anyOversized ? 'per-file-oversize' : null,

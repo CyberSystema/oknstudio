@@ -161,9 +161,15 @@ export default {
       } catch { /* keep sRGB */ }
     }
 
+    // Background fill — JPEG can't hold alpha, so 'transparent' collapses to
+    // 'white' for JPEG. Every other choice (white, black, blur) is honoured
+    // for every format.
+    const effectiveBackground =
+      format === 'image/jpeg' && background === 'transparent' ? 'white' : background;
+
     const canvas = new OffscreenCanvas(outW, outH);
     const cx = canvas.getContext('2d', {
-      alpha: format !== 'image/jpeg' && background !== 'white' && background !== 'black',
+      alpha: effectiveBackground === 'transparent',
       willReadFrequently: false,
       desynchronized: false,
       colorSpace: canvasSpace
@@ -173,12 +179,12 @@ export default {
       throw Object.assign(new Error('OffscreenCanvas 2D context unavailable'), { klass: 'unknown' });
     }
 
-    // Background fill — JPEG is always opaque (defaults to white); other
-    // formats honour the caller's preference.
-    if (format === 'image/jpeg' || background === 'white') {
+    // Solid background fill — 'blur' is handled after the orientation
+    // transform below so it paints into the final target canvas.
+    if (effectiveBackground === 'white') {
       cx.fillStyle = '#ffffff';
       cx.fillRect(0, 0, outW, outH);
-    } else if (background === 'black') {
+    } else if (effectiveBackground === 'black') {
       cx.fillStyle = '#000000';
       cx.fillRect(0, 0, outW, outH);
     }
@@ -203,7 +209,7 @@ export default {
       const dH = swapsWH ? srcW : srcH;
       sx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, 0, 0, dW, dH);
 
-      if (background === 'blur' && format !== 'image/jpeg') {
+      if (effectiveBackground === 'blur') {
         // Fill background by up-scaling the source to 'cover' the canvas,
         // blurring, then painting. Canvas filter support varies; guard with a
         // try/catch and fall back to white.

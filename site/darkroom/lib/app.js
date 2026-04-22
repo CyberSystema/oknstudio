@@ -17,7 +17,7 @@
  * delegation on the root so dynamically-rendered controls keep working.
  */
 
-import { t, getLocale, setLocale, getSupportedLocales, onLocaleChange } from './i18n.js';
+import { t, hasMessage, getLocale, setLocale, onLocaleChange } from './i18n.js';
 import { CURRENT_PHASE, ZONES, ZONES_BY_TAB, WIRED_ZONES, isShipped } from './zones/registry.js';
 import { intake } from '@okn/job/intake.js';
 import { createDispatcher } from '@okn/job/dispatcher.js';
@@ -26,7 +26,7 @@ import {
   loadSettings, saveSettings, updateCreator, updateAttribution,
   setDryRunSkip, exportSettings, importSettings
 } from './storage/settings.js';
-import { listHistory, clearHistory, removeHistoryEntry, recordJob } from './storage/history.js';
+import { listHistory, removeHistoryEntry, recordJob } from './storage/history.js';
 import { db } from '@okn/storage/db.js';
 import { destroyPool } from '@okn/job/worker-pool.js';
 
@@ -240,6 +240,7 @@ export async function boot() {
   }
 
   renderAll();
+  applyStaticI18n();
   bindGlobalEvents();
 
   // Terminate web workers when the tab is hidden/closed so they don't
@@ -251,8 +252,42 @@ export async function boot() {
 
   // Re-render whenever the locale changes (sync <html lang> already done by i18n).
   onLocaleChange(() => {
-    try { renderAll(); } catch (e) { console.error('re-render on locale change failed:', e); }
+    try { renderAll(); applyStaticI18n(); }
+    catch (e) { console.error('re-render on locale change failed:', e); }
   });
+}
+
+/**
+ * Walk the DOM once and apply every data-i18n* hook in place. Static
+ * chrome (hero, settings drawer, shortcut overlay, panel headings) uses
+ * this so the authoring-default English strings in index.html don't
+ * leak past the first paint when the user's locale is Korean.
+ *
+ *   data-i18n="key"                 replace textContent with t(key)
+ *   data-i18n-html="key"            replace innerHTML with t(key)
+ *   data-i18n-attr="attr:key[,...]" set attribute to t(key)
+ */
+function applyStaticI18n() {
+  try {
+    for (const el of document.querySelectorAll('[data-i18n]')) {
+      const k = /** @type {HTMLElement} */ (el).dataset.i18n;
+      if (k && hasMessage(k)) el.textContent = t(k);
+    }
+    for (const el of document.querySelectorAll('[data-i18n-html]')) {
+      const k = /** @type {HTMLElement} */ (el).dataset.i18nHtml;
+      if (k && hasMessage(k)) el.innerHTML = t(k);
+    }
+    for (const el of document.querySelectorAll('[data-i18n-attr]')) {
+      const spec = /** @type {HTMLElement} */ (el).dataset.i18nAttr;
+      if (!spec) continue;
+      for (const pair of spec.split(',')) {
+        const [attr, key] = pair.split(':').map((s) => s.trim());
+        if (attr && key && hasMessage(key)) el.setAttribute(attr, t(key));
+      }
+    }
+  } catch (e) {
+    console.error('applyStaticI18n failed:', e);
+  }
 }
 
 function mergeSettings(defaults, overrides) {
@@ -314,7 +349,7 @@ function renderZoneCard(zone) {
 
   if (!live) {
     const comingLabel = isShipped(zone, CURRENT_PHASE)
-      ? 'Coming soon — in Phase 2'
+      ? t('zone.coming.fallback')
       : t('zone.coming.tag', { n: zone.shipsIn });
     return `
       <article class="dr-zone is-coming" data-zone="${zone.id}" aria-disabled="true">
@@ -1259,7 +1294,7 @@ function renderHistoryEntry(entry) {
           zone: '',
           count: entry.fileCount,
           duration: formatDuration(entry.durationMs)
-        })).replace(/^·\s*/, '')}</span>
+        })).replace(/^\s*·\s*/, '')}</span>
       </div>
       <div class="dr-history-entry-actions">
         ${entry.successCount > 0 ? `<span class="dr-pill dr-pill-ok">${entry.successCount} ok</span>` : ''}
@@ -1357,6 +1392,8 @@ function bindGlobalEvents() {
   // Settings drawer
   $('#dr-open-settings')?.addEventListener('click', openSettings);
   $('#dr-close-settings')?.addEventListener('click', closeSettings);
+  $('#dr-close-settings-foot')?.addEventListener('click', closeSettings);
+  $('#dr-save-settings-foot')?.addEventListener('click', onSettingsSave);
   $('#dr-settings-backdrop')?.addEventListener('click', closeSettings);
 
   // Language switcher (inside settings drawer)
@@ -1371,8 +1408,7 @@ function bindGlobalEvents() {
     const el = asEl(e.target);
     if (!el) return;
     if (el.closest('[data-action="dryrun-process"]')) startProcessing();
-    if (el.closest('[data-action="dryrun-back"]'))    closeDryRun();
-    if (el.closest('[data-action="dryrun-cancel"]'))  closeDryRun();
+    if (el.closest('[data-action="dryrun-back"]'))    closeDryRunAndReset();
     if (el.closest('[data-action="process-cancel"]')) cancelProcessing();
     if (el.closest('[data-action="result-close"]'))   closeResult();
     if (el.closest('[data-action="result-retry"]'))   retryFailedJob();
@@ -1700,6 +1736,14 @@ async function startZoneJob(zoneId) {
     dispatcher: null
   };
 
+  // Shared prep: predict output names + compute server routing so both
+  // paths (dry-run AND skip-dry-run) hand the dispatcher a fully-
+  // populated activeJob. Previously only openDryRun ran these steps,
+  // which meant skip-dry-run landed in startProcessing with no
+  // outputName on any row → the row.filter(r => !!r.outputName) step
+  // dropped every file and the user got an empty ZIP.
+  prepareJob(zoneId);
+
   const skipDryRun = !!state.user?.dryRunSkip?.[zoneId];
   if (skipDryRun) {
     await startProcessing();
@@ -1708,18 +1752,23 @@ async function startZoneJob(zoneId) {
   }
 }
 
-function openDryRun() {
-  const panel = $('#dr-dryrun');
-  if (!panel || !state.activeJob) return;
+/**
+ * Predict output names and compute server routing for the current
+ * activeJob. Safe to call from either startZoneJob (skip-dry-run) or
+ * openDryRun — idempotent if called twice on the same rows.
+ */
+function prepareJob(zoneId) {
+  if (!state.activeJob) return;
+  const { rows, settings } = state.activeJob;
+  // Reset per-row dry-run state. Without this, a Back → re-open cycle
+  // keeps stale warnings (e.g. 'name-collision (skip)') around, and a
+  // previously-unset outputName can stay undefined even if the new
+  // settings would have resolved it.
+  for (const row of rows) {
+    row.warnings = [];
+    row.outputName = undefined;
+  }
 
-  const { rows, rejected, zoneId, settings } = state.activeJob;
-  const zone = ZONES.find((z) => z.id === zoneId);
-  const totalBytes = rows.reduce((a, r) => a + r.size, 0);
-
-  // Compute predicted output names — used as a preview. The actual zone
-  // processor does its own rename + collision resolution at process time.
-  // For zones that re-encode (e.g. Web-ready), the preview shows the
-  // original extension; the real output name will carry the target format.
   const predicted = computeBatch({
     items: rows.map((r) => ({
       originalName: r.name,
@@ -1733,10 +1782,64 @@ function openDryRun() {
 
   rows.forEach((row, i) => {
     const r = predicted[i];
-    if (r.status === 'ok')           { row.outputName = r.outputName; }
-    else if (r.status === 'skipped') { row.warnings.push('name-collision (skip)'); row.outputName = undefined; }
-    else                             { row.warnings.push(r.message); row.outputName = undefined; }
+    if (r.status === 'ok') {
+      const ext = r.outputName.includes('.') ? '.' + r.outputName.split('.').pop() : '';
+      const stem = ext ? r.outputName.slice(0, -ext.length) : r.outputName;
+      row.outputName = postProcessName(zoneId, stem, ext, settings);
+    } else if (r.status === 'skipped') {
+      row.warnings.push('name-collision (skip)');
+      row.outputName = undefined;
+    } else {
+      row.warnings.push(r.message);
+      row.outputName = undefined;
+    }
   });
+
+  const routing = routeJob(
+    rows.map((r) => ({ id: r.id, size: r.size })),
+    zoneId,
+    state.user?.thresholdOverrides
+  );
+  state.activeJob.routing = routing;
+}
+
+/**
+ * Zone-specific name post-processing. The generic rename engine doesn't
+ * know about social platform slugs or colour-space profile tags, so the
+ * dry-run preview has to mirror whatever the zone's processor appends
+ * — otherwise the user sees one name in the table and a different one
+ * in the ZIP.
+ */
+function postProcessName(zoneId, stem, ext, settings) {
+  if (zoneId === 'social') {
+    const platform = String(settings.extra?.platform ?? '').trim();
+    if (platform) {
+      const slug = platform.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (slug) return `${stem}_${slug}${ext}`;
+    }
+  }
+  if (zoneId === 'colour-space' && settings.extra?.tagInName) {
+    const profile = String(settings.extra?.targetProfile ?? '').trim();
+    if (profile) {
+      const slug = profile.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (slug) return `${stem}_${slug}${ext}`;
+    }
+  }
+  return `${stem}${ext}`;
+}
+
+function openDryRun() {
+  const panel = $('#dr-dryrun');
+  if (!panel || !state.activeJob) return;
+
+  const { rows, rejected, zoneId, settings } = state.activeJob;
+  const zone = ZONES.find((z) => z.id === zoneId);
+  const totalBytes = rows.reduce((a, r) => a + r.size, 0);
+
+  // Populate predicted output names + routing. prepareJob resets per-
+  // row dry-run state (warnings, outputName) before running so repeat
+  // openDryRun calls don't accumulate stale warnings.
+  prepareJob(zoneId);
 
   $('#dr-dryrun-title').textContent = t('dryrun.title');
   $('#dr-dryrun-zone').textContent  = zone ? t(zone.title) : zoneId;
@@ -1764,14 +1867,9 @@ function openDryRun() {
   const warnings = [];
   if (rejected.length > 0) warnings.push(t('dryrun.warnings.unsupported', { n: rejected.length }));
 
-  // Server routing
-  const routing = routeJob(
-    rows.map((r) => ({ id: r.id, size: r.size })),
-    zoneId,
-    state.user?.thresholdOverrides
-  );
+  // Routing already computed by prepareJob(); re-read it here.
+  const routing = state.activeJob.routing;
   const summary = summariseRouting(routing);
-  state.activeJob.routing = routing;
 
   // All rows route to server AND the server isn't live yet → block Process.
   // (Server-only options/services aren't acceptable in browser-only mode.)
@@ -1858,7 +1956,21 @@ function openDryRun() {
   openModal('dr-dryrun', /** @type {HTMLElement | null} */ ($('#dr-dryrun-process')) || undefined);
 }
 
+/**
+ * Close the dry-run panel's DOM without tearing down activeJob.
+ * Processing / result panels need activeJob to stay alive after the
+ * dry-run dismounts; closeResult() is the sole owner of the teardown.
+ */
 function closeDryRun() {
+  closeModal('dr-dryrun');
+}
+
+/**
+ * Back button on the dry-run — the user is abandoning the job, so we
+ * drop activeJob too. Queued rows stay in state.zoneQueues so the user
+ * can re-trigger Process without re-dropping.
+ */
+function closeDryRunAndReset() {
   closeModal('dr-dryrun');
   state.activeJob = null;
 }
@@ -1892,6 +2004,13 @@ async function startProcessing() {
 
   const processor = await impl.makeProcessor(settings);
   const processedRows = rows.filter((r) => !!r.outputName);
+
+  // Stamp the job's total file count onto every row so zones with
+  // batch-aware heuristics (e.g. bulk-compress Solve) can scale their
+  // sampling without needing the dispatcher to grow a jobBlueprint API.
+  for (const r of processedRows) {
+    /** @type {any} */ (r).__jobFileCount = processedRows.length;
+  }
 
   // Archive (and future zones with batch-level outputs) return
   // { process, finalize } instead of a bare ProcessFn. Detect the shape
@@ -1955,6 +2074,12 @@ function onJobUpdate(job) {
       renderJobUpdate(job);
     });
     return;
+  }
+  // Final / allTerminal render: cancel any RAF scheduled during the
+  // throttle window so it can't fire after us and paint stale progress.
+  if (pendingJobUpdate != null) {
+    cancelAnimationFrame(pendingJobUpdate);
+    pendingJobUpdate = null;
   }
   lastJobUpdateRender = now;
   renderJobUpdate(job);
@@ -2035,15 +2160,42 @@ function openResult(job) {
   }
 
   const needs = $('#dr-needs-attention');
+  // "With warnings" — rows that finished (status === 'done') but carry
+  // at least one non-fatal warning (metadata write failed, solver extrapolated,
+  // attribution couldn't be injected, etc.). These are easy to miss otherwise
+  // because they count as successes in the banner.
+  const warned = okRows.filter((r) => Array.isArray(r.warnings) && r.warnings.length > 0);
+  const withWarningsHtml = warned.length === 0 ? '' : `
+      <h3 class="dr-needs-title">${esc(t('withWarnings.title'))}</h3>
+      <ul class="dr-needs-list">
+        ${warned.map((f) => {
+          const items = (f.warnings ?? []).map((w) => {
+            const key = 'withWarnings.' + w;
+            return hasMessage(key) ? t(key) : w;
+          });
+          return `
+            <li class="dr-needs-item">
+              <code>${esc(f.name)}</code>
+              <span class="dr-needs-detail">${esc(items.join(' · '))}</span>
+            </li>
+          `;
+        }).join('')}
+      </ul>
+    `;
   if (failed.length === 0) {
-    needs.innerHTML = `<p class="dr-muted">${esc(t('needsAttention.empty'))}</p>`;
+    needs.innerHTML = (warned.length === 0)
+      ? `<p class="dr-muted">${esc(t('needsAttention.empty'))}</p>`
+      : withWarningsHtml;
   } else {
     needs.innerHTML = `
       <h3 class="dr-needs-title">${esc(t('needsAttention.title'))}</h3>
       <ul class="dr-needs-list">
         ${failed.map((f) => {
           const cls = f.error?.class ?? 'unknown';
-          const label = t('needsAttention.classes.' + cls) ?? t('needsAttention.classes.unknown');
+          const classKey = 'needsAttention.classes.' + cls;
+          const label = hasMessage(classKey)
+            ? t(classKey)
+            : t('needsAttention.classes.unknown');
           return `
             <li class="dr-needs-item">
               <code>${esc(f.name)}</code>
@@ -2053,6 +2205,7 @@ function openResult(job) {
           `;
         }).join('')}
       </ul>
+      ${withWarningsHtml}
     `;
   }
 
@@ -2092,7 +2245,11 @@ function closeResult() {
 function findRetryableRows(job) {
   const failedIds = new Set(
     job.files
-      .filter((f) => f.status !== 'done' && f.error?.class !== 'server-large-batch-soon')
+      .filter((f) =>
+        f.status !== 'done' &&
+        f.error?.class !== 'server-large-batch-soon' &&
+        f.error?.class !== 'server-required'
+      )
       .map((f) => f.id)
   );
   const out = [];
@@ -2255,7 +2412,7 @@ function replayHistoryEntry(id, startedAt) {
     state.activeTab = zone.tab;
     renderTabs();
     renderZones();
-    openToast(`Loaded settings from “${t(zone.title)}” job.`);
+    openToast(t('history.replay.loaded', { zone: t(zone.title) }));
   }
 }
 
@@ -2272,11 +2429,6 @@ async function removeHistoryEntryAndReload(id, startedAt) {
  *  focus + remove the listener. */
 /** @type {Map<string, { prev: HTMLElement | null, handler: ((e: KeyboardEvent) => void) | null }>} */
 const modalState = new Map();
-
-/** @type {HTMLElement | null} */
-let settingsPreviousFocus = null;
-/** @type {((e: KeyboardEvent) => void) | null} */
-let settingsTrapHandler = null;
 
 function getFocusableIn(root) {
   if (!root) return [];
@@ -2341,8 +2493,6 @@ function openSettings() {
   const panel = $('#dr-settings');
   if (!panel) return;
 
-  settingsPreviousFocus = /** @type {HTMLElement | null} */ (document.activeElement);
-
   /** @type {HTMLInputElement} */ ($('#set-creator-name')).value  = state.user.creator.name;
   /** @type {HTMLInputElement} */ ($('#set-creator-email')).value = state.user.creator.email;
   /** @type {HTMLInputElement} */ ($('#set-creator-slug')).value  = state.user.creator.slug;
@@ -2354,22 +2504,13 @@ function openSettings() {
   const langSel = /** @type {HTMLSelectElement | null} */ ($('#set-language'));
   if (langSel) langSel.value = getLocale();
 
-  panel.classList.add('is-open');
-  panel.setAttribute('aria-hidden', 'false');
-  settingsTrapHandler = trapTabWithin(panel);
-  /** @type {HTMLElement | null} */ ($('#set-creator-name'))?.focus();
+  // Route through the shared modalState registry so focus restoration
+  // and Tab-trap teardown use the same code path as every other panel.
+  openModal('dr-settings', /** @type {HTMLElement | null} */ ($('#set-creator-name')) || undefined);
 }
 
 function closeSettings() {
-  const panel = $('#dr-settings');
-  panel?.classList.remove('is-open');
-  panel?.setAttribute('aria-hidden', 'true');
-  if (settingsTrapHandler) {
-    document.removeEventListener('keydown', settingsTrapHandler);
-    settingsTrapHandler = null;
-  }
-  settingsPreviousFocus?.focus?.();
-  settingsPreviousFocus = null;
+  closeModal('dr-settings');
 }
 
 async function onSettingsSave() {
@@ -2384,7 +2525,7 @@ async function onSettingsSave() {
     credit:            /** @type {HTMLInputElement} */ ($('#set-attr-credit')).value,
     source:            /** @type {HTMLInputElement} */ ($('#set-attr-source')).value.trim() || undefined
   });
-  openToast(t('settings.imported'));
+  openToast(t('settings.saved'));
   closeSettings();
 }
 

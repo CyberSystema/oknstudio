@@ -136,14 +136,19 @@ function createPool(size) {
   }
 
   /**
+   * Resolve/reject a task and free it from the in-flight map. Separated
+   * from slot bookkeeping so cancellation can settle the caller's
+   * promise immediately without re-dispatching into a slot whose worker
+   * may still be mid-task (and whose late response would otherwise land
+   * on the next, unrelated task).
+   *
    * @param {PendingTask} task
    * @param {{ok:boolean,result?:unknown,error?:{class:string,message:string}}} msg
    */
-  function finish(task, msg) {
+  function settle(task, msg) {
+    if (!inFlight.has(task.id)) return;
     inFlight.delete(task.id);
-    if (task.slot) task.slot.task = null;
 
-    // Detach the abort listener so we don't leak.
     if (task.signal && task.onAbort) {
       task.signal.removeEventListener('abort', task.onAbort);
     }
@@ -155,7 +160,19 @@ function createPool(size) {
       err.klass = msg.error?.class ?? 'unknown';
       task.reject(err);
     }
-    // Pump the queue.
+  }
+
+  /**
+   * Called when a worker itself reports a terminal message for the task
+   * that currently owns its slot. Settles the caller (if still pending)
+   * and frees the slot for the next dispatch.
+   *
+   * @param {PendingTask} task
+   * @param {{ok:boolean,result?:unknown,error?:{class:string,message:string}}} msg
+   */
+  function finish(task, msg) {
+    settle(task, msg);
+    if (task.slot && task.slot.task === task) task.slot.task = null;
     dispatch();
   }
 
@@ -176,8 +193,17 @@ function createPool(size) {
       }
 
       const task = inFlight.get(msg.id);
-      if (!task) return;
-      finish(task, msg);
+      if (task) { finish(task, msg); return; }
+
+      // No in-flight task with this id — usually means the caller aborted
+      // and we already settled their promise. The worker still finished
+      // the task (or acknowledged the abort), so the slot that was holding
+      // it must be freed before we dispatch the next task.
+      const slot = slots.find((s) => s.task && s.task.id === msg.id);
+      if (slot) {
+        slot.task = null;
+        dispatch();
+      }
     });
 
     slot.worker.addEventListener('error', (e) => {
@@ -219,14 +245,24 @@ function createPool(size) {
 
       // Abort wiring: if cancelled while queued, drop from queue; if
       // in-flight, tell the worker to stop (graceful — worker may ignore).
+      // We settle the caller's promise immediately, but leave slot.task
+      // intact so the worker's eventual terminal response can still land
+      // on this task id (finish() no-ops because inFlight no longer has
+      // it) without re-dispatching a sibling onto a still-busy worker.
       if (opts.signal) {
         task.onAbort = () => {
           const qIx = queue.indexOf(task);
-          if (qIx !== -1) queue.splice(qIx, 1);
-          if (inFlight.has(task.id) && task.slot) {
-            try { task.slot.worker.postMessage({ __abort: task.id }); } catch { /* ignore */ }
+          if (qIx !== -1) {
+            queue.splice(qIx, 1);
+            settle(task, { ok: false, error: { class: 'cancelled', message: 'Cancelled' } });
+            return;
           }
-          finish(task, { ok: false, error: { class: 'cancelled', message: 'Cancelled' } });
+          if (inFlight.has(task.id)) {
+            if (task.slot) {
+              try { task.slot.worker.postMessage({ __abort: task.id }); } catch { /* ignore */ }
+            }
+            settle(task, { ok: false, error: { class: 'cancelled', message: 'Cancelled' } });
+          }
         };
         opts.signal.addEventListener('abort', task.onAbort, { once: true });
       }

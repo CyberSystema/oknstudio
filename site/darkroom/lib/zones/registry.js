@@ -78,18 +78,18 @@ const GLYPHS = {
 export const ZONES = [
   // Publish
   { id: 'web-ready',       tab: 'publish',  title: 'zone.web-ready.title',       description: 'zone.web-ready.description',
-    glyph: GLYPHS.globe,    shipsIn: 2, accept: ['image/jpeg','image/png','image/heic','image/heif','image/webp','image/tiff'],
+    glyph: GLYPHS.globe,    shipsIn: 2, accept: ['image/jpeg','image/png','image/heic','image/heif','image/webp','image/tiff','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['web-ready'] },
   { id: 'social',          tab: 'publish',  title: 'zone.social.title',          description: 'zone.social.description',
-    glyph: GLYPHS.share,    shipsIn: 5, accept: ['image/jpeg','image/png','image/heic','image/heif','image/webp'],
+    glyph: GLYPHS.share,    shipsIn: 5, accept: ['image/jpeg','image/png','image/heic','image/heif','image/webp','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['social'] },
   { id: 'bulk-compress',   tab: 'publish',  title: 'zone.bulk-compress.title',   description: 'zone.bulk-compress.description',
-    glyph: GLYPHS.minimize, shipsIn: 2, accept: ['image/jpeg','image/png','image/heic','image/heif','image/webp','image/tiff'],
+    glyph: GLYPHS.minimize, shipsIn: 2, accept: ['image/jpeg','image/png','image/heic','image/heif','image/webp','image/tiff','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['bulk-compress'] },
 
   // Convert
   { id: 'heic-to-jpeg',    tab: 'convert',  title: 'zone.heic-to-jpeg.title',    description: 'zone.heic-to-jpeg.description',
-    glyph: GLYPHS.swap,     shipsIn: 4, accept: ['image/heic','image/heif'],
+    glyph: GLYPHS.swap,     shipsIn: 4, accept: ['image/heic','image/heif','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['heic-to-jpeg'] },
   { id: 'raw-develop',     tab: 'convert',  title: 'zone.raw-develop.title',     description: 'zone.raw-develop.description',
     glyph: GLYPHS.aperture, shipsIn: 7, accept: ['.cr2','.cr3','.nef','.nrw','.arw','.dng','.raf','.orf','.rw2','.pef'],
@@ -100,15 +100,15 @@ export const ZONES = [
 
   // Archive
   { id: 'archive',         tab: 'archive',  title: 'zone.archive.title',         description: 'zone.archive.description',
-    glyph: GLYPHS.archive,  shipsIn: 6, accept: ['image/*'],
+    glyph: GLYPHS.archive,  shipsIn: 6, accept: ['image/*','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['archive'] },
 
   // Organize
   { id: 'metadata-studio', tab: 'organize', title: 'zone.metadata-studio.title', description: 'zone.metadata-studio.description',
-    glyph: GLYPHS.tag,      shipsIn: 2, accept: ['image/jpeg','image/png','image/heic','image/heif','image/tiff','image/webp'],
+    glyph: GLYPHS.tag,      shipsIn: 2, accept: ['image/jpeg','image/png','image/heic','image/heif','image/tiff','image/webp','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['metadata-studio'] },
   { id: 'batch-rename',    tab: 'organize', title: 'zone.batch-rename.title',    description: 'zone.batch-rename.description',
-    glyph: GLYPHS.type,     shipsIn: 1, accept: ['image/*'],
+    glyph: GLYPHS.type,     shipsIn: 1, accept: ['image/*','.heic','.heif'],
     thresholds: ZONE_THRESHOLDS['batch-rename'] }
 ];
 

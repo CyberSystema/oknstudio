@@ -68,3 +68,4 @@ analytics-pipeline/data/**/*.csv
 analytics-pipeline/data/**/*.xlsx
 analytics-pipeline/data/**/*.json
 !analytics-pipeline/data/**/.gitkeep
+site/darkroom/DARKROOM_AUDIT.md

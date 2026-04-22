@@ -116,6 +116,33 @@ export async function createArchiveProcessor(settings) {
     creatorName: userSettings.creator.name || 'OKN Team'
   });
 
+  // Live collision tracker shared across every file in this job. Two
+  // inputs with the same name (e.g. IMG_0001.jpg from two cameras) can't
+  // both occupy originals/IMG_0001.jpg — likewise for sidecars/stem.xmp.
+  // We append a numeric suffix on conflict so every entry lands under a
+  // unique path and the manifest records the resolved path, not the
+  // duplicate.
+  /** @type {Map<string, number>} */
+  const seenPaths = new Map();
+  /** @param {string} path */
+  const resolveCollisionLive = (path) => {
+    const used = seenPaths.get(path) ?? 0;
+    if (used === 0) {
+      seenPaths.set(path, 1);
+      return path;
+    }
+    // e.g. originals/IMG_0001.jpg  →  originals/IMG_0001 (2).jpg
+    const dot = path.lastIndexOf('.');
+    const stem = dot > path.lastIndexOf('/') ? path.slice(0, dot) : path;
+    const ext  = dot > path.lastIndexOf('/') ? path.slice(dot)    : '';
+    let n = used + 1;
+    while (seenPaths.has(`${stem} (${n})${ext}`)) n++;
+    const next = `${stem} (${n})${ext}`;
+    seenPaths.set(path, n);
+    seenPaths.set(next, 1);
+    return next;
+  };
+
   /** @type {import('@okn/job/dispatcher.js').ProcessFn} */
   const process = async function (row, _zoneSettings, signal) {
     if (!row.file) throw new DispatchError('corrupt', 'File bytes unavailable');
@@ -126,12 +153,13 @@ export async function createArchiveProcessor(settings) {
     if (signal.aborted) throw new DispatchError('cancelled', 'Cancelled');
     const sha256 = await sha256Hex(bytes);
 
-    const archivedPath = 'originals/' + row.name;
+    const archivedPath = resolveCollisionLive('originals/' + row.name);
     /** @type {Array<{name:string,input:string|Blob}>} */
     const extras = [];
 
     if (settings.extra?.includeSidecars !== false) {
       const stem = stemOf(row.name);
+      const sidecarPath = resolveCollisionLive(`sidecars/${stem}.xmp`);
       const xmp = buildXmpSidecar({
         originalName: row.name,
         sha256,
@@ -142,7 +170,7 @@ export async function createArchiveProcessor(settings) {
         creator: userSettings.creator,
         attribution: userSettings.attribution
       });
-      extras.push({ name: `sidecars/${stem}.xmp`, input: xmp });
+      extras.push({ name: sidecarPath, input: xmp });
     }
 
     // Record for the manifest / README finalize step.

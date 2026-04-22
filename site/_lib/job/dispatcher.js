@@ -170,7 +170,11 @@ export function createDispatcher(opts) {
         }
         job.state = abort.signal.aborted ? 'cancelled' : 'done';
       } catch {
-        job.state = 'failed';
+        // If the job was cancelled mid-flight, an exception bubbling up
+        // from runPool / onFinalize is a downstream effect of the abort —
+        // report it as 'cancelled' so the UI doesn't accuse the user of a
+        // genuine failure.
+        job.state = abort.signal.aborted ? 'cancelled' : 'failed';
       } finally {
         zipper.finish();
         await downloadPromise.catch(() => undefined);

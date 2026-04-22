@@ -145,7 +145,10 @@ export async function createHeicToJpegProcessor(settings) {
           maxEdge: settings.extra.maxEdge || 0,
           format: outFormat,
           quality: clamp01(settings.extra.quality ?? 0.90),
-          orientation: row.inputExif?.orientation ?? 1,
+          // libheif returns RGBA with orientation already applied, so the
+          // downstream encoder must NOT rotate again. Hard-code 1 here;
+          // reading it back off row.inputExif would double-rotate.
+          orientation: 1,
           srgbConvert: !!settings.extra.srgbConvert
         },
         transfer: [rgbaBuf],

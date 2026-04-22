@@ -11,6 +11,27 @@ export const ko = {
   'app.breadcrumb': 'OKN 스튜디오 / 암실',
   'app.tagline': '웹, 소셜, 아카이브용 사진을 정규화·이름 변경·준비합니다.',
 
+  // ─── Chrome / hero (static i18n hooks) ───────────────────────
+  'chrome.back': '← 뒤로',
+  'chrome.settings': '설정',
+  'chrome.settings.aria': '설정 열기',
+  'hero.kicker': '사진 워크플로  ·  PHASE 7',
+  'hero.title': '모두를 <span class="accent">정규화하세요.</span>',
+  'hero.tagline': '사진 작업을 위한 단일 스테이션 — 리네임, 리사이즈, 제거, 귀속, 아카이브. 원본은 건드리지 않습니다. 모든 존이 브라우저에서 동작하며, 대용량 배치는 처리 서버가 가동되면 해당 서버로 라우팅됩니다.',
+  'hero.meta.build': 'BUILD',
+  'hero.meta.wired': 'WIRED',
+  'hero.meta.privacy': 'PRIVACY',
+  'hero.meta.privacyValue': 'LOCAL',
+
+  // ─── 패널 (처리 / 결과) ────────────────────────────────────
+  'processing.title': '처리 중',
+  'processing.starting': '시작 중…',
+  'result.title': '완료',
+  'result.close': '닫기',
+
+  // ─── 기록 재적용 토스트 ────────────────────────────────────
+  'zone.coming.fallback': '준비 중',
+
   'tabs.publish': '퍼블리시',
   'tabs.publish.blurb': '웹·소셜·용량 제한 배포.',
   'tabs.convert': '변환',
@@ -90,6 +111,7 @@ export const ko = {
   'zone.batch-rename.description': 'EXIF 토큰 기반 이름 변경 — 픽셀 변경 없이 즉시 처리.',
 
   'zone.coming.tag': '{n}단계 출시 예정',
+  'zone.coming.now': '준비 중',
   'zone.coming.sub': '다음 빌드에 도착합니다. 워크플로 자리를 유지하기 위해 카드는 그대로 둡니다.',
 
   'dropzone.instructions': '사진을 드롭하거나 클릭하여 선택',
@@ -220,13 +242,21 @@ export const ko = {
   'settings.export': '설정 내보내기',
   'settings.import': '설정 가져오기…',
   'settings.imported': '설정을 가져왔습니다.',
+  'settings.saved': '설정을 저장했습니다.',
   'settings.panic.section': '초기화',
   'settings.panic.warning': '이 브라우저의 설정, 기억된 기본값, 작업 기록을 지웁니다. 되돌릴 수 없습니다.',
   'settings.panic.typeToConfirm': '확인을 위해 RESET 입력',
   'settings.panic.button': '전체 초기화',
   'settings.panic.done': '모두 초기화되었습니다.',
+  'settings.save': '저장',
+  'settings.creator.name.placeholder': '예: 피나치스 니콜라오스',
 
   'shortcuts.title': '키보드 단축키',
+  'shortcuts.label.show': '이 목록 보기',
+  'shortcuts.label.process': '처리 (드라이런 중)',
+  'shortcuts.label.jump': '활성 탭의 존으로 이동',
+  'shortcuts.label.cancel': '취소 / 닫기',
+  'shortcuts.label.settings': '설정 열기',
   'shortcuts.help': '? — 이 목록 표시',
   'shortcuts.process': 'Enter — 처리',
   'shortcuts.cancel': 'Esc — 취소 / 닫기',
@@ -309,5 +339,14 @@ export const ko = {
   'zone.raw-develop.quality':            '품질',
   'zone.raw-develop.unavailable':        'RAW 현상은 처리 서버에서 실행되며 아직 가동되지 않았습니다. 파일은 처리 대신 “확인 필요”에 놓입니다.',
 
-  'needsAttention.classes.server-required': '처리 서버 필요 (준비 중)'
+  'needsAttention.classes.server-required': '처리 서버 필요 (준비 중)',
+
+  // ─── 기록 재적용 및 경고 표시 ───
+  'history.replay.loaded': '“{zone}” 작업의 설정을 불러왔습니다.',
+  'withWarnings.title': '경고와 함께 완료됨',
+  'withWarnings.metadata-write-failed': '메타데이터 쓰기 실패 — 원본 픽셀로 전달',
+  'withWarnings.metadata-policy-unavailable-for-format': '이 포맷은 메타데이터 정책을 지원하지 않음 — 그대로 전달',
+  'withWarnings.attribution-unavailable-for-format': '이 포맷은 귀속 표기 삽입을 지원하지 않음',
+  'withWarnings.solver-below-probe-band': '솔버가 프로브 범위 아래로 외삽함 — 결과가 부정확할 수 있음',
+  'withWarnings.target-unreachable': '품질 하한을 넘어서지 않으면 목표 용량에 도달할 수 없음'
 };

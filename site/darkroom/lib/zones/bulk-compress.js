@@ -123,6 +123,12 @@ export async function createBulkCompressProcessor(settings) {
   let solvePromise = null;
   let chosenQuality = null;
   let solveWarnings = [];
+  // Surface the solver's warnings exactly once per job, regardless of
+  // which concurrent worker call wins the race. Tying this to mySeq
+  // === settings.rename.seqStart is racy: the "first" row isn't always
+  // the one that won solvePromise, and with non-sequential rename
+  // presets the seed index is anything.
+  let solveWarningsSurfaced = false;
 
   /**
    * Lazily kick off Solve the first time a file is processed. We need the
@@ -232,7 +238,8 @@ export async function createBulkCompressProcessor(settings) {
     }
 
     // Surface solver note on first file (others can deduplicate via status).
-    if (solveWarnings.length > 0 && mySeq === settings.rename.seqStart) {
+    if (solveWarnings.length > 0 && !solveWarningsSurfaced) {
+      solveWarningsSurfaced = true;
       for (const w of solveWarnings) row.warnings.push(w);
     }
 

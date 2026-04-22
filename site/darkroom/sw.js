@@ -22,7 +22,29 @@ const PRECACHE = [
   '/darkroom/lib/i18n.js',
   '/darkroom/lib/messages.en.js',
   '/darkroom/lib/messages.ko.js',
-  '/darkroom/lib/zones/registry.js'
+  '/darkroom/lib/zones/registry.js',
+  // Wired zone processors — without these a second-visit offline user
+  // sees the card but the drop → dry-run → process flow 404s.
+  '/darkroom/lib/zones/archive.js',
+  '/darkroom/lib/zones/batch-rename.js',
+  '/darkroom/lib/zones/bulk-compress.js',
+  '/darkroom/lib/zones/colour-space.js',
+  '/darkroom/lib/zones/heic-to-jpeg.js',
+  '/darkroom/lib/zones/metadata-studio.js',
+  '/darkroom/lib/zones/raw-develop.js',
+  '/darkroom/lib/zones/social.js',
+  '/darkroom/lib/zones/web-ready.js',
+  // Shared engines and job plumbing — imported via the importmap.
+  '/_lib/engines/metadata.js',
+  '/_lib/engines/rename.js',
+  '/_lib/job/dispatcher.js',
+  '/_lib/job/intake.js',
+  '/_lib/job/worker-pool.js',
+  '/_lib/job/zipper.js',
+  '/_lib/job/workers/runner.js',
+  '/_lib/job/workers/echo.js',
+  '/_lib/job/workers/image-encode.js',
+  '/_lib/storage/db.js'
 ];
 
 self.addEventListener('install', (event) => {

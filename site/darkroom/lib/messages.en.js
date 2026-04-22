@@ -10,6 +10,27 @@ export const en = {
   'app.breadcrumb': 'OKN Studio / Darkroom',
   'app.tagline': 'Normalise, rename, and prepare photos for web, social, or archive.',
 
+  // ─── Chrome / hero (static i18n hooks) ───────────────────────
+  'chrome.back': '← Back',
+  'chrome.settings': 'Settings',
+  'chrome.settings.aria': 'Open settings',
+  'hero.kicker': 'PHOTO WORKFLOW  ·  PHASE 7',
+  'hero.title': 'Normalise <span class="accent">everything.</span>',
+  'hero.tagline': 'One station for the photo work — rename, resize, strip, attribute, archive. Originals are never touched. Every zone ships browser-capable; large batches route to the processing server once it comes online.',
+  'hero.meta.build': 'BUILD',
+  'hero.meta.wired': 'WIRED',
+  'hero.meta.privacy': 'PRIVACY',
+  'hero.meta.privacyValue': 'LOCAL',
+
+  // ─── Panels (processing / result) ────────────────────────────
+  'processing.title': 'Processing',
+  'processing.starting': 'Starting…',
+  'result.title': 'Done',
+  'result.close': 'Close',
+
+  // ─── History replay toast ────────────────────────────────────
+  'zone.coming.fallback': 'Coming soon',
+
   'tabs.publish': 'Publish',
   'tabs.publish.blurb': 'Web, social, and size-bounded distribution.',
   'tabs.convert': 'Convert',
@@ -89,6 +110,7 @@ export const en = {
   'zone.batch-rename.description': 'Rename using EXIF tokens — no pixel changes, blazing fast.',
 
   'zone.coming.tag': 'Ships in Phase {n}',
+  'zone.coming.now': 'Coming soon',
   'zone.coming.sub': 'Arriving in a later build. The card stays in place so the workflow has a home.',
 
   'dropzone.instructions': 'Drop photos or click to browse',
@@ -182,6 +204,7 @@ export const en = {
   'routing.explain.batch-size-and-count': 'Batch exceeds both the file-count and size limits \u2014 will route to the processing server once it\u2019s live.',
   'routing.explain.per-file-oversize': 'Some files exceed {n}\u202fMB each \u2014 those specific files will route to the processing server once it\u2019s live.',
   'routing.serverNotLive': 'The processing server isn\u2019t live yet. These files will land in \u201cNeeds attention\u201d instead of being processed.',
+  'routing.blockedAllServer': 'This batch needs the processing server, which isn\u2019t live yet. Reduce the file count, shrink the batch size, or pick a zone that runs in-browser.',
   'routing.viewSettings': 'Adjust thresholds',
 
   'server.pill.green': 'Processing server online',
@@ -218,13 +241,21 @@ export const en = {
   'settings.export': 'Export settings',
   'settings.import': 'Import settings\u2026',
   'settings.imported': 'Settings imported.',
+  'settings.saved': 'Settings saved.',
   'settings.panic.section': 'Panic reset',
   'settings.panic.warning': 'Wipes settings, remembered defaults, and job history in this browser. Cannot be undone.',
   'settings.panic.typeToConfirm': 'Type RESET to confirm',
   'settings.panic.button': 'Reset everything',
   'settings.panic.done': 'Everything reset.',
+  'settings.save': 'Save',
+  'settings.creator.name.placeholder': 'e.g. Nikolaos Pinatsis',
 
   'shortcuts.title': 'Keyboard shortcuts',
+  'shortcuts.label.show': 'Show this list',
+  'shortcuts.label.process': 'Process (in dry-run)',
+  'shortcuts.label.jump': 'Jump to zone in active tab',
+  'shortcuts.label.cancel': 'Cancel / close',
+  'shortcuts.label.settings': 'Open settings',
   'shortcuts.help': '? \u2014 show this list',
   'shortcuts.process': 'Enter \u2014 process',
   'shortcuts.cancel': 'Esc \u2014 cancel / close',
@@ -307,5 +338,14 @@ export const en = {
   'zone.raw-develop.quality':        'Quality',
   'zone.raw-develop.unavailable':    'RAW development runs on the processing server, which isn\u2019t online yet. Files drop into Needs attention instead of being processed.',
 
-  'needsAttention.classes.server-required': 'Requires the processing server (coming soon)'
+  'needsAttention.classes.server-required': 'Requires the processing server (coming soon)',
+
+  // ─── History replay & warnings surfacing ───
+  'history.replay.loaded': 'Loaded settings from “{zone}” job.',
+  'withWarnings.title': 'Completed with warnings',
+  'withWarnings.metadata-write-failed': 'Metadata write failed — shipped clean pixels',
+  'withWarnings.metadata-policy-unavailable-for-format': 'Metadata policy not supported for this format — passed through',
+  'withWarnings.attribution-unavailable-for-format': 'Attribution injection not supported for this format',
+  'withWarnings.solver-below-probe-band': 'Solver extrapolated below its probe range — result may be rough',
+  'withWarnings.target-unreachable': 'Target size unreachable above quality floor'
 };
