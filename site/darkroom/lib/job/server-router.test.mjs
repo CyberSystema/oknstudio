@@ -34,6 +34,20 @@ test('batch-rename has NO_THRESHOLD fileSize (pixel-less)', () => {
   assert.equal(ZONE_THRESHOLDS['batch-rename'].fileSizeMB, NO_THRESHOLD);
 });
 
+test('metadata-studio has a finite per-file cap (piexifjs loads bytes into memory)', () => {
+  const cap = ZONE_THRESHOLDS['metadata-studio'].fileSizeMB;
+  assert.ok(Number.isFinite(cap), 'metadata-studio should cap per-file size');
+  assert.ok(cap > 0, 'metadata-studio per-file cap should be positive');
+});
+
+test('metadata-studio routes oversized single file to server', () => {
+  const cap = ZONE_THRESHOLDS['metadata-studio'].fileSizeMB;
+  const decision = routeJob([f('tiff', cap + 50), f('small', 1)], 'metadata-studio');
+  assert.equal(decision.perFile.get('tiff'), 'server-large-batch-soon');
+  assert.equal(decision.perFile.get('small'), 'browser');
+  assert.equal(decision.explain.reason, 'per-file-oversize');
+});
+
 test('raw-develop has the strictest batchCount', () => {
   const raw = ZONE_THRESHOLDS['raw-develop'].batchCount;
   for (const [zoneId, th] of Object.entries(ZONE_THRESHOLDS)) {

@@ -39,7 +39,9 @@
  *     width:    number,
  *     height:   number,
  *     encoded:  { mime: string, quality: number },
- *     elapsed:  number                      // ms
+ *     elapsed:  number,                     // ms
+ *     warnings: string[]                    // non-fatal issues (format downgrade,
+ *                                           //   display-p3 unavailable, etc.)
  *   }
  *
  * Implementation notes
@@ -254,6 +256,16 @@ export default {
 
     // ─── Encode ─────────────────────────────────────────────────────────
 
+    /** @type {string[]} */
+    const warnings = [];
+
+    // Surface a warning if the caller asked for display-p3 but the platform
+    // didn't honour it. Silent sRGB fallback is safe pixel-wise, but the user
+    // should know the output is sRGB and not wide-gamut.
+    if (wantsP3 && canvasSpace !== 'display-p3') {
+      warnings.push('display-p3-unavailable');
+    }
+
     /** @type {Blob} */
     let blob;
     try {
@@ -263,11 +275,19 @@ export default {
       });
     } catch (err) {
       // AVIF isn't supported on all browsers. Fall back to WebP then JPEG.
+      // Surface the downgrade so the caller can push a row warning — users
+      // shouldn't discover a silent format change only when they open the file.
       if (format === 'image/avif') {
-        try { blob = await canvas.convertToBlob({ type: 'image/webp', quality }); }
-        catch { blob = await canvas.convertToBlob({ type: 'image/jpeg', quality }); }
+        try {
+          blob = await canvas.convertToBlob({ type: 'image/webp', quality });
+          warnings.push('format-downgraded-from-avif-to-webp');
+        } catch {
+          blob = await canvas.convertToBlob({ type: 'image/jpeg', quality });
+          warnings.push('format-downgraded-from-avif-to-jpeg');
+        }
       } else if (format === 'image/webp') {
         blob = await canvas.convertToBlob({ type: 'image/jpeg', quality });
+        warnings.push('format-downgraded-from-webp-to-jpeg');
       } else {
         throw Object.assign(new Error(`encode failed: ${err?.message ?? err}`), { klass: 'unknown' });
       }
@@ -284,7 +304,8 @@ export default {
       width:  outW,
       height: outH,
       encoded: { mime: blob.type || format, quality },
-      elapsed: Math.round(t1 - t0)
+      elapsed: Math.round(t1 - t0),
+      warnings
     };
   }
 };

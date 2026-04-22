@@ -151,6 +151,10 @@ export async function createColourSpaceProcessor(settings) {
 
     if (signal.aborted) throw new DispatchError('cancelled', 'Cancelled');
 
+    if (Array.isArray(encoded.warnings)) {
+      for (const w of encoded.warnings) row.warnings.push(w);
+    }
+
     const encodedMime = encoded.encoded?.mime || outFormat;
     let outBlob = new Blob([encoded.buffer], { type: encodedMime });
 

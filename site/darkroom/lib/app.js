@@ -91,7 +91,11 @@ const ZONE_IMPL = {
 };
 
 const PARTIAL_LIVE_ZONES = new Set([
-  'colour-space'
+  'colour-space',
+  // metadata-studio can only rewrite EXIF on JPEG; PNG/TIFF/WebP/HEIC
+  // metadata writes need exiftool on the processing server, so the zone is
+  // only partially live in-browser.
+  'metadata-studio'
 ]);
 
 const SERVER_ONLY_ZONES = new Set([

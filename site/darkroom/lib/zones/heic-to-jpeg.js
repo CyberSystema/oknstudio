@@ -135,7 +135,7 @@ export async function createHeicToJpegProcessor(settings) {
     // ─── Encode via worker (rgba path) ─────────────────────────────────
 
     const rgbaBuf = rgba.buffer.slice(0); // detachable copy for transfer
-    const encoded = /** @type {{buffer:ArrayBuffer,encoded:{mime:string}}} */ (
+    const encoded = /** @type {{buffer:ArrayBuffer,encoded:{mime:string},warnings?:string[]}} */ (
       await pool.run({
         kind: 'image-encode',
         payload: {
@@ -157,6 +157,10 @@ export async function createHeicToJpegProcessor(settings) {
     );
 
     if (signal.aborted) throw new DispatchError('cancelled', 'Cancelled');
+
+    if (Array.isArray(encoded.warnings)) {
+      for (const w of encoded.warnings) row.warnings.push(w);
+    }
 
     const encodedMime = encoded.encoded?.mime || outFormat;
     let outBlob = new Blob([encoded.buffer], { type: encodedMime });

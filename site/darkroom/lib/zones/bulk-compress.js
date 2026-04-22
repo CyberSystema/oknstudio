@@ -220,7 +220,9 @@ export async function createBulkCompressProcessor(settings) {
     );
 
     if (signal.aborted) throw cancel();
-
+    if (Array.isArray(result.warnings)) {
+      for (const w of result.warnings) row.warnings.push(w);
+    }
     // ─── Metadata policy ──────────────────────────────────────────────
     let outBlob = new Blob([result.buffer], { type: result.encoded?.mime || format });
     if ((result.encoded?.mime || format) === 'image/jpeg') {

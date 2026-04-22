@@ -151,7 +151,9 @@ export async function createSocialProcessor(settings) {
     );
 
     if (signal.aborted) throw new DispatchError('cancelled', 'Cancelled');
-
+    if (Array.isArray(encoded.warnings)) {
+      for (const w of encoded.warnings) row.warnings.push(w);
+    }
     // ─── Metadata policy ───────────────────────────────────────────────
 
     const encodedMime = encoded.encoded?.mime || outFormat;

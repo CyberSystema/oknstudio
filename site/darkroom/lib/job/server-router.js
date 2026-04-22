@@ -59,7 +59,10 @@ export const ZONE_THRESHOLDS = {
 
   'archive':          { fileSizeMB: 200, batchCount: 500,   batchSizeMB: 5000 },
 
-  'metadata-studio':  { fileSizeMB: NO_THRESHOLD, batchCount: 2000, batchSizeMB: 5000 },
+  // metadata-studio: JPEG EXIF is rewritten via piexifjs (loads the full
+  // file into memory). Per-file cap guards against single-file RAM blowups
+  // on multi-GB TIFF/PNG inputs. Batch-rename stays truly pixel-less.
+  'metadata-studio':  { fileSizeMB: 200, batchCount: 2000, batchSizeMB: 5000 },
   'batch-rename':     { fileSizeMB: NO_THRESHOLD, batchCount: 10000, batchSizeMB: NO_THRESHOLD }
 };
 

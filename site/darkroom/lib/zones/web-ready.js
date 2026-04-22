@@ -122,7 +122,9 @@ export async function createWebReadyProcessor(settings) {
     );
 
     if (signal.aborted) throw cancelError();
-
+    if (Array.isArray(encodedResult.warnings)) {
+      for (const w of encodedResult.warnings) row.warnings.push(w);
+    }
     // ─── 3. Metadata policy + attribution injection ────────────────────
 
     const encodedMime = encodedResult.encoded?.mime || settings.extra.format;

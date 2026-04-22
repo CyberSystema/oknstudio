@@ -202,8 +202,10 @@ export const en = {
   'needsAttention.classes.collision-skip': 'Skipped (name collision)',
   'needsAttention.classes.metadata-policy-unavailable-for-format': 'Metadata policy not supported for this format — original bytes shipped',
   'needsAttention.classes.metadata-write-failed': 'Metadata write failed — original bytes shipped',
-  'needsAttention.classes.attribution-unavailable-for-format': 'Attribution injection not supported for this format',
-  'needsAttention.classes.server-large-batch-soon': 'Large-batch server routing \u2014 coming soon',
+  'needsAttention.classes.attribution-unavailable-for-format': 'Attribution injection not supported for this format',  'needsAttention.classes.format-downgraded-from-avif-to-webp': 'AVIF encoding unavailable — shipped as WebP instead',
+  'needsAttention.classes.format-downgraded-from-avif-to-jpeg': 'AVIF encoding unavailable — shipped as JPEG instead',
+  'needsAttention.classes.format-downgraded-from-webp-to-jpeg': 'WebP encoding unavailable — shipped as JPEG instead',
+  'needsAttention.classes.display-p3-unavailable': 'Display P3 output unavailable in this browser — shipped as sRGB',  'needsAttention.classes.server-large-batch-soon': 'Large-batch server routing \u2014 coming soon',
   'needsAttention.classes.unknown': 'Unknown error',
 
   'routing.browser': '{n} in browser',
@@ -357,6 +359,10 @@ export const en = {
   'withWarnings.metadata-write-failed': 'Metadata write failed — shipped clean pixels',
   'withWarnings.metadata-policy-unavailable-for-format': 'Metadata policy not supported for this format — passed through',
   'withWarnings.attribution-unavailable-for-format': 'Attribution injection not supported for this format',
+  'withWarnings.format-downgraded-from-avif-to-webp': 'AVIF encoding unavailable in this browser — shipped as WebP instead',
+  'withWarnings.format-downgraded-from-avif-to-jpeg': 'AVIF encoding unavailable in this browser — shipped as JPEG instead',
+  'withWarnings.format-downgraded-from-webp-to-jpeg': 'WebP encoding unavailable in this browser — shipped as JPEG instead',
+  'withWarnings.display-p3-unavailable': 'Display P3 output unavailable in this browser — shipped as sRGB',
   'withWarnings.solver-below-probe-band': 'Solver extrapolated below its probe range — result may be rough',
   'withWarnings.target-unreachable': 'Target size unreachable above quality floor'
 };

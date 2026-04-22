@@ -204,6 +204,10 @@ export const ko = {
   'needsAttention.classes.metadata-policy-unavailable-for-format': '이 포맷은 메타데이터 정책을 지원하지 않음 — 원본 바이트 전달',
   'needsAttention.classes.metadata-write-failed': '메타데이터 쓰기 실패 — 원본 바이트 전달',
   'needsAttention.classes.attribution-unavailable-for-format': '이 포맷은 귀속 표기 삽입을 지원하지 않음',
+  'needsAttention.classes.format-downgraded-from-avif-to-webp': 'AVIF 인코딩 불가 — WebP로 전달함',
+  'needsAttention.classes.format-downgraded-from-avif-to-jpeg': 'AVIF 인코딩 불가 — JPEG으로 전달함',
+  'needsAttention.classes.format-downgraded-from-webp-to-jpeg': 'WebP 인코딩 불가 — JPEG으로 전달함',
+  'needsAttention.classes.display-p3-unavailable': '이 브라우저에선 Display P3 출력 불가 — sRGB로 전달함',
   'needsAttention.classes.server-large-batch-soon': '대용량 배치 서버 라우팅 — 준비 중',
   'needsAttention.classes.unknown': '알 수 없는 오류',
 
@@ -358,6 +362,10 @@ export const ko = {
   'withWarnings.metadata-write-failed': '메타데이터 쓰기 실패 — 원본 픽셀로 전달',
   'withWarnings.metadata-policy-unavailable-for-format': '이 포맷은 메타데이터 정책을 지원하지 않음 — 그대로 전달',
   'withWarnings.attribution-unavailable-for-format': '이 포맷은 귀속 표기 삽입을 지원하지 않음',
+  'withWarnings.format-downgraded-from-avif-to-webp': '이 브라우저에선 AVIF 인코딩 불가 — WebP로 전달함',
+  'withWarnings.format-downgraded-from-avif-to-jpeg': '이 브라우저에선 AVIF 인코딩 불가 — JPEG으로 전달함',
+  'withWarnings.format-downgraded-from-webp-to-jpeg': '이 브라우저에선 WebP 인코딩 불가 — JPEG으로 전달함',
+  'withWarnings.display-p3-unavailable': '이 브라우저에선 Display P3 출력 불가 — sRGB로 전달함',
   'withWarnings.solver-below-probe-band': '솔버가 프로브 범위 아래로 외삽함 — 결과가 부정확할 수 있음',
   'withWarnings.target-unreachable': '품질 하한을 넘어서지 않으면 목표 용량에 도달할 수 없음'
 };
