@@ -216,6 +216,12 @@ const state = {
   /** @type {import('@okn/job/dispatcher.js').Job | null} */
   lastFinishedJob: null,
   zoneSettings: {},
+  // Per-zone pending-file queue. Files drop into this list and wait
+  // for the user to click the zone's Process button — that's when the
+  // dry-run / processing flow fires. Keeps the drop action cheap and
+  // non-modal so users can keep tweaking settings before committing.
+  /** @type {Record<string, { rows: any[], rejected: {name:string,reason:string}[] }>} */
+  zoneQueues: {},
   user: null,
   history: []
 };
@@ -340,7 +346,11 @@ function renderZoneCard(zone) {
       <div class="dr-zone-body"><p class="dr-muted">No renderer registered for this zone.</p></div>
     </article>`;
   }
-  return renderFn(zone, title, desc);
+  // Each renderer returns a full <article>. Splice the shared per-zone
+  // queue UI in just before the closing tag so every wired zone gets
+  // the drop → list → Process flow without touching each template.
+  const html = renderFn(zone, title, desc);
+  return html.replace(/<\/article>\s*$/, `${buildZoneQueue(zone)}</article>`);
 }
 
 // ─── Shared renderer helpers ────────────────────────────────────────────
@@ -365,6 +375,94 @@ function buildDropzone(zone) {
         accept="image/*,.cr2,.cr3,.nef,.arw,.dng,.raf,.orf,.rw2,.pef" hidden />
     </div>
   `;
+}
+
+// ─── Per-zone queue (drop → list → Process button) ───────────────────
+// Files dropped into a zone land in state.zoneQueues[zone.id]. The UI
+// below renders that list plus a Process button that stays disabled
+// until the queue has at least one accepted file. This is what
+// triggers the dry-run flow — drops alone never open a modal.
+
+function buildZoneQueue(zone) {
+  return `
+    <div class="dr-zone-queue" data-zone-queue="${zone.id}">
+      ${buildZoneQueueInner(zone.id)}
+    </div>
+  `;
+}
+
+function buildZoneQueueInner(zoneId) {
+  const q = state.zoneQueues[zoneId] ?? { rows: [], rejected: [] };
+  const n = q.rows.length;
+  if (n === 0) {
+    return `
+      <p class="dr-queue-empty">${esc(t('zone.queue.empty'))}</p>
+      <div class="dr-queue-actions">
+        <button type="button" class="dr-btn dr-btn-primary dr-queue-process"
+          data-action="zone-process" data-zone="${zoneId}" disabled
+          aria-disabled="true">
+          ${esc(t('zone.queue.process', { n: 0 }))}
+        </button>
+      </div>
+    `;
+  }
+  const totalBytes = q.rows.reduce((a, r) => a + (r.size || 0), 0);
+  const items = q.rows.map((r) => `
+    <li class="dr-queue-item" data-row-id="${esc(r.id)}">
+      <span class="dr-queue-item-name" title="${esc(r.name)}">${esc(r.name)}</span>
+      <span class="dr-queue-item-size">${esc(formatBytes(r.size))}</span>
+      <button type="button" class="dr-btn dr-btn-subtle dr-btn-xs dr-queue-remove"
+        data-action="zone-remove" data-zone="${zoneId}" data-row="${esc(r.id)}"
+        aria-label="${esc(t('zone.queue.remove'))} ${esc(r.name)}">×</button>
+    </li>
+  `).join('');
+  return `
+    <div class="dr-queue-head">
+      <span class="dr-queue-count">${esc(t('zone.queue.count', { n, size: formatBytes(totalBytes) }))}</span>
+      <button type="button" class="dr-btn dr-btn-subtle dr-btn-xs"
+        data-action="zone-clear" data-zone="${zoneId}">${esc(t('zone.queue.clear'))}</button>
+    </div>
+    <ul class="dr-queue-list">${items}</ul>
+    <div class="dr-queue-actions">
+      <button type="button" class="dr-btn dr-btn-primary dr-queue-process"
+        data-action="zone-process" data-zone="${zoneId}">
+        ${esc(t('zone.queue.process', { n }))}
+      </button>
+    </div>
+  `;
+}
+
+function renderZoneQueue(zoneId) {
+  const el = document.querySelector(`[data-zone-queue="${zoneId}"]`);
+  if (!el) return;
+  el.innerHTML = buildZoneQueueInner(zoneId);
+}
+
+function enqueueZoneFiles(zoneId, accepted, rejected) {
+  const q = state.zoneQueues[zoneId] ?? (state.zoneQueues[zoneId] = { rows: [], rejected: [] });
+  // Dedupe by (name+size+lastModified) so repeated drops of the same
+  // file don't silently double up.
+  const seen = new Set(q.rows.map((r) => `${r.name}|${r.size}|${r.file?.lastModified ?? 0}`));
+  for (const row of accepted) {
+    const key = `${row.name}|${row.size}|${row.file?.lastModified ?? 0}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    q.rows.push(row);
+  }
+  if (rejected && rejected.length) q.rejected.push(...rejected);
+  renderZoneQueue(zoneId);
+}
+
+function removeQueuedFile(zoneId, rowId) {
+  const q = state.zoneQueues[zoneId];
+  if (!q) return;
+  q.rows = q.rows.filter((r) => r.id !== rowId);
+  renderZoneQueue(zoneId);
+}
+
+function clearZoneQueue(zoneId) {
+  state.zoneQueues[zoneId] = { rows: [], rejected: [] };
+  renderZoneQueue(zoneId);
 }
 
 function buildRenameSelect(zone, rename) {
@@ -1280,6 +1378,24 @@ function bindGlobalEvents() {
     if (el.closest('[data-action="result-retry"]'))   retryFailedJob();
     if (el.closest('[data-action="result-copy-diag"]')) copyDiagnostics();
 
+    // Per-zone queue actions (Process / Clear / Remove row).
+    const processBtn = /** @type {HTMLElement | null} */ (el.closest('[data-action="zone-process"]'));
+    if (processBtn && !processBtn.hasAttribute('disabled')) {
+      const zid = processBtn.dataset.zone;
+      if (zid) startZoneJob(zid);
+    }
+    const clearBtn = /** @type {HTMLElement | null} */ (el.closest('[data-action="zone-clear"]'));
+    if (clearBtn) {
+      const zid = clearBtn.dataset.zone;
+      if (zid) clearZoneQueue(zid);
+    }
+    const removeBtn = /** @type {HTMLElement | null} */ (el.closest('[data-action="zone-remove"]'));
+    if (removeBtn) {
+      const zid = removeBtn.dataset.zone;
+      const rid = removeBtn.dataset.row;
+      if (zid && rid) removeQueuedFile(zid, rid);
+    }
+
     const replay = /** @type {HTMLElement | null} */ (el.closest('[data-history-replay]'));
     if (replay) replayHistoryEntry(replay.dataset.historyReplay, Number(replay.dataset.historyStarted));
     const remove = /** @type {HTMLElement | null} */ (el.closest('[data-history-remove]'));
@@ -1540,19 +1656,51 @@ async function handleFilesDropped(zoneId, files, options = {}) {
 
   const { accepted, rejected } = await intake(files, zone);
 
-  const settings = state.zoneSettings[zoneId];
-  // Retries always re-show the dry-run so the user can re-review the
-  // configuration before processing again — even if they’d previously
-  // opted to skip the dry-run for this zone.
-  const skipDryRun = !options.forceDryRun && !!state.user?.dryRunSkip?.[zoneId];
-
-  state.activeJob = { zoneId, rows: accepted, rejected, settings, dispatcher: null };
-
-  if (accepted.length === 0 && rejected.length > 0) {
+  if (rejected.length > 0) {
     openToast(t('dropzone.rejected', { count: rejected.length }));
+  }
+
+  // Retry path: bypass the per-zone queue and go straight back into
+  // the dry-run with this exact set of files. Retries have already
+  // been queued + processed once; a second queue step is friction.
+  if (options.forceDryRun) {
+    if (accepted.length === 0) return;
+    const settings = state.zoneSettings[zoneId];
+    state.activeJob = { zoneId, rows: accepted, rejected, settings, dispatcher: null };
+    openDryRun();
     return;
   }
 
+  if (accepted.length === 0) return;
+
+  // Default path: enqueue into the zone's pending list. The user
+  // clicks the zone's Process button to launch the dry-run; drops
+  // alone never open a modal.
+  enqueueZoneFiles(zoneId, accepted, rejected);
+}
+
+/**
+ * Launch the dry-run (or skip straight to processing if the user
+ * opted out of dry-runs for this zone) using whatever files are
+ * currently queued for the given zone.
+ */
+async function startZoneJob(zoneId) {
+  const zone = ZONES.find((z) => z.id === zoneId);
+  if (!zone || !WIRED_ZONES.has(zoneId)) return;
+
+  const q = state.zoneQueues[zoneId];
+  if (!q || q.rows.length === 0) return;
+
+  const settings = state.zoneSettings[zoneId];
+  state.activeJob = {
+    zoneId,
+    rows: q.rows.slice(),
+    rejected: q.rejected.slice(),
+    settings,
+    dispatcher: null
+  };
+
+  const skipDryRun = !!state.user?.dryRunSkip?.[zoneId];
   if (skipDryRun) {
     await startProcessing();
   } else {
@@ -1736,6 +1884,11 @@ async function startProcessing() {
   const { zoneId, rows, settings } = state.activeJob;
   const impl = ZONE_IMPL[zoneId];
   if (!impl) { closeDryRun(); return; }
+
+  // Committing to processing — clear the pending-files list so a fresh
+  // drop after this point starts a new batch rather than piling onto
+  // the one that's already running.
+  clearZoneQueue(zoneId);
 
   const processor = await impl.makeProcessor(settings);
   const processedRows = rows.filter((r) => !!r.outputName);

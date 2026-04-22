@@ -97,6 +97,12 @@ export const en = {
   'dropzone.rejected': '{count} files couldn\u2019t be accepted by this zone',
   'dropzone.picker': 'Choose files',
 
+  'zone.queue.empty': 'No files queued yet. Drop photos above to add them.',
+  'zone.queue.count': '{n} file(s) queued · {size}',
+  'zone.queue.process': 'Process {n} file(s) \u2192',
+  'zone.queue.clear': 'Clear',
+  'zone.queue.remove': 'Remove',
+
   'preset.label': 'Preset',
   'rename.label': 'Rename',
   'rename.preset.date-seq': 'Date + sequence',

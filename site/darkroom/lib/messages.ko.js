@@ -98,6 +98,12 @@ export const ko = {
   'dropzone.rejected': '이 존에서 받을 수 없는 파일 {count}개',
   'dropzone.picker': '파일 선택',
 
+  'zone.queue.empty': '대기 중인 파일이 없습니다. 위에 사진을 드롭하여 추가하세요.',
+  'zone.queue.count': '대기 {n}개 · {size}',
+  'zone.queue.process': '{n}개 처리 \u2192',
+  'zone.queue.clear': '비우기',
+  'zone.queue.remove': '제거',
+
   'preset.label': '프리셋',
   'rename.label': '리네임',
   'rename.preset.date-seq': '날짜 + 번호',

@@ -298,6 +298,49 @@ body::after{
   color:var(--text-faint);letter-spacing:0.08em;
 }
 
+/* ─── Per-zone file queue ─── */
+.dr-zone-queue{
+  display:flex;flex-direction:column;gap:10px;
+  padding:14px;
+  background:var(--bg-2);border:1px solid var(--line);border-radius:6px;
+}
+.dr-queue-empty{
+  margin:0;font-family:var(--font-mono);font-size:11px;
+  color:var(--text-faint);letter-spacing:0.08em;text-align:center;
+}
+.dr-queue-head{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.dr-queue-count{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--text-faint);letter-spacing:0.14em;text-transform:uppercase;
+}
+.dr-queue-list{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:4px;
+  max-height:180px;overflow-y:auto;
+}
+.dr-queue-item{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 10px;
+  background:var(--bg-3);border-radius:3px;
+  font-family:var(--font-mono);font-size:11px;
+}
+.dr-queue-item-name{
+  flex:1 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--text);
+}
+.dr-queue-item-size{
+  flex:0 0 auto;color:var(--text-faint);letter-spacing:0.06em;
+}
+.dr-queue-remove{padding:2px 8px;font-size:13px;line-height:1}
+.dr-queue-actions{display:flex;justify-content:flex-end}
+.dr-queue-process[disabled],.dr-queue-process[aria-disabled="true"]{
+  opacity:0.45;cursor:not-allowed;pointer-events:none;
+  box-shadow:none;transform:none;
+}
+
 /* ─── Zone controls ─── */
 .dr-zone-controls{
   display:grid;grid-template-columns:1fr 1fr;gap:12px;
