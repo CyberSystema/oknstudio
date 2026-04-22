@@ -187,6 +187,7 @@ interpolation.
 - If Greek posts exist, each email item includes title + link + date + AI summary in Greek.
 - If no Greek posts exist, the email says there were no new Greek posts this week.
 - Summaries are generated locally by an ML model (sentence-transformers), not an external AI API.
+- Default model is `intfloat/multilingual-e5-large-instruct` (strong multilingual quality for GitHub Actions CPU runs).
 
 ### Trigger
 
@@ -208,6 +209,11 @@ WEEKLY_DIGEST_FROM="OKN Digest <digest@updates.cybersystema.com>" \
 WEEKLY_DIGEST_RECIPIENTS="you@example.com" \
 node tools/weekly-digest.mjs
 ```
+
+### Optional tuning
+
+- `WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES` → summary length (`1..5`, default `3`)
+- `WEEKLY_DIGEST_SUMMARY_MODEL` → local Hugging Face model id (default `intfloat/multilingual-e5-large-instruct`)
 
 Script: `tools/weekly-digest.mjs`
 Workflow: `.github/workflows/weekly-digest.yml`

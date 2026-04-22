@@ -59,6 +59,15 @@ function decodeEntities(text) {
     .replace(/&#39;/g, "'");
 }
 
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function toPlainText(html) {
   return decodeEntities(stripHtml(html || ''));
 }
@@ -66,7 +75,7 @@ function toPlainText(html) {
 function formatDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat('el-GR', {
     year: 'numeric',
     month: 'short',
     day: '2-digit',
@@ -180,6 +189,15 @@ function summarizationInput(post) {
   return chunks.slice(0, 9000);
 }
 
+function cleanSummaryText(summary) {
+  const text = String(summary || '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .trim();
+  if (!text) return 'Δεν υπάρχει διαθέσιμη σύνοψη.';
+  return text.length > 1200 ? `${text.slice(0, 1197)}...` : text;
+}
+
 function summarizeInGreekWithLocalModel({ post, maxSentences }) {
   const text = summarizationInput(post);
   if (!text) {
@@ -190,6 +208,7 @@ function summarizeInGreekWithLocalModel({ post, maxSentences }) {
     title: post.title || '',
     text,
     max_sentences: maxSentences,
+    model_name: env('WEEKLY_DIGEST_SUMMARY_MODEL', 'intfloat/multilingual-e5-large-instruct'),
   };
 
   const run = spawnSync('python3', ['tools/greek_summarizer.py'], {
@@ -227,16 +246,16 @@ async function summarizePostsInGreek(posts, { dryRun, maxSentences }) {
   for (const post of posts) {
     try {
       const summary = summarizeInGreekWithLocalModel({ post, maxSentences });
-      out.push({ ...post, summary });
+      out.push({ ...post, summary: cleanSummaryText(summary) });
     } catch (err) {
       if (!dryRun) throw err;
 
       const fallback = summarizationInput(post).slice(0, 360);
       out.push({
         ...post,
-        summary: fallback
+        summary: cleanSummaryText(fallback
           ? `Πρόχειρη σύνοψη (dry run χωρίς μοντέλο): ${fallback}${fallback.length >= 360 ? '...' : ''}`
-          : 'Δεν υπάρχει επαρκές κείμενο για σύνοψη.',
+          : 'Δεν υπάρχει επαρκές κείμενο για σύνοψη.'),
       });
     }
   }
@@ -272,7 +291,11 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
     `Σύνοψη: ${p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.'}`,
   ].join('\n'));
   const htmlItems = posts
-    .map((p) => `<li><a href="${p.link}">${p.title}</a> <em>(${formatDate(p.date)})</em><br><strong>Σύνοψη:</strong> ${p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.'}</li>`)
+    .map((p) => {
+      const safeTitle = escapeHtml(p.title);
+      const safeSummary = escapeHtml(p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.');
+      return `<li><a href="${p.link}">${safeTitle}</a> <em>(${formatDate(p.date)})</em><br><strong>Σύνοψη:</strong> ${safeSummary}</li>`;
+    })
     .join('');
 
   return {
@@ -348,6 +371,7 @@ async function main() {
   const maxSummarySentences = Number.isFinite(maxSummarySentencesRaw) && maxSummarySentencesRaw > 0
     ? Math.min(5, Math.max(1, Math.floor(maxSummarySentencesRaw)))
     : 3;
+  const summaryModel = env('WEEKLY_DIGEST_SUMMARY_MODEL', 'intfloat/multilingual-e5-large-instruct');
   const dryRun = toBoolean(env('WEEKLY_DIGEST_DRY_RUN', 'false'));
 
   if (!recipients.length) {
@@ -380,7 +404,7 @@ async function main() {
     console.log(`Source: ${source}`);
     console.log(`Total posts found: ${posts.length}`);
     console.log(`Greek posts kept: ${greekPosts.length}`);
-    console.log('AI model: local sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2');
+    console.log(`AI model: local ${summaryModel}`);
     console.log(`Summary sentences per post: ${maxSummarySentences}`);
     console.log(`Recipients: ${recipients.join(', ')}`);
     console.log(`Subject: ${body.subject}`);
@@ -401,7 +425,7 @@ async function main() {
   console.log(`Digest sent to ${recipients.length} recipient(s).`);
   console.log(`Total posts found: ${posts.length}`);
   console.log(`Greek posts emailed: ${summarizedGreekPosts.length}`);
-  console.log('AI model: local sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2');
+  console.log(`AI model: local ${summaryModel}`);
   console.log(`Summary sentences per post: ${maxSummarySentences}`);
   console.log(`Source: ${source}`);
   if (result?.id) {

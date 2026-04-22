@@ -16,16 +16,17 @@ jobs:
   send-digest:
     runs-on: ubuntu-latest
     name: ✉️ Send Weekly Digest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       WEEKLY_DIGEST_SITE_URL: https://orthodoxkorea.org
       WEEKLY_DIGEST_LOOKBACK_DAYS: '7'
-      WEEKLY_DIGEST_RECIPIENTS: ${{ secrets['WEEKLY_DIGEST_RECIPIENTS'] }}
-      WEEKLY_DIGEST_FROM: ${{ secrets['WEEKLY_DIGEST_FROM'] }}
-      RESEND_API_KEY: ${{ secrets['RESEND_API_KEY'] }}
+      WEEKLY_DIGEST_RECIPIENTS: ${{ secrets.WEEKLY_DIGEST_RECIPIENTS }}
+      WEEKLY_DIGEST_FROM: ${{ secrets.WEEKLY_DIGEST_FROM }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES: '5'
+      WEEKLY_DIGEST_SUMMARY_MODEL: intfloat/multilingual-e5-large-instruct
 
     steps:
       - name: ☦️ Checkout
@@ -40,6 +41,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: 🗂️ Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: ${{ runner.os }}-hf-${{ env.WEEKLY_DIGEST_SUMMARY_MODEL }}
 
       - name: 🤖 Install local summarizer model deps
         run: |
