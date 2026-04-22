@@ -217,6 +217,36 @@ function cleanSummaryText(summary) {
   return text.length > 1200 ? `${text.slice(0, 1197)}...` : text;
 }
 
+let cachedAnthropicModels = null;
+
+async function listAnthropicModels(apiKey) {
+  if (cachedAnthropicModels) return cachedAnthropicModels;
+
+  const res = await fetch('https://api.anthropic.com/v1/models', {
+    method: 'GET',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+  });
+
+  if (!res.ok) {
+    cachedAnthropicModels = [];
+    return cachedAnthropicModels;
+  }
+
+  const data = await res.json().catch(() => ({}));
+  const ids = Array.isArray(data?.data)
+    ? data.data.map((m) => String(m?.id || '').trim()).filter(Boolean)
+    : [];
+  cachedAnthropicModels = ids;
+  return cachedAnthropicModels;
+}
+
+function sortLikelyNewest(ids) {
+  return [...ids].sort((a, b) => b.localeCompare(a));
+}
+
 // Claude summarizer — cheapest model, minimal tokens to preserve credits.
 // Only used when ANTHROPIC_API_KEY is set. Falls back to local model otherwise.
 async function summarizeWithClaude({ post, maxSentences }) {
@@ -226,9 +256,17 @@ async function summarizeWithClaude({ post, maxSentences }) {
   // claude-3-5-haiku pricing is low enough for weekly use.
   // Keep an explicit model env, but auto-fallback across known valid IDs
   // because Anthropic account access varies by model/version.
-  const preferredModel = env('WEEKLY_DIGEST_CLAUDE_MODEL', 'claude-3-5-haiku-latest');
+  const preferredModel = env('WEEKLY_DIGEST_CLAUDE_MODEL', 'claude-haiku-4-5');
+
+  // Build model candidates from account-available models first.
+  const availableModels = await listAnthropicModels(apiKey);
+  const availableHaiku = sortLikelyNewest(availableModels.filter((id) => /haiku/i.test(id)));
+
   const modelCandidates = [
     preferredModel,
+    ...availableHaiku,
+    'claude-haiku-4-5',
+    'claude-haiku-4-5-20251001',
     'claude-3-5-haiku-latest',
     'claude-3-haiku-20240307',
   ].filter((m, idx, arr) => m && arr.indexOf(m) === idx);
@@ -272,7 +310,7 @@ async function summarizeWithClaude({ post, maxSentences }) {
     return summary;
   }
 
-  throw new Error(`Anthropic model resolution failed: ${lastError || 'no candidate model succeeded'}`);
+  throw new Error(`Anthropic model unavailable for this key: ${lastError || 'no candidate model succeeded'}`);
 }
 
 function summarizeInGreekWithLocalModel({ post, maxSentences }) {
@@ -327,7 +365,7 @@ async function summarizePostsInGreek(posts, { dryRun, maxSentences }) {
         summary = await summarizeWithClaude({ post, maxSentences });
       } catch (cloudErr) {
         // Local model is fallback only when the Anthropic call fails.
-        console.warn(`[weekly-digest] Claude failed, falling back to local model: ${cloudErr.message}`);
+        console.warn(`[weekly-digest] Claude unavailable, using local fallback: ${cloudErr.message}`);
         summary = summarizeInGreekWithLocalModel({ post, maxSentences });
       }
       out.push({ ...post, summary: cleanSummaryText(summary) });
