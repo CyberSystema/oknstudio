@@ -124,6 +124,9 @@ Set via the Cloudflare Pages dashboard or `wrangler pages secret put`:
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | Pages deploy permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Your account ID |
+| `RESEND_API_KEY` | API key for weekly email delivery (Resend) |
+| `WEEKLY_DIGEST_FROM` | Verified sender, e.g. `OKN Digest <digest@orthodoxkorea.org>` |
+| `WEEKLY_DIGEST_RECIPIENTS` | Comma-separated target emails for weekly digest |
 | `B2_KEY_ID` | B2 key with **read+write** (used by bucket-map to list everything) |
 | `B2_APP_KEY` | B2 key (read+write variant) |
 | `B2_ENDPOINT` | `s3.eu-central-003.backblazeb2.com` |
@@ -176,6 +179,38 @@ query-stringing the values it wants:
 
 All inputs are length-capped, XML-escaped, and enum-validated before
 interpolation.
+
+## Weekly Post Digest
+
+`weekly-digest.yml` sends a weekly email with only the Greek posts published in the last 7 days on `https://orthodoxkorea.org`.
+
+- If Greek posts exist, each email item includes title + link + date + AI summary in Greek.
+- If no Greek posts exist, the email says there were no new Greek posts this week.
+- Summaries are generated locally by an ML model (sentence-transformers), not an external AI API.
+
+### Trigger
+
+- Automatic: every Monday at `00:15 UTC` (`09:15 KST`)
+- Manual: GitHub Actions → **Weekly Orthodox Korea Digest** → **Run workflow**
+
+### Required secrets
+
+- `RESEND_API_KEY`
+- `WEEKLY_DIGEST_FROM`
+- `WEEKLY_DIGEST_RECIPIENT` (single email) or
+- `WEEKLY_DIGEST_RECIPIENTS` (list separated by comma, semicolon, or newline)
+
+### Local dry run (no email sent)
+
+```bash
+WEEKLY_DIGEST_DRY_RUN=true \
+WEEKLY_DIGEST_FROM="OKN Digest <digest@orthodoxkorea.org>" \
+WEEKLY_DIGEST_RECIPIENTS="you@example.com" \
+node tools/weekly-digest.mjs
+```
+
+Script: `tools/weekly-digest.mjs`
+Workflow: `.github/workflows/weekly-digest.yml`
 
 ## Design
 
