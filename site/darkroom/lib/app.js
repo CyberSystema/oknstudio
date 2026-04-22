@@ -1263,6 +1263,16 @@ const ZONE_RENDERERS = {
     return `
       <article class="dr-zone dr-zone-off" data-zone="${zone.id}" aria-disabled="true">
         ${zoneHead(zone, title, desc)}
+
+        <div class="dr-server-notice" role="note">
+          <span class="dr-server-notice-icon" aria-hidden="true">◎</span>
+          <div class="dr-server-notice-body">
+            <strong class="dr-server-notice-title">${esc(t('zone.serverOnly.heading'))}</strong>
+            <span class="dr-server-notice-text">${esc(t('zone.serverOnly.body'))}</span>
+            <span class="dr-server-notice-meta">${esc(t('zone.serverOnly.meta'))}</span>
+          </div>
+        </div>
+
         ${buildDropzone(zone, { disabled: processingDisabled, disabledTitle: t('zone.raw-develop.unavailable') })}
 
         <div class="dr-zone-controls">
@@ -1302,10 +1312,6 @@ const ZONE_RENDERERS = {
               data-zone="${zone.id}" data-control="quality" value="${qPct}"
               disabled aria-disabled="true" />
           </label>
-
-          <p class="dr-hint dr-field-wide" style="margin-top:4px">
-            ${esc(t('zone.raw-develop.unavailable'))}
-          </p>
         </div>
 
         <details class="dr-advanced">

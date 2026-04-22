@@ -118,6 +118,9 @@ export const ko = {
   'zone.status.partial.title': '일부 처리 옵션은 처리 서버가 준비될 때까지 비활성화됩니다.',
   'zone.status.serverOnly': '서버 전용 · 오프라인',
   'zone.status.serverOnly.title': '이 모듈은 처리 서버에서만 실행되며 아직 가동되지 않았습니다.',
+  'zone.serverOnly.heading': '서버 전용 모듈 — 곧 사용 가능',
+  'zone.serverOnly.body': '이 모듈의 모든 기능은 OKN 처리 서버에서만 실행됩니다. 서버가 아직 가동 전이므로 전체 모듈이 비활성화되어 있습니다. 업로드도, 처리도, 브라우저 대체동작도 없습니다.',
+  'zone.serverOnly.meta': '서버가 온라인 되는 즉시 자동으로 잠금이 해제됩니다. 여기서 설정한 값은 저장되어 서버 가동 시 바로 사용됩니다.',
 
   'dropzone.instructions': '사진을 드롭하거나 클릭하여 선택',
   'dropzone.serverLocked': '처리 서버가 준비될 때까지 이 프로세서는 비활성화됩니다',

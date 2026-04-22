@@ -117,6 +117,9 @@ export const en = {
   'zone.status.partial.title': 'Some processing options stay disabled until the processing server is ready.',
   'zone.status.serverOnly': 'Server-only · offline',
   'zone.status.serverOnly.title': 'This module runs entirely on the processing server, which isn’t live yet.',
+  'zone.serverOnly.heading': 'Server-only module — available soon',
+  'zone.serverOnly.body': 'Every control here runs exclusively on the OKN processing server. The server isn’t live yet, so the whole module stays off. No uploads, no processing, no fallback in the browser.',
+  'zone.serverOnly.meta': 'Unlocks automatically once the server is online. Your settings here are remembered and will be ready to use the moment it goes live.',
 
   'dropzone.instructions': 'Drop photos or click to browse',
   'dropzone.serverLocked': 'This processor is disabled until the processing server is ready',
