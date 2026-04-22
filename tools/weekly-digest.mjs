@@ -477,7 +477,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
     return {
       subject: `Εβδομαδιαίο δελτίο Orthodox Korea (${rangeText})`,
       text: [
-        'Χριστός Ανέστη!',
+        'Εβδομαδιαίο Δελτίο Orthodox Korea',
         '',
         `Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο ${siteUrl} την τελευταία εβδομάδα (${rangeText}).`,
         '',
@@ -486,7 +486,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
         `Ιστότοπος: ${siteUrl}`,
       ].join('\n'),
       html: [
-        '<p>Χριστός Ανέστη!</p>',
+        '<p>Εβδομαδιαίο Δελτίο Orthodox Korea</p>',
         `<p>Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο <a href="${siteUrl}">${siteUrl}</a> την τελευταία εβδομάδα (${rangeText}).</p>`,
         `<p style="margin:12px 0 0 0;padding:12px 14px;border-radius:10px;background:#fff6e5;border:1px solid #f5d08a;color:#7a5100;font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.45;"><strong>Προσοχή:</strong> ${escapeHtml(aiDisclaimerText)}</p>`,
         `<p><a href="${siteUrl}">Επίσκεψη στο Orthodox Korea</a></p>`,
@@ -538,7 +538,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   return {
     subject: `Εβδομαδιαίο δελτίο Orthodox Korea: ${posts.length} νέα ελληνική ανάρτηση${posts.length === 1 ? '' : 'ς'}`,
     text: [
-      'Χριστός Ανέστη!',
+      'Εβδομαδιαίο Δελτίο Orthodox Korea',
       '',
       `Νέες ελληνικές αναρτήσεις από το ${siteUrl} για το διάστημα ${rangeText}:`,
       '',
@@ -563,7 +563,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
       '<tr>',
       '<td style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#334155 100%);border-radius:18px;padding:26px 24px;color:#ffffff;">',
       '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:12px;letter-spacing:1.2px;opacity:.82;">ORTHODOX KOREA · WEEKLY BRIEF</div>',
-      '<h1 style="margin:8px 0 10px 0;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:1.15;font-weight:700;">Χριστός Ανέστη!</h1>',
+      '<h1 style="margin:8px 0 10px 0;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:1.15;font-weight:700;">Εβδομαδιαίο Δελτίο Orthodox Korea</h1>',
       `<p style="margin:0;font-family:Segoe UI,Arial,sans-serif;font-size:16px;line-height:1.5;opacity:.92;">Νέες ελληνικές αναρτήσεις για το διάστημα ${escapeHtml(rangeText)}.</p>`,
       '</td>',
       '</tr>',
