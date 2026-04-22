@@ -25,6 +25,8 @@ jobs:
       WEEKLY_DIGEST_RECIPIENTS: ${{ secrets.WEEKLY_DIGEST_RECIPIENTS }}
       WEEKLY_DIGEST_FROM: ${{ secrets.WEEKLY_DIGEST_FROM }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      WEEKLY_DIGEST_CLAUDE_MODEL: claude-3-5-haiku-20241022
       WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES: '5'
       WEEKLY_DIGEST_SUMMARY_MODEL: intfloat/multilingual-e5-large-instruct
 

@@ -44,6 +44,9 @@ function toBoolean(value) {
 function stripHtml(html) {
   return String(html || '')
     .replace(/<[^>]+>/g, ' ')
+    // Collapse spaces that appear around apostrophes/hyphens due to HTML tags between chars
+    .replace(/\s+([''\u2018\u2019\u2014\u2013-])\s+/g, '$1')
+    .replace(/\s+(['])/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -214,6 +217,51 @@ function cleanSummaryText(summary) {
   return text.length > 1200 ? `${text.slice(0, 1197)}...` : text;
 }
 
+// Claude summarizer — cheapest model, minimal tokens to preserve credits.
+// Only used when ANTHROPIC_API_KEY is set. Falls back to local model otherwise.
+async function summarizeWithClaude({ post, maxSentences }) {
+  const apiKey = env('ANTHROPIC_API_KEY');
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
+
+  // claude-3-5-haiku-20241022: $0.80/MTok in + $4/MTok out.
+  // 3 posts/week × 52 = 156 posts/year, with 6000 chars (~1500 tokens input)
+  // and ~300 output tokens each → roughly ~$0.37/year. $5 lasts ~13 years.
+  const model = env('WEEKLY_DIGEST_CLAUDE_MODEL', 'claude-3-5-haiku-20241022');
+  // 6000 chars (~1500 tokens) gives richer context while staying very low cost.
+  const content = summarizationInput(post).slice(0, 6000);
+  const title = post.title || '';
+
+  const userPrompt =
+    `Τίτλος: ${title}\n\nΠεριεχόμενο:\n${content}\n\n` +
+    `Γράψε σύνοψη στα ελληνικά σε ${maxSentences} προτάσεις. ` +
+    `Συμπεριέλαβε μόνο συγκεκριμένα γεγονότα. Μην επαναλαμβάνεις τον τίτλο.`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 350,
+      temperature: 0,
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  const summary = String(data?.content?.[0]?.text || '').trim();
+  if (!summary) throw new Error('Anthropic API returned empty response');
+  return summary;
+}
+
 function summarizeInGreekWithLocalModel({ post, maxSentences }) {
   const text = summarizationInput(post);
   if (!text) {
@@ -261,7 +309,14 @@ async function summarizePostsInGreek(posts, { dryRun, maxSentences }) {
   const out = [];
   for (const post of posts) {
     try {
-      const summary = summarizeInGreekWithLocalModel({ post, maxSentences });
+      let summary;
+      try {
+        summary = await summarizeWithClaude({ post, maxSentences });
+      } catch (cloudErr) {
+        // Local model is fallback only when the Anthropic call fails.
+        console.warn(`[weekly-digest] Claude failed, falling back to local model: ${cloudErr.message}`);
+        summary = summarizeInGreekWithLocalModel({ post, maxSentences });
+      }
       out.push({ ...post, summary: cleanSummaryText(summary) });
     } catch (err) {
       if (!dryRun) throw err;
@@ -383,6 +438,7 @@ async function main() {
   const recipients = parseRecipients([recipientsList, recipientSingle].filter(Boolean).join(','));
   const sender = env('WEEKLY_DIGEST_FROM', '');
   const resendApiKey = env('RESEND_API_KEY', '');
+  const anthropicApiKey = env('ANTHROPIC_API_KEY', '');
   const maxSummarySentencesRaw = Number(env('WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES', '3'));
   const maxSummarySentences = Number.isFinite(maxSummarySentencesRaw) && maxSummarySentencesRaw > 0
     ? Math.min(5, Math.max(1, Math.floor(maxSummarySentencesRaw)))
@@ -405,6 +461,10 @@ async function main() {
 
   if (!dryRun && !resendApiKey) {
     throw new Error('RESEND_API_KEY is required unless WEEKLY_DIGEST_DRY_RUN=true.');
+  }
+
+  if (!dryRun && !anthropicApiKey) {
+    throw new Error('ANTHROPIC_API_KEY is required unless WEEKLY_DIGEST_DRY_RUN=true.');
   }
 
   const { posts, fromMs, toMs, source } = await getPostsForLastWeek(siteUrl, lookbackDays);

@@ -27,6 +27,11 @@ def normalize_text(text: str) -> str:
     cleaned = re.sub(r"https?://\S+", " ", cleaned)
     cleaned = re.sub(r"\b(?:share|cookie|privacy|menu|search|login|subscribe)\b", " ", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"[\|•►▶★☆]+", " ", cleaned)
+    # Fix spaces inserted by HTML stripping inside parens and around apostrophes/dashes.
+    cleaned = re.sub(r"\(\s+", "(", cleaned)
+    cleaned = re.sub(r"\s+\)", ")", cleaned)
+    cleaned = re.sub(r"\s+(['\u2019\u2018])\s+", r"\1", cleaned)
+    cleaned = re.sub(r"\s+([\u2013\u2014-])\s+", r"\1", cleaned)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned
 
@@ -60,11 +65,17 @@ def split_sentences(text: str) -> List[str]:
     if not normalized:
         return []
 
-    parts = re.split(r"(?<=[\.!;;\?])\s+", normalized)
+    # Split only on `.` when followed by a Greek uppercase letter (avoids
+    # chopping abbreviations like "St.", "π.", "κ.", etc.), or on `!`/`?`
+    # which always mark a sentence boundary.
+    parts = re.split(r"\.(?=\s+[Α-ΩΆΈΉΊΌΎΏΪΫά-ώ])|(?<=[!?;])\s+", normalized)
     sentences = []
     seen = set()
     for part in parts:
         chunk = part.strip()
+        # Salvage sentences with a trailing orphaned open-paren artifact.
+        if chunk.count("(") != chunk.count(")"):
+            chunk = re.sub(r"\s*\(\s*\S{0,25}\s*$", "", chunk).strip()
         if not sentence_quality(chunk):
             continue
         key = chunk.casefold()
@@ -99,8 +110,14 @@ def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME, t
 
     sims = cosine_similarity_matrix(sent_embeddings, doc_embedding).reshape(-1)
 
+    # Position bias: sentences earlier in the article carry more weight.
+    # Score = 0.7*relevance + 0.3*position_weight so lead facts dominate.
+    n = len(sentences)
+    position_scores = np.array([1.0 - (i / n) * 0.6 for i in range(n)])
+    combined = 0.7 * sims + 0.3 * position_scores
+
     # Keep strong and diverse sentences (simple MMR-like penalty).
-    ranked = list(np.argsort(-sims))
+    ranked = list(np.argsort(-combined))
     selected = []
     selected_set = set()
 
@@ -117,7 +134,7 @@ def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME, t
             ).reshape(-1)
             penalty = float(np.max(sim_to_selected)) if sim_to_selected.size else 0.0
 
-        score = float(sims[i]) - 0.25 * penalty
+        score = float(combined[i]) - 0.25 * penalty
         if score < 0.05:
             continue
 
@@ -127,7 +144,7 @@ def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME, t
             break
 
     if not selected:
-        selected = [int(i) for i in np.argsort(-sims)[:max_sentences]]
+        selected = [int(i) for i in np.argsort(-combined)[:max_sentences]]
 
     selected = [sentences[i] for i in sorted(selected)]
     summary = " ".join(selected).strip()
@@ -135,6 +152,9 @@ def summarize(text: str, max_sentences: int = 3, model_name: str = MODEL_NAME, t
     # Final polish.
     summary = re.sub(r"\s+([,.;:!?])", r"\1", summary)
     summary = re.sub(r"\s+", " ", summary).strip()
+    # Ensure the summary ends with a period.
+    if summary and summary[-1] not in ".!?":
+        summary += "."
     return summary or "Δεν υπάρχει επαρκές κείμενο για σύνοψη."
 
 
