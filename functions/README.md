@@ -14,6 +14,7 @@ Edge serverless routes. Every request to the site runs through
 | `GET /api/media/list` | `api/media/list.js` | Lists keys in the private B2 bucket (authenticated). |
 | `GET /api/media/download/*` | `api/media/download/[[path]].js` | Range-capable proxy for B2 object downloads. |
 | `GET /api/admin/overview` | `api/admin/overview.js` | Runtime/env readiness summary for owner admin dashboard. |
+| `GET /api/admin/autonomy` | `api/admin/autonomy.js` | Live survivability report: runtime readiness, internal probes, recent operational evidence, dependency continuity, and recovery recommendations. |
 | `GET /api/admin/probes` | `api/admin/probes.js` | Synthetic checks for first-party routes with latency and status reporting. |
 | `GET /api/admin/auth-events` | `api/admin/auth-events.js` | Paged auth audit events from `AUDIT_LOG_KV`. |
 | `GET /api/admin/logs` | `api/admin/logs.js` | Paged unified activity logs with category/level/path/text filters. |

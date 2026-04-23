@@ -1,0 +1,150 @@
+name: Autonomy Escalation
+
+# ─────────────────────────────────────────────────────────
+# Turns Autonomy Watch failures into a tracked maintenance
+# incident issue, then auto-resolves it when watch recovers.
+#
+# This reduces reliance on humans actively watching Actions.
+# ─────────────────────────────────────────────────────────
+
+on:
+  workflow_run:
+    workflows: ['Autonomy Watch']
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  escalate:
+    if: github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    name: 🚨 Open or Update Incident
+
+    steps:
+      - name: ☦️ Checkout
+        uses: actions/checkout@v6
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 🧾 Generate recovery playbooks
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node tools/autonomy-incident-playbooks.mjs > autonomy-playbooks.md
+
+      - name: Create or update autonomy incident
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('node:fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = 'Autonomy Watch incident';
+            const label = 'autonomy-alert';
+            const run = context.payload.workflow_run;
+            const runUrl = run.html_url;
+            const runId = run.id;
+            const conclusion = run.conclusion || 'unknown';
+            const startedAt = run.run_started_at || run.created_at || new Date().toISOString();
+            const playbooks = fs.existsSync('autonomy-playbooks.md')
+              ? fs.readFileSync('autonomy-playbooks.md', 'utf8')
+              : '_Recovery playbooks unavailable in this run._';
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+
+            const existing = issues.find((issue) => issue.title === title) || null;
+
+            const body = [
+              'Autonomy Watch detected a failure and opened this incident automatically.',
+              '',
+              `- Workflow run: ${runUrl}`,
+              `- Run ID: ${runId}`,
+              `- Conclusion: ${conclusion}`,
+              `- Started at: ${startedAt}`,
+              '',
+              playbooks,
+              '',
+              'This issue will be auto-closed when a subsequent Autonomy Watch run succeeds.',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body,
+              });
+              core.info(`Updated existing incident issue #${existing.number}`);
+              return;
+            }
+
+            const created = await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body,
+              labels: [label, 'ops'],
+            });
+
+            core.info(`Created incident issue #${created.data.number}`);
+
+  resolve:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    name: ✅ Auto-resolve Incident
+
+    steps:
+      - name: Close active autonomy incident
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const title = 'Autonomy Watch incident';
+            const label = 'autonomy-alert';
+            const run = context.payload.workflow_run;
+            const runUrl = run.html_url;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+
+            const existing = issues.find((issue) => issue.title === title) || null;
+            if (!existing) {
+              core.info('No open autonomy incident issue found.');
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: existing.number,
+              body: [
+                'Autonomy Watch recovered and this incident is being closed automatically.',
+                '',
+                `- Recovery run: ${runUrl}`,
+              ].join('\n'),
+            });
+
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: existing.number,
+              state: 'closed',
+            });
+
+            core.info(`Closed autonomy incident issue #${existing.number}`);

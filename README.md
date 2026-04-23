@@ -226,6 +226,125 @@ The cron path is idempotent for a given digest window: if a draft for the curren
 
 `tools/weekly-digest.mjs` still exists for local/manual use, but it is no longer the production automation path.
 
+## Autonomy & Self-Maintenance
+
+This repo now treats self-maintenance as a first-class requirement, not an assumption.
+
+### What is already autonomous
+
+- GitHub Actions covers deploys, analytics generation, and bucket-map refreshes.
+- Dependabot updates npm, Python pipeline, and GitHub Actions dependencies on a schedule.
+- Cloudflare Pages Functions expose owner-only operational endpoints for runtime readiness, probes, logs, and control-center data.
+- The optional digest cron Worker can generate draft emails on schedule without manual intervention.
+
+### Repo autonomy audit
+
+Run the repo audit locally:
+
+```bash
+npm run autonomy:check
+```
+
+For machine-readable output:
+
+```bash
+node tools/autonomy-audit.mjs --json --strict
+```
+
+The audit verifies the minimum self-maintenance contract:
+
+- core automation files exist;
+- verification scripts stay wired into normal development;
+- CI continues to run the autonomy audit;
+- dependency update automation remains enabled;
+- the runtime operational surfaces stay documented.
+
+The script exits non-zero only for critical autonomy regressions, so it can be used safely in CI without creating noise from lower-priority recommendations.
+
+### Live autonomy report
+
+The deployed admin surface now exposes a machine-readable runtime survivability report at `/api/admin/autonomy`.
+
+It is owner-gated like the rest of `/api/admin/*` and summarizes:
+
+- configuration continuity for auth, media, ingest, digest, and log durability;
+- first-party control-plane probe results;
+- recent operational evidence from the unified log store;
+- external dependency continuity for Cloudflare, GitHub, Backblaze, Anthropic, and Resend;
+- top recovery actions in priority order.
+
+The owner admin console reads this endpoint directly so the live system can explain its own maintainability state without requiring local repo access.
+
+### Scheduled autonomy watch
+
+GitHub Actions also runs a scheduled `Autonomy Watch` workflow to detect drift even when no code changes are being made. It executes the normal verification path, generates a JSON autonomy report artifact, and writes a concise summary into the workflow run.
+
+### Automatic incident escalation
+
+`Autonomy Escalation` listens to `Autonomy Watch` results and converts failures into a tracked GitHub issue automatically.
+
+- On watch failure: opens (or updates) one incident issue labeled `autonomy-alert`.
+- On watch recovery: comments and closes that incident issue automatically.
+
+This ensures autonomy regressions are preserved as actionable backlog items even if no one is actively watching Actions in real time.
+
+### Automatic self-healing
+
+`Autonomy Self-Heal` runs after failed `Autonomy Watch` executions and attempts a narrow, deterministic set of repository repairs.
+
+- It runs `tools/autonomy-self-heal.mjs` in dry-run and apply mode.
+- It re-runs `npm run verify` after repairs.
+- If successful, it opens an automatic PR with the repairs for review.
+
+Current healing scope is intentionally conservative:
+
+- restore `autonomy:check` and `verify` script wiring in `package.json`;
+- restore autonomy audit step in `type-check.yml`;
+- restore critical verification/schedule wiring in `autonomy-watch.yml`.
+
+This creates a safe self-healing loop without giving automation permission to make broad or irreversible code changes.
+
+### Environment recovery playbooks
+
+The live autonomy endpoint now returns generated environment recovery playbooks (`recoveryPlaybooks`) for common non-code failures.
+
+- Missing Pages runtime secrets are mapped to deterministic `wrangler pages secret put` command templates.
+- Missing KV bindings are surfaced as explicit binding runbooks.
+- GitHub Actions secret continuity includes a `gh secret set` command pack for fast restoration.
+
+These playbooks are rendered directly in the owner admin autonomy panel, including one-click copy for each command set.
+
+Incident playbooks are attached automatically to `Autonomy Watch incident` issues via the escalation workflow, so each failure ticket carries immediate recovery command packs.
+
+### Dependabot guarded auto-merge
+
+`Dependabot Auto-Merge` verifies Dependabot PRs and enables auto-merge only for semver patch/minor updates after full repo verification succeeds.
+
+### Uptime guardian
+
+`Uptime Guardian` probes public surfaces every 30 minutes and maintains a dedicated `uptime-alert` issue lifecycle (open/update on failure, close on recovery).
+
+### Backup and restore drill
+
+`Backup & Restore Drill` runs weekly, creates an archive of critical project state, restores it in CI, validates key files, and raises a `backup-alert` issue on failure.
+
+### Secret rotation governance
+
+`Secret Rotation Governance` opens or refreshes a monthly checklist issue for credential hygiene and rotation operations.
+
+### Incident triage bot
+
+`Autonomy Incident Triage` automatically posts a triage checklist on autonomy-alert issues and delegates a proposed code fix request to Copilot.
+
+### Operational rule
+
+Any future feature that becomes operationally important should add at least one of these before it is considered complete:
+
+- a scheduled automation path;
+- a runtime readiness/probe surface;
+- a documented manual fallback;
+- an audit check in `tools/autonomy-audit.mjs`.
+
 ## Design
 
 OKN Studio ships in a single visual language — **Signal Studio**. A broadcast-engineering console crossed with a modern developer tool: dark ink backdrop, one confident mint-teal accent (`#5eead4`), Sora + IBM Plex for typography, a network-graph mark that doubles as the brand. Every module — analytics, media, ingest, calendar, colophon — reads from the same token set.

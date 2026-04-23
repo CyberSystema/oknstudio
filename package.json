@@ -4,10 +4,11 @@
   "private": true,
   "description": "OKN Studio — Orthodox Korea Network digital workspace",
   "scripts": {
+    "autonomy:check": "node tools/autonomy-audit.mjs --strict",
     "check": "tsc",
     "check:watch": "tsc --watch",
     "test": "node --test site/_lib/engines/rename.test.mjs site/darkroom/lib/job/server-router.test.mjs",
-    "verify": "npm run check && npm test"
+    "verify": "npm run check && npm test && npm run autonomy:check"
   },
   "dependencies": {
     "aws4fetch": "^1.0.20"

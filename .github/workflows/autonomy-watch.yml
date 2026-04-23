@@ -1,0 +1,88 @@
+name: Autonomy Watch
+
+# ─────────────────────────────────────────────────────────
+# Scheduled drift detection for the repo's self-maintenance
+# contract. Runs even when no one is actively touching code.
+#
+# Produces:
+#   • normal verify signal (type-check + tests + autonomy audit)
+#   • machine-readable autonomy-report.json artifact
+#   • concise workflow summary for fast inspection
+# ─────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '30 0 * * *'  # Daily 09:30 KST = 00:30 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: autonomy-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    name: 🛰️ Autonomy Watch
+    timeout-minutes: 10
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout
+        uses: actions/checkout@v6
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 📥 Install
+        run: npm install
+
+      - name: ✅ Verify repo
+        run: npm run verify
+
+      - name: 🧾 Generate autonomy report
+        run: node tools/autonomy-audit.mjs --json --strict > autonomy-report.json
+
+      - name: 📤 Upload autonomy artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomy-report
+          path: autonomy-report.json
+          if-no-files-found: error
+
+      - name: 📋 Summary
+        if: always()
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+          if (!fs.existsSync('autonomy-report.json')) {
+            fs.appendFileSync(summaryPath, '## 🛰️ Autonomy Watch\n\nNo autonomy report artifact was generated in this run.\n');
+            process.exit(0);
+          }
+          const report = JSON.parse(fs.readFileSync('autonomy-report.json', 'utf8'));
+          const lines = [
+            '## 🛰️ Autonomy Watch',
+            '',
+            '| Metric | Value |',
+            '|---|---|',
+            `| Score | **${report.score}/100** |`,
+            `| Status | ${report.ok ? 'PASS' : 'FAIL'} |`,
+            `| Passing checks | ${report.summary.passed}/${report.summary.total} |`,
+            `| Critical failures | ${report.summary.criticalFailures} |`,
+            `| Important failures | ${report.summary.importantFailures} |`,
+          ];
+          if (Array.isArray(report.recommendations) && report.recommendations.length) {
+            lines.push('', '### Top Actions', '');
+            for (const row of report.recommendations.slice(0, 5)) {
+              lines.push(`- [${row.severity}] ${row.action}`);
+            }
+          }
+          fs.appendFileSync(summaryPath, lines.join('\n') + '\n');
+          NODE

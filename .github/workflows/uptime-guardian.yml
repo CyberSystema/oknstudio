@@ -1,0 +1,114 @@
+name: Uptime Guardian
+
+# ─────────────────────────────────────────────────────────
+# Public-surface uptime bot.
+# - Probes selected endpoints on a schedule.
+# - Opens/updates a tracked issue when probes fail.
+# - Auto-closes when probes recover.
+# ─────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    name: 🌐 Uptime Probe
+
+    steps:
+      - name: Probe public endpoints
+        id: probe
+        run: |
+          set -euo pipefail
+          BASE="https://oknstudio.cybersystema.com"
+
+          probe() {
+            local path="$1"
+            local expect="$2"
+            local code
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "$BASE$path" || echo "000")
+            if [[ "$code" != "$expect" ]]; then
+              echo "FAIL $path expected=$expect got=$code" | tee -a probe.log
+              return 1
+            fi
+            echo "OK   $path status=$code" | tee -a probe.log
+          }
+
+          ok=1
+          probe "/_health" "200" || ok=0
+          probe "/share?variant=status&title=probe" "200" || ok=0
+          probe "/status/" "401" || ok=0
+
+          if [[ "$ok" -eq 1 ]]; then
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update uptime incident
+        if: steps.probe.outputs.healthy != 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = 'Uptime Guardian incident';
+            const label = 'uptime-alert';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', labels: label, per_page: 100,
+            });
+            const existing = issues.find((i) => i.title === title) || null;
+
+            const body = [
+              'Uptime Guardian detected probe failure.',
+              '',
+              `- Workflow run: ${runUrl}`,
+              '- Probes: /_health, /share, /status/',
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body });
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body,
+              labels: [label, 'ops'],
+            });
+
+      - name: Resolve uptime incident
+        if: steps.probe.outputs.healthy == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = 'Uptime Guardian incident';
+            const label = 'uptime-alert';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: 'open', labels: label, per_page: 100,
+            });
+            const existing = issues.find((i) => i.title === title) || null;
+            if (!existing) return;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: existing.number,
+              body: `Uptime recovered.\n\n- Recovery run: ${runUrl}`,
+            });
+
+            await github.rest.issues.update({ owner, repo, issue_number: existing.number, state: 'closed' });

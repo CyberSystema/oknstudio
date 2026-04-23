@@ -1,0 +1,59 @@
+name: Autonomy Incident Triage
+
+# ─────────────────────────────────────────────────────────
+# Triage bot for autonomy incidents.
+# Adds structured incident metadata and delegates coding
+# follow-up to Copilot via mention command.
+# ─────────────────────────────────────────────────────────
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    if: contains(github.event.issue.labels.*.name, 'autonomy-alert')
+    runs-on: ubuntu-latest
+    name: 🧭 Incident Triage
+
+    steps:
+      - name: Post triage checklist and Copilot delegation
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue = context.payload.issue;
+
+            const body = [
+              'Automated incident triage checklist:',
+              '',
+              '- [ ] Reproduce failing autonomy check locally (`npm run autonomy:check`)',
+              '- [ ] Confirm whether self-heal already attempted remediation',
+              '- [ ] Review generated recovery playbooks in issue body',
+              '- [ ] Determine if failure is code drift or external dependency outage',
+              '- [ ] Attach root cause summary before closure',
+              '',
+              '@copilot Please propose a PR to fix this autonomy incident with the smallest safe change set, include tests/verification, and explain root cause.',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issue.number,
+              body,
+            });
+
+            const labels = new Set((issue.labels || []).map((l) => l.name));
+            if (!labels.has('triaged')) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: issue.number,
+                labels: ['triaged'],
+              });
+            }

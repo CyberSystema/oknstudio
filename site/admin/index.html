@@ -389,6 +389,74 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
     </article>
   </section>
 
+  <section class="grid" style="margin-bottom:14px">
+    <article class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Autonomy Survivability</div>
+        <div>
+          <span class="badge" id="autonomyGenerated">never</span>
+          <button id="refreshAutonomy">Refresh</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="digest-meta" style="margin-bottom:14px">
+          <div class="digest-box">
+            <div class="k">Survivability Score</div>
+            <div class="v" id="autonomyScore">-</div>
+          </div>
+          <div class="digest-box">
+            <div class="k">Status</div>
+            <div class="v" id="autonomyStatus">-</div>
+          </div>
+          <div class="digest-box">
+            <div class="k">Passing Checks</div>
+            <div class="v" id="autonomyPassing">-</div>
+          </div>
+          <div class="digest-box">
+            <div class="k">Recent Log Signal</div>
+            <div class="v" id="autonomyLogSignal">-</div>
+          </div>
+        </div>
+        <div class="footer-note" id="autonomyHint" style="margin-top:0;margin-bottom:12px">Loading autonomy status.</div>
+        <div class="table-wrap" style="max-height:280px">
+          <table class="table" id="autonomyTable">
+            <thead>
+              <tr><th>Domain</th><th>Severity</th><th>State</th><th>Detail</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="fields" style="margin-top:12px">
+          <div class="field">
+            <label>Top Recovery Actions</label>
+            <div class="checklist" id="autonomyRecommendations"></div>
+          </div>
+          <div class="field">
+            <label>Environment Recovery Playbooks</label>
+            <div class="digest-posts" id="autonomyPlaybooks" style="max-height:380px"></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div class="panel-title">External Dependency Continuity</div>
+        <div><span class="badge" id="autonomyDependencyCount">0 services</span></div>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap" style="max-height:420px">
+          <table class="table" id="autonomyDependencyTable">
+            <thead>
+              <tr><th>Service</th><th>Role</th><th>Mode</th><th>Note</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <section class="grid">
     <article class="panel">
       <div class="panel-head">
@@ -747,6 +815,18 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
     kpiChecks: document.getElementById('kpiChecks'),
     kpiChecksList: document.getElementById('kpiChecksList'),
 
+    autonomyScore: document.getElementById('autonomyScore'),
+    autonomyStatus: document.getElementById('autonomyStatus'),
+    autonomyPassing: document.getElementById('autonomyPassing'),
+    autonomyLogSignal: document.getElementById('autonomyLogSignal'),
+    autonomyHint: document.getElementById('autonomyHint'),
+    autonomyGenerated: document.getElementById('autonomyGenerated'),
+    autonomyTableBody: document.querySelector('#autonomyTable tbody'),
+    autonomyRecommendations: document.getElementById('autonomyRecommendations'),
+    autonomyPlaybooks: document.getElementById('autonomyPlaybooks'),
+    autonomyDependencyCount: document.getElementById('autonomyDependencyCount'),
+    autonomyDependencyTableBody: document.querySelector('#autonomyDependencyTable tbody'),
+
     probeTargets: document.getElementById('probeTargets'),
     probeTableBody: document.querySelector('#probeTable tbody'),
     probeStamp: document.getElementById('probeStamp'),
@@ -813,6 +893,7 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
 
   document.getElementById('refreshAll').addEventListener('click', refreshAll);
   document.getElementById('openCommandPalette').addEventListener('click', openCommandPalette);
+  document.getElementById('refreshAutonomy').addEventListener('click', loadAutonomy);
   document.getElementById('runProbes').addEventListener('click', runProbes);
   document.getElementById('loadAuth').addEventListener('click', function(){ resetAuthAndLoad(); });
   document.getElementById('moreAuth').addEventListener('click', function(){ loadAuthEvents(false); });
@@ -1246,6 +1327,7 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
   async function refreshAll(){
     await Promise.all([
       loadOverview(),
+      loadAutonomy(),
       runProbes(),
       resetAuthAndLoad(),
       resetLogsAndLoad(),
@@ -1528,6 +1610,137 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
     } catch (err) {
       els.warnings.style.display = 'block';
       els.warnings.textContent = 'Failed to load admin overview.';
+    }
+  }
+
+  async function loadAutonomy(){
+    try {
+      const res = await fetch('/api/admin/autonomy', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error('autonomy_failed');
+
+      const score = data.score || {};
+      const domainChecks = Array.isArray(data.domainChecks) ? data.domainChecks : [];
+      const recommendations = Array.isArray(data.recommendations) ? data.recommendations : [];
+      const playbooks = Array.isArray(data.recoveryPlaybooks) ? data.recoveryPlaybooks : [];
+      const dependencyMatrix = Array.isArray(data.dependencyMatrix) ? data.dependencyMatrix : [];
+      const logSummary = data.logSummary || {};
+
+      els.autonomyScore.textContent = Number.isFinite(score.value) ? String(score.value) + '/100' : '-';
+      els.autonomyStatus.textContent = String(score.status || '-').toUpperCase();
+      els.autonomyPassing.textContent = Number.isFinite(score.passing) && Number.isFinite(score.total)
+        ? String(score.passing) + '/' + String(score.total)
+        : '-';
+      els.autonomyLogSignal.textContent = logSummary.lastEventAt
+        ? fmtDate(logSummary.lastEventAt)
+        : 'no recent logs';
+      els.autonomyGenerated.textContent = 'updated ' + fmtTime(data.generatedAt || new Date().toISOString());
+
+      els.autonomyHint.textContent = domainChecks.filter(function(row){ return !row.ok; }).length
+        ? 'The live system can identify its current survivability gaps and recovery priorities.'
+        : 'All measured survivability domains are currently healthy.';
+
+      els.autonomyTableBody.innerHTML = domainChecks.map(function(row){
+        const cls = row.ok ? 'state-ok' : 'state-bad';
+        const detail = row.ok ? row.success : row.failure;
+        return '<tr>' +
+          '<td>' + escapeHtml(row.label || '-') + '</td>' +
+          '<td><span class="small">' + escapeHtml(row.severity || '-') + '</span></td>' +
+          '<td class="' + cls + '">' + (row.ok ? 'OK' : 'RISK') + '</td>' +
+          '<td><span class="small">' + escapeHtml(detail || '-') + '</span></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="4" class="small">No autonomy domain data.</td></tr>';
+
+      els.autonomyRecommendations.innerHTML = recommendations.map(function(row){
+        return '<div class="task">' +
+          '<div class="badge">' + escapeHtml(String(row.severity || 'info')) + '</div>' +
+          '<div class="text"><strong>' + escapeHtml(row.title || '-') + '.</strong> ' + escapeHtml(row.action || '-') + '</div>' +
+        '</div>';
+      }).join('') || '<div class="task"><div class="text">No active recovery actions.</div></div>';
+
+      els.autonomyPlaybooks.innerHTML = playbooks.map(function(row, idx){
+        const commands = Array.isArray(row.commands) ? row.commands : [];
+        const missing = Array.isArray(row.missing) && row.missing.length
+          ? 'Missing: ' + row.missing.join(', ')
+          : 'Missing: none';
+        const commandsText = commands.join('\n');
+        const cls = row.status === 'ready' ? 'state-ok' : (row.status === 'manual-check' ? 'small' : 'state-bad');
+        return '<article class="digest-post">' +
+          '<div class="digest-toolbar" style="justify-content:space-between;align-items:center;margin-bottom:8px">' +
+            '<div class="badge ' + cls + '">' + escapeHtml(String(row.status || 'unknown')) + '</div>' +
+            '<button class="ghost" data-copy-playbook="' + String(idx) + '">Copy Commands</button>' +
+          '</div>' +
+          '<h3 style="font-size:18px;margin-bottom:6px">' + escapeHtml(row.title || '-') + '</h3>' +
+          '<div class="meta-line">' + escapeHtml(String(row.summary || '-')) + '</div>' +
+          '<div class="meta-line">' + escapeHtml(missing) + '</div>' +
+          '<pre class="small" style="white-space:pre-wrap;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;padding:10px;margin-top:8px">' + escapeHtml(commandsText || 'No commands.') + '</pre>' +
+        '</article>';
+      }).join('') || '<div class="small">No recovery playbooks returned by autonomy API.</div>';
+
+      els.autonomyPlaybooks.querySelectorAll('[data-copy-playbook]').forEach(function(node){
+        node.addEventListener('click', async function(){
+          const idx = Number(node.getAttribute('data-copy-playbook') || '-1');
+          const row = playbooks[idx];
+          if (!row || !Array.isArray(row.commands)) return;
+          const payload = row.commands.join('\n');
+          const ok = await copyText(payload);
+          if (!ok) return;
+          const prev = node.textContent;
+          node.textContent = 'Copied';
+          setTimeout(function(){ node.textContent = prev; }, 1000);
+        });
+      });
+
+      els.autonomyDependencyCount.textContent = dependencyMatrix.length + ' services';
+      els.autonomyDependencyTableBody.innerHTML = dependencyMatrix.map(function(row){
+        const cls = row.configured ? 'state-ok' : 'state-bad';
+        return '<tr>' +
+          '<td>' + escapeHtml(row.service || '-') + '</td>' +
+          '<td><span class="small">' + escapeHtml(row.role || '-') + '</span></td>' +
+          '<td class="' + cls + '">' + escapeHtml(row.mode || '-') + '</td>' +
+          '<td><span class="small">' + escapeHtml(row.note || '-') + '</span></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="4" class="small">No dependency continuity data.</td></tr>';
+    } catch {
+      els.autonomyScore.textContent = '-';
+      els.autonomyStatus.textContent = 'FAILED';
+      els.autonomyPassing.textContent = '-';
+      els.autonomyLogSignal.textContent = '-';
+      els.autonomyGenerated.textContent = 'load failed';
+      els.autonomyHint.textContent = 'Failed to load the live autonomy survivability report.';
+      els.autonomyTableBody.innerHTML = '<tr><td colspan="4" class="state-bad">Failed to load autonomy report.</td></tr>';
+      els.autonomyRecommendations.innerHTML = '<div class="task"><div class="text">Autonomy report unavailable.</div></div>';
+      els.autonomyPlaybooks.innerHTML = '<div class="task"><div class="text">Recovery playbooks unavailable.</div></div>';
+      els.autonomyDependencyCount.textContent = '0 services';
+      els.autonomyDependencyTableBody.innerHTML = '<tr><td colspan="4" class="state-bad">Dependency continuity data unavailable.</td></tr>';
+    }
+  }
+
+  async function copyText(text){
+    const payload = String(text || '');
+    if (!payload.trim()) return false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(payload);
+        return true;
+      }
+    } catch {
+      // Fallback below.
+    }
+
+    try {
+      const area = document.createElement('textarea');
+      area.value = payload;
+      area.setAttribute('readonly', 'readonly');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(area);
+      return !!ok;
+    } catch {
+      return false;
     }
   }
 

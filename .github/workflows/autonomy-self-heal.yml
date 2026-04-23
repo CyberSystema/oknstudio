@@ -1,0 +1,80 @@
+name: Autonomy Self-Heal
+
+# ─────────────────────────────────────────────────────────
+# Safe, deterministic self-healing.
+#
+# Triggered only when Autonomy Watch fails. Applies a narrow
+# set of known-safe repo wiring repairs, then opens a PR for
+# review. No runtime credentials or production data changes.
+# ─────────────────────────────────────────────────────────
+
+on:
+  workflow_run:
+    workflows: ['Autonomy Watch']
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  heal:
+    if: github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    name: 🩹 Attempt Self-Heal
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 📥 Install
+        run: npm install
+
+      - name: 🔎 Preview self-heal
+        run: node tools/autonomy-self-heal.mjs --json > self-heal-preview.json
+
+      - name: 🩹 Apply self-heal
+        run: node tools/autonomy-self-heal.mjs --apply --json > self-heal-report.json
+
+      - name: ✅ Re-verify
+        run: npm run verify
+
+      - name: 📤 Upload self-heal reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomy-self-heal-report
+          path: |
+            self-heal-preview.json
+            self-heal-report.json
+          if-no-files-found: warn
+
+      - name: Create self-heal PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bot/autonomy-self-heal
+          delete-branch: true
+          commit-message: 'chore(autonomy): automatic self-heal repairs'
+          title: 'chore(autonomy): automatic self-heal repairs'
+          body: |
+            This PR was created automatically by `Autonomy Self-Heal` after an `Autonomy Watch` failure.
+
+            Scope is intentionally narrow and deterministic:
+            - restore autonomy script wiring in `package.json`
+            - restore autonomy CI checks in `type-check.yml`
+            - restore core checks in `autonomy-watch.yml`
+
+            Artifacts include self-heal preview and apply reports.
+          labels: |
+            ops
+            autonomy-alert

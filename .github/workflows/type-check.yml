@@ -60,6 +60,9 @@ jobs:
       - name: 🧪 Tests
         run: npm test
 
+      - name: 🛰️ Autonomy audit
+        run: npm run autonomy:check
+
       - name: 🛡️ Audit dependencies
         # Non-blocking: reports high/critical advisories but doesn't fail the
         # build so upstream advisories can't break merges on their own. Flip

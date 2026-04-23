@@ -1,0 +1,78 @@
+name: Backup & Restore Drill
+
+# ─────────────────────────────────────────────────────────
+# Weekly backup integrity drill.
+# Creates archive snapshots of critical repo state and
+# verifies they can be restored in CI.
+# ─────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    - cron: '20 1 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    name: 🧪 Backup Restore Drill
+
+    steps:
+      - name: ☦️ Checkout
+        uses: actions/checkout@v6
+
+      - name: 📦 Create backup archive
+        run: |
+          set -euo pipefail
+          mkdir -p backup-artifacts
+          tar -czf backup-artifacts/oknstudio-core.tar.gz \
+            .github/workflows \
+            functions \
+            site \
+            tools \
+            package.json \
+            README.md
+
+      - name: ♻️ Restore and verify
+        run: |
+          set -euo pipefail
+          mkdir -p restore-check
+          tar -xzf backup-artifacts/oknstudio-core.tar.gz -C restore-check
+
+          test -f restore-check/package.json
+          test -f restore-check/README.md
+          test -f restore-check/functions/_middleware.js
+          test -f restore-check/.github/workflows/autonomy-watch.yml
+          test -f restore-check/tools/autonomy-audit.mjs
+
+      - name: 📤 Upload drill artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-restore-drill
+          path: backup-artifacts/oknstudio-core.tar.gz
+          if-no-files-found: error
+
+      - name: Open failure issue
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title: 'Backup restore drill failed',
+              body: [
+                'Automated backup restore drill failed.',
+                '',
+                `- Workflow run: ${runUrl}`,
+                '',
+                'Investigate archive creation/restoration and repair recovery guarantees.',
+              ].join('\n'),
+              labels: ['ops', 'backup-alert'],
+            });

@@ -1,0 +1,65 @@
+name: Dependabot Auto-Merge
+
+# ─────────────────────────────────────────────────────────
+# Safely auto-merges low-risk Dependabot updates after
+# repository verification succeeds.
+#
+# Rules:
+# - Dependabot only
+# - semver patch/minor only
+# - full verify must pass
+# ─────────────────────────────────────────────────────────
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    name: 🤖 Verify & Auto-merge Dependabot
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: ☦️ Checkout
+        uses: actions/checkout@v6
+
+      - name: 🔎 Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🛑 Skip major updates
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: |
+          echo "Major update detected; auto-merge is disabled for this PR."
+          exit 1
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 📥 Install
+        run: npm install
+
+      - name: ✅ Verify
+        run: npm run verify
+
+      - name: ✅ Enable auto-merge
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
