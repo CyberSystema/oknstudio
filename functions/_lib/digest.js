@@ -1,5 +1,7 @@
 const DEFAULT_SITE_URL = 'https://orthodoxkorea.org';
 const DEFAULT_LOOKBACK_DAYS = 15;
+const MIN_LOOKBACK_DAYS = 1;
+const MAX_LOOKBACK_DAYS = 365;
 export const DIGEST_PREFIX = 'digest:';
 
 export function json(payload, status = 200) {
@@ -13,10 +15,9 @@ export function getDigestNamespace(env) {
   return env.DIGEST_KV || env.LOGS_KV || env.AUDIT_LOG_KV || null;
 }
 
-export async function generateDigestDraft(env) {
+export async function generateDigestDraft(env, options = {}) {
   const siteUrl = String(env.WEEKLY_DIGEST_SITE_URL || DEFAULT_SITE_URL).trim() || DEFAULT_SITE_URL;
-  const lookbackRaw = Number(env.WEEKLY_DIGEST_LOOKBACK_DAYS || DEFAULT_LOOKBACK_DAYS);
-  const lookbackDays = Number.isFinite(lookbackRaw) && lookbackRaw > 0 ? lookbackRaw : DEFAULT_LOOKBACK_DAYS;
+  const lookbackDays = resolveLookbackDays(env, options.lookbackDays);
   const maxSentencesRaw = Number(env.WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES || 4);
   const maxSentences = Number.isFinite(maxSentencesRaw) && maxSentencesRaw > 0 ? Math.min(5, Math.max(1, Math.floor(maxSentencesRaw))) : 4;
 
@@ -43,6 +44,15 @@ export async function generateDigestDraft(env) {
     html: body.html,
     posts: summarized,
   };
+}
+
+function resolveLookbackDays(env, overrideLookbackDays) {
+  const fallbackRaw = Number(env.WEEKLY_DIGEST_LOOKBACK_DAYS || DEFAULT_LOOKBACK_DAYS);
+  const fallback = Number.isFinite(fallbackRaw) ? fallbackRaw : DEFAULT_LOOKBACK_DAYS;
+  const chosenRaw = overrideLookbackDays == null ? fallback : Number(overrideLookbackDays);
+  if (!Number.isFinite(chosenRaw)) return DEFAULT_LOOKBACK_DAYS;
+  const floored = Math.floor(chosenRaw);
+  return Math.min(MAX_LOOKBACK_DAYS, Math.max(MIN_LOOKBACK_DAYS, floored));
 }
 
 export async function createDigestDraftIfMissing(env) {

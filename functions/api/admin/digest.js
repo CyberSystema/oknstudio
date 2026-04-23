@@ -69,6 +69,16 @@ export async function onRequestPost(context) {
       return json({ ok: true, draft });
     }
 
+    if (action === 'digest.generateCustom') {
+      const lookbackDays = Number(body.lookbackDays);
+      if (!Number.isFinite(lookbackDays) || lookbackDays <= 0) {
+        return json({ ok: false, error: 'lookbackDays must be a positive number.' }, 400);
+      }
+      const draft = await generateDigestDraft(env, { lookbackDays });
+      await saveDraft(ns, draft);
+      return json({ ok: true, draft });
+    }
+
     if (action === 'digest.update') {
       const draft = await updateDraft(ns, body);
       return json({ ok: true, draft });
