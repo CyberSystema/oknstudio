@@ -428,7 +428,7 @@ export function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   }).join('');
 
   return {
-    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length} νέα ελληνική ανάρτηση${posts.length === 1 ? '' : 'ς'}`,
+    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length} νέες αναρτήσεις`,
     text: ['Δεκαπενθήμερο Δελτίο Orthodox Korea', '', `Νέες ελληνικές αναρτήσεις από το ${siteUrl} για το διάστημα ${rangeText}:`, '', ...lines, '', aiDisclaimerText, '', `Ιστότοπος: ${siteUrl}`].join('\n'),
     html: [
       '<!doctype html>', '<html lang="el">', '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1">', '<title>Δεκαπενθήμερο Δελτίο Orthodox Korea</title>', '</head>',
