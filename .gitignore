@@ -61,9 +61,27 @@ desktop.ini
 *.log
 logs/
 
+# ── GitHub Copilot customization (local user overrides) ─
+.github/copilot-instructions.local.md
+.github/agents/*.local.agent.md
+.github/prompts/*.local.prompt.md
+
+# ── Autonomy & operations (transient artifacts) ────────
+autonomy-playbooks.md
+autonomy-report-*.json
+autonomy-check-output.txt
+.autonomy-cache/
+
 # ── Local working data (ingest staging — never commit exports) ─
 analytics-pipeline/data/**/*.csv
 analytics-pipeline/data/**/*.xlsx
 analytics-pipeline/data/**/*.json
 !analytics-pipeline/data/**/.gitkeep
+analytics-pipeline/data/**/*.gz
+analytics-pipeline/history/*.json.bak
+analytics-pipeline/history/*.csv.bak
+
+# ── Darkroom audit & temporary files ───────────────────
 site/darkroom/DARKROOM_AUDIT.md
+site/darkroom/*.tmp.*
+site/darkroom/.working/

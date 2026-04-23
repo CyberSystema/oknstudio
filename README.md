@@ -336,6 +336,46 @@ Incident playbooks are attached automatically to `Autonomy Watch incident` issue
 
 `Autonomy Incident Triage` automatically posts a triage checklist on autonomy-alert issues and delegates a proposed code fix request to Copilot.
 
+It now also posts a deterministic prompt playbook comment with the standard slash-command sequence:
+
+- `/Triage Autonomy Incident`
+- `/Apply Autonomy Self-Heal`
+- `/Risk Gate Review`
+
+Before posting the playbook, the workflow verifies that required prompt files still exist in `.github/prompts/`.
+If prompt drift is detected, it posts a fallback warning comment listing missing files and manual recovery actions instead of silently failing.
+
+### Structured Copilot intake templates
+
+GitHub issue and PR templates now enforce a consistent Copilot-agent execution contract:
+
+- `Autonomy Task` issue template captures problem statement, impact, scope, constraints, required verification, rollback, and definition of done.
+- `External Dependency Outage` template captures non-code outages with ownership and executed recovery playbooks.
+- Blank issues are disabled to keep intake structured and machine-actionable.
+- PR template enforces root-cause notes, verification evidence, and rollback planning.
+
+### Copilot agent operating model
+
+Workspace-level custom agents now define the autonomy incident execution path in `.github/agents/`:
+
+- `autonomy-orchestrator` coordinates triage, implementation, risk gate review, and final verification.
+- `incident-triage` performs evidence-based incident classification.
+- `self-heal-implementer` applies minimal deterministic repairs.
+- `risk-review-guardian` blocks risky workflow/autonomy edits unless rollback steps are explicit.
+- `verification-guardian` is the final go/no-go quality gate.
+
+Project-wide behavior defaults are defined in `.github/copilot-instructions.md`.
+
+### Copilot prompt library
+
+Slash prompts in `.github/prompts/` provide one-command entry points:
+
+- `Triage Autonomy Incident`
+- `Apply Autonomy Self-Heal`
+- `Risk Gate Review`
+
+These prompts standardize operator inputs and keep agent output format consistent for incident records.
+
 ### Operational rule
 
 Any future feature that becomes operationally important should add at least one of these before it is considered complete:

@@ -1,0 +1,49 @@
+name: External Dependency Outage
+description: Track outages where the root cause is outside repository code (Cloudflare/GitHub/B2/etc.).
+title: "outage: "
+labels: ["ops", "external-outage"]
+body:
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency and failure mode
+      description: Which external dependency failed and how?
+      placeholder: Cloudflare Pages authentication failure, B2 API unreachable, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Include workflow links, logs, and probe results.
+      placeholder: Add links to failing Actions runs and relevant logs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: playbooks
+    attributes:
+      label: Recovery playbooks executed
+      description: Paste or reference the generated environment recovery playbook commands that were executed.
+      placeholder: List commands and outcomes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: owner
+    attributes:
+      label: Ownership and escalation path
+      description: Who owns the external platform and what escalation path is active?
+      placeholder: Include account owner/team and response ETA.
+    validations:
+      required: true
+
+  - type: textarea
+    id: completion
+    attributes:
+      label: Exit criteria
+      description: What must be true before this incident can be closed?
+      placeholder: Probes healthy, autonomy check green, postmortem logged.
+    validations:
+      required: true

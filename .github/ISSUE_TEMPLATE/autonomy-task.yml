@@ -1,0 +1,85 @@
+name: Autonomy Task
+description: Structured task template for Copilot-driven autonomous remediation and improvements.
+title: "autonomy: "
+labels: ["autonomy-alert", "ops"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for any task intended for Copilot coding-agent execution.
+        Keep scope precise and testable.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is failing or needs to be improved?
+      placeholder: Describe the issue in concrete, observable terms.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and urgency
+      description: What is the operational/user impact and urgency?
+      placeholder: Include severity, affected surfaces, and expected timeline.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Likely files and scope
+      description: List likely files/workflows and what is in/out of scope.
+      placeholder: |
+        In scope:
+        - .github/workflows/...
+        - tools/...
+        Out of scope:
+        - runtime business logic
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Non-goals and constraints
+      description: Explicitly state forbidden edits and risk boundaries.
+      placeholder: No destructive migrations, no credential rotation, no unrelated refactors.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Required verification
+      description: Commands/checks that must pass before merge.
+      placeholder: |
+        - npm run check
+        - npm test
+        - npm run autonomy:check
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback plan
+      description: How to revert safely if this change causes regressions.
+      placeholder: Revert PR, rerun verify, monitor autonomy watch and uptime guardian.
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: Definition of done
+      description: Acceptance criteria in checklist form.
+      placeholder: |
+        - [ ] Root cause identified
+        - [ ] Minimal safe fix implemented
+        - [ ] Required checks pass
+        - [ ] Runbook/docs updated if needed
+    validations:
+      required: true

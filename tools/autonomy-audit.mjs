@@ -58,6 +58,19 @@ async function buildReport(projectRoot) {
   existenceChecks.push(checkExists(checks, projectRoot, '.github/workflows/secret-rotation-governance.yml', 'important', 'Secret rotation governance workflow exists.'));
   existenceChecks.push(checkExists(checks, projectRoot, '.github/workflows/autonomy-incident-triage.yml', 'important', 'Autonomy incident triage workflow exists.'));
   existenceChecks.push(checkExists(checks, projectRoot, '.github/workflows/dependabot-automerge.yml', 'important', 'Dependabot auto-merge workflow exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/ISSUE_TEMPLATE/autonomy-task.yml', 'important', 'Autonomy task issue template exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/ISSUE_TEMPLATE/external-dependency-outage.yml', 'important', 'External dependency outage issue template exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/ISSUE_TEMPLATE/config.yml', 'important', 'Issue template config exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/pull_request_template.md', 'important', 'Pull request template exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/copilot-instructions.md', 'important', 'Copilot project instructions exist.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/agents/autonomy-orchestrator.agent.md', 'important', 'Autonomy orchestrator agent exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/agents/incident-triage.agent.md', 'important', 'Incident triage agent exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/agents/self-heal-implementer.agent.md', 'important', 'Self-heal implementer agent exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/agents/risk-review-guardian.agent.md', 'important', 'Risk review guardian agent exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/agents/verification-guardian.agent.md', 'important', 'Verification guardian agent exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/prompts/triage-autonomy-incident.prompt.md', 'important', 'Autonomy triage prompt exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/prompts/apply-autonomy-self-heal.prompt.md', 'important', 'Autonomy self-heal prompt exists.'));
+  existenceChecks.push(checkExists(checks, projectRoot, '.github/prompts/risk-gate-review.prompt.md', 'important', 'Autonomy risk gate prompt exists.'));
   existenceChecks.push(checkExists(checks, projectRoot, 'tools/autonomy-incident-playbooks.mjs', 'important', 'Autonomy incident playbook script exists.'));
   existenceChecks.push(checkExists(checks, projectRoot, 'tools/autonomy-self-heal.mjs', 'important', 'Autonomy self-heal script exists.'));
   existenceChecks.push(checkExists(checks, projectRoot, '.github/workflows/deploy.yml', 'critical', 'Deploy workflow exists.'));
@@ -193,11 +206,43 @@ async function buildReport(projectRoot) {
   );
   checkIncludes(
     checks,
+    incidentTriageWorkflow,
+    'Copilot prompt playbook for this incident',
+    'important',
+    'Incident triage workflow posts a Copilot prompt playbook comment.',
+    'Incident triage workflow is missing Copilot prompt playbook comment guidance.'
+  );
+  checkIncludes(
+    checks,
+    incidentTriageWorkflow,
+    'requiredPromptFiles',
+    'important',
+    'Incident triage workflow verifies required prompt files exist.',
+    'Incident triage workflow is missing required prompt file validation.'
+  );
+  checkIncludes(
+    checks,
+    incidentTriageWorkflow,
+    'Prompt playbook unavailable: required prompt files are missing.',
+    'important',
+    'Incident triage workflow posts fallback warning when prompt files are missing.',
+    'Incident triage workflow is missing fallback warning behavior for prompt drift.'
+  );
+  checkIncludes(
+    checks,
     dependabotAutomergeWorkflow,
     'dependabot/fetch-metadata@',
     'important',
     'Dependabot auto-merge workflow enforces metadata-based merge guards.',
     'Dependabot auto-merge workflow is missing metadata guard rails.'
+  );
+  checkIncludes(
+    checks,
+    readTextSafe(await readText(projectRoot, '.github/ISSUE_TEMPLATE/config.yml')),
+    'blank_issues_enabled: false',
+    'important',
+    'Issue templates enforce non-blank issue intake.',
+    'Issue template config does not disable blank issues.'
   );
 
   checkIncludes(
@@ -347,6 +392,30 @@ async function buildReport(projectRoot) {
   );
   checkIncludes(
     checks,
+    readme,
+    '### Structured Copilot intake templates',
+    'important',
+    'README documents structured Copilot intake templates.',
+    'README is missing structured Copilot intake template documentation.'
+  );
+  checkIncludes(
+    checks,
+    readme,
+    '### Copilot agent operating model',
+    'important',
+    'README documents Copilot agent operating model.',
+    'README is missing Copilot agent operating model documentation.'
+  );
+  checkIncludes(
+    checks,
+    readme,
+    '### Copilot prompt library',
+    'important',
+    'README documents Copilot prompt library.',
+    'README is missing Copilot prompt library documentation.'
+  );
+  checkIncludes(
+    checks,
     functionsReadme,
     'GET /api/admin/control-center',
     'important',
@@ -452,6 +521,10 @@ function checkIncludes(checks, haystack, needle, severity, success, failure) {
     failure,
     evidence: needle,
   });
+}
+
+function readTextSafe(value) {
+  return String(value || '');
 }
 
 function slugify(value) {

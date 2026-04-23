@@ -48,6 +48,71 @@ jobs:
               body,
             });
 
+            const requiredPromptFiles = [
+              '.github/prompts/triage-autonomy-incident.prompt.md',
+              '.github/prompts/apply-autonomy-self-heal.prompt.md',
+              '.github/prompts/risk-gate-review.prompt.md',
+            ];
+
+            async function promptFileExists(filePath) {
+              try {
+                await github.rest.repos.getContent({
+                  owner,
+                  repo,
+                  path: filePath,
+                });
+                return true;
+              } catch (error) {
+                if (error && error.status === 404) return false;
+                core.warning(`Prompt lookup failed for ${filePath}: ${error?.message || 'unknown error'}`);
+                return false;
+              }
+            }
+
+            const missingPromptFiles = [];
+            for (const filePath of requiredPromptFiles) {
+              if (!(await promptFileExists(filePath))) missingPromptFiles.push(filePath);
+            }
+
+            if (missingPromptFiles.length === 0) {
+              const promptPlaybook = [
+                'Copilot prompt playbook for this incident:',
+                '',
+                '1. `/Triage Autonomy Incident`',
+                '2. `/Apply Autonomy Self-Heal`',
+                '3. `/Risk Gate Review`',
+                '',
+                'Prompt references:',
+                ...requiredPromptFiles.map((filePath) => `- ${filePath}`),
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: promptPlaybook,
+              });
+            } else {
+              const fallback = [
+                'Prompt playbook unavailable: required prompt files are missing.',
+                '',
+                'Missing files:',
+                ...missingPromptFiles.map((filePath) => `- ${filePath}`),
+                '',
+                'Fallback actions:',
+                '- Re-run autonomy contract check (`npm run autonomy:check`).',
+                '- Restore missing prompt files under .github/prompts/.',
+                '- Continue triage manually using the checklist above.',
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: fallback,
+              });
+            }
+
             const labels = new Set((issue.labels || []).map((l) => l.name));
             if (!labels.has('triaged')) {
               await github.rest.issues.addLabels({
