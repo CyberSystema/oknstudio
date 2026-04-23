@@ -1333,15 +1333,16 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
         '<div class="meta-line">ΑΝΑΡΤΗΣΗ ' + (idx + 1) + ' · ' + escapeHtml(fmtDate(post.date)) + '</div>' +
         '<h3>' + escapeHtml(post.title || '-') + '</h3>' +
         '<div class="meta-line"><a href="' + escapeHtml(post.link || '#') + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(post.link || '-') + '</a></div>' +
-        '<div class="digest-toolbar" style="margin:8px 0 10px 0"><button data-digest-delete-post="' + escapeHtml(post.link || '') + '" class="btn-danger">Delete from draft</button></div>' +
-        '<div class="field"><label>Summary</label><textarea data-digest-link="' + escapeHtml(post.link || '') + '">' + escapeHtml(post.summary || '') + '</textarea></div>' +
+        '<div class="digest-toolbar" style="margin:8px 0 10px 0"><button data-digest-delete-post-index="' + String(idx) + '" data-digest-delete-post-link="' + escapeHtml(post.link || '') + '" class="btn-danger">Delete from draft</button></div>' +
+        '<div class="field"><label>Summary</label><textarea data-digest-index="' + String(idx) + '" data-digest-link="' + escapeHtml(post.link || '') + '">' + escapeHtml(post.summary || '') + '</textarea></div>' +
       '</article>';
     }).join('') || '<div class="small">This draft has no Greek posts.</div>';
 
-    els.digestPosts.querySelectorAll('[data-digest-delete-post]').forEach(function(node){
+    els.digestPosts.querySelectorAll('[data-digest-delete-post-index]').forEach(function(node){
       node.addEventListener('click', function(){
-        const link = node.getAttribute('data-digest-delete-post') || '';
-        deleteDigestPostFromDraft(link);
+        const index = Number(node.getAttribute('data-digest-delete-post-index') || '');
+        const link = node.getAttribute('data-digest-delete-post-link') || '';
+        deleteDigestPostFromDraft(index, link);
       });
     });
 
@@ -1350,12 +1351,22 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
 
   function collectDigestEditedPosts(){
     if (!currentDigestDraft) return [];
-    const map = new Map();
+    const byIndex = new Map();
+    const byLink = new Map();
     els.digestPosts.querySelectorAll('textarea[data-digest-link]').forEach(function(node){
-      map.set(node.getAttribute('data-digest-link') || '', node.value || '');
+      const index = Number(node.getAttribute('data-digest-index') || '');
+      const link = node.getAttribute('data-digest-link') || '';
+      const summary = node.value || '';
+      if (Number.isInteger(index) && index >= 0) byIndex.set(index, summary);
+      byLink.set(link, summary);
     });
-    return (currentDigestDraft.posts || []).map(function(post){
-      return { ...post, summary: map.get(post.link) || post.summary || '' };
+    return (currentDigestDraft.posts || []).map(function(post, index){
+      const byIndexSummary = byIndex.get(index);
+      const hasByIndex = typeof byIndexSummary === 'string';
+      const byLinkSummary = byLink.get(post.link);
+      const hasByLink = typeof byLinkSummary === 'string';
+      const summary = hasByIndex ? byIndexSummary : (hasByLink ? byLinkSummary : (post.summary || ''));
+      return { index: index, link: post.link || '', summary: summary };
     });
   }
 
@@ -1389,16 +1400,20 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
     }
   }
 
-  async function saveDigestDraftEdits(){
-    if (!currentDigestDraft) return;
+  async function saveDigestDraftEdits(options){
+    if (!currentDigestDraft) return false;
+    const opts = options || {};
     try {
       const data = await digestPost('digest.update', { id: currentDigestDraft.id, posts: collectDigestEditedPosts() });
       currentDigestDraft = data.draft || currentDigestDraft;
       pushJournal('Saved digest summary corrections.');
       emitAdminLog({ level:'info', category:'admin', event:'digest_save', message:'Saved digest corrections', data:{ id: currentDigestDraft.id } });
       await loadDigestDrafts(currentDigestDraft.id);
-    } catch {
-      alert('Failed to save digest corrections.');
+      return true;
+    } catch (err) {
+      if (!opts.silent) alert('Failed to save digest corrections.');
+      if (opts.rethrow) throw err;
+      return false;
     }
   }
 
@@ -1417,16 +1432,20 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
     }
   }
 
-  async function deleteDigestPostFromDraft(link){
+  async function deleteDigestPostFromDraft(index, link){
     if (!currentDigestDraft) return;
+    const cleanIndex = Number(index);
     const cleanLink = String(link || '').trim();
-    if (!cleanLink) return;
+    if ((!Number.isInteger(cleanIndex) || cleanIndex < 0) && !cleanLink) return;
     if (!confirm('Remove this post from the current digest draft?')) return;
     try {
-      const data = await digestPost('digest.removePost', { id: currentDigestDraft.id, link: cleanLink });
+      const payload = { id: currentDigestDraft.id };
+      if (Number.isInteger(cleanIndex) && cleanIndex >= 0) payload.index = cleanIndex;
+      if (cleanLink) payload.link = cleanLink;
+      const data = await digestPost('digest.removePost', payload);
       currentDigestDraft = data.draft || currentDigestDraft;
       pushJournal('Removed one post from digest draft ' + currentDigestDraft.id + '.');
-      emitAdminLog({ level:'info', category:'admin', event:'digest_remove_post', message:'Removed post from digest draft', data:{ id: currentDigestDraft.id, link: cleanLink } });
+      emitAdminLog({ level:'info', category:'admin', event:'digest_remove_post', message:'Removed post from digest draft', data:{ id: currentDigestDraft.id, index: cleanIndex, link: cleanLink } });
       await loadDigestDrafts(currentDigestDraft.id);
     } catch {
       alert('Failed to remove post from draft.');
@@ -1435,7 +1454,11 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
 
   async function sendDigestReviewEmail(){
     if (!currentDigestDraft) return;
-    await saveDigestDraftEdits();
+    const saved = await saveDigestDraftEdits({ silent: true });
+    if (!saved) {
+      alert('Could not save your latest summary edits before sending review email.');
+      return;
+    }
     try {
       const data = await digestPost('digest.sendReview', { id: currentDigestDraft.id });
       currentDigestDraft = data.draft || currentDigestDraft;
@@ -1451,7 +1474,11 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
   async function sendDigestFinalEmail(){
     if (!currentDigestDraft) return;
     if (!confirm('Send the final digest email to all configured recipients?')) return;
-    await saveDigestDraftEdits();
+    const saved = await saveDigestDraftEdits({ silent: true });
+    if (!saved) {
+      alert('Could not save your latest summary edits before sending final email.');
+      return;
+    }
     try {
       const data = await digestPost('digest.sendFinal', { id: currentDigestDraft.id });
       currentDigestDraft = data.draft || currentDigestDraft;

@@ -138,14 +138,21 @@ async function updateDraft(ns, body) {
   const draft = await requireDraft(ns, body.id);
   const currentPosts = Array.isArray(draft.posts) ? draft.posts : [];
   const incomingPosts = Array.isArray(body.posts) ? body.posts : [];
+  const byIndex = new Map(
+    incomingPosts
+      .map((post) => [Number(post?.index), post])
+      .filter(([index]) => Number.isInteger(index) && index >= 0)
+  );
   const byLink = new Map(incomingPosts.map((post) => [String(post?.link || '').trim(), post]));
 
-  draft.posts = currentPosts.map((post) => {
-    const edited = byLink.get(String(post.link || '').trim());
+  draft.posts = currentPosts.map((post, index) => {
+    const edited = byIndex.get(index) || byLink.get(String(post.link || '').trim());
     if (!edited) return post;
+    const hasSummary = Object.prototype.hasOwnProperty.call(edited, 'summary');
+    const nextSummary = hasSummary ? edited.summary : post.summary;
     return {
       ...post,
-      summary: cleanSummaryText(edited.summary || post.summary || ''),
+      summary: cleanSummaryText(nextSummary || ''),
     };
   });
 
@@ -156,12 +163,19 @@ async function updateDraft(ns, body) {
 
 async function removePostFromDraft(ns, body) {
   const draft = await requireDraft(ns, body.id);
+  const index = Number(body.index);
   const link = String(body.link || '').trim();
-  if (!link) throw new Error('Missing post link.');
-
   const currentPosts = Array.isArray(draft.posts) ? draft.posts : [];
-  const nextPosts = currentPosts.filter((post) => String(post?.link || '').trim() !== link);
-  if (nextPosts.length === currentPosts.length) throw new Error('Digest post not found.');
+  let nextPosts;
+
+  if (Number.isInteger(index) && index >= 0 && index < currentPosts.length) {
+    nextPosts = currentPosts.filter((_, idx) => idx !== index);
+  } else if (link) {
+    nextPosts = currentPosts.filter((post) => String(post?.link || '').trim() !== link);
+    if (nextPosts.length === currentPosts.length) throw new Error('Digest post not found.');
+  } else {
+    throw new Error('Missing post identifier.');
+  }
 
   draft.posts = nextPosts;
   draft.greekPosts = nextPosts.length;
