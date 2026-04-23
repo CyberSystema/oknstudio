@@ -7,7 +7,6 @@
 
 import {
   buildEmailBody,
-  cleanSummaryText,
   DIGEST_PREFIX,
   generateDigestDraft,
   getDigestNamespace,
@@ -152,7 +151,7 @@ async function updateDraft(ns, body) {
     const nextSummary = hasSummary ? edited.summary : post.summary;
     return {
       ...post,
-      summary: cleanSummaryText(nextSummary || ''),
+      summary: (nextSummary || '').trim(),
     };
   });
 
