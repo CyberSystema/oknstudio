@@ -18,9 +18,12 @@ const ADMIN_MAX_AGE = 8 * 60 * 60;       // 8 hours (seconds)
 const LOG_RETENTION_DAYS = 180;
 const RATE_WINDOW = 15 * 60 * 1000;      // 15 min (ms)
 const RATE_MAX = 5;
+const SECURITY_CACHE_MS = 60 * 1000;
 // In-memory fallback if RATE_LIMIT_KV binding is not configured.
 // Note: ephemeral per Worker isolate — bind RATE_LIMIT_KV in production.
 const attempts = new Map();
+let forceLogoutCache = { value: 0, expiresAt: 0 };
+const blockedIpCache = new Map();
 
 // ══════════════════════════════════════
 // SECURITY HEADERS
@@ -655,10 +658,17 @@ function queueLogEvent(context, event) {
 
 /**
  * Persists a structured operational log event.
- * Uses LOGS_KV when configured; falls back to AUDIT_LOG_KV.
+ * Writes to LOGS_KV only.
+ *
+ * By default, operational logs are emitted to console only and not persisted
+ * in KV to avoid exhausting free-tier write quotas.
+ *
+ * Optional env toggles:
+ * - LOG_EVENTS_TO_KV=1|true|all    -> persist all operational logs
+ * - LOG_EVENTS_TO_KV=errors        -> persist warning/error logs only
+ * - LOG_REQUESTS_TO_KV=1           -> legacy behavior: persist request logs
  */
 async function recordLogEvent(env, event) {
-  const ns = getLogsNamespace(env);
   const record = {
     t: new Date().toISOString(),
     level: normalizeLevel(event.level),
@@ -684,7 +694,9 @@ async function recordLogEvent(env, event) {
     // Ignore console failures.
   }
 
+  const ns = getOpsLogsNamespace(env);
   if (!ns) return;
+  if (!shouldPersistLogToKv(env, record)) return;
   try {
     const key = `log:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
     const retentionDays = Number(env.LOG_RETENTION_DAYS || LOG_RETENTION_DAYS);
@@ -695,29 +707,54 @@ async function recordLogEvent(env, event) {
   }
 }
 
-function getLogsNamespace(env) {
+function shouldPersistLogToKv(env, record) {
+  const mode = String(env && env.LOG_EVENTS_TO_KV || '').trim().toLowerCase();
+  if (mode === '1' || mode === 'true' || mode === 'all') return true;
+  if (mode === 'errors') return record.level === 'warning' || record.level === 'error';
+  const legacyRequests = String(env && env.LOG_REQUESTS_TO_KV || '').trim() === '1';
+  if (legacyRequests) return record.category === 'request';
+  return false;
+}
+
+function getOpsLogsNamespace(env) {
+  if (!env) return null;
+  return env.LOGS_KV || null;
+}
+
+function getSecurityNamespace(env) {
   if (!env) return null;
   return env.LOGS_KV || env.AUDIT_LOG_KV || null;
 }
 
 async function getForceLogoutBefore(env) {
-  const ns = getLogsNamespace(env);
+  const now = Date.now();
+  if (forceLogoutCache.expiresAt > now) return forceLogoutCache.value;
+  const ns = getSecurityNamespace(env);
   if (!ns) return 0;
   try {
     const rec = await ns.get('cc:security:force_logout_before', { type: 'json' });
     const t = Number(rec && rec.t);
-    return Number.isFinite(t) ? t : 0;
+    forceLogoutCache = {
+      value: Number.isFinite(t) ? t : 0,
+      expiresAt: now + SECURITY_CACHE_MS,
+    };
+    return forceLogoutCache.value;
   } catch {
     return 0;
   }
 }
 
 async function isBlockedIp(env, ip) {
-  const ns = getLogsNamespace(env);
+  const now = Date.now();
+  const cached = blockedIpCache.get(ip);
+  if (cached && cached.expiresAt > now) return cached.blocked;
+  const ns = getSecurityNamespace(env);
   if (!ns) return false;
   try {
     const rec = await ns.get(`cc:security:block_ip:${ip}`, { type: 'json' });
-    return !!rec;
+    const blocked = !!rec;
+    blockedIpCache.set(ip, { blocked, expiresAt: now + SECURITY_CACHE_MS });
+    return blocked;
   } catch {
     return false;
   }
