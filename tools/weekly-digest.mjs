@@ -533,7 +533,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   const fromText = formatDate(new Date(fromMs).toISOString());
   const toText = formatDate(new Date(toMs).toISOString());
   const rangeText = `${fromText} έως ${toText}`;
-  const aiDisclaimerText = 'Σημαντική σημείωση: Οι παρακάτω σύνοψεις είναι προϊόν Τεχνητής Νοημοσύνης και μπορεί να περιέχουν ανακρίβειες ή ελλείψεις. Να διαβάζετε πάντα το πλήρες πρωτότυπο άρθρο πριν από οποιαδήποτε χρήση ή αναπαραγωγή.';
+  const aiDisclaimerText = 'Σημαντική σημείωση: Οι παρακάτω συνόψεις είναι προϊόν Τεχνητής Νοημοσύνης και μπορεί να περιέχουν ανακρίβειες ή ελλείψεις. Να διαβάζετε πάντα το πλήρες πρωτότυπο άρθρο πριν από οποιαδήποτε χρήση ή αναπαραγωγή.';
 
   if (!posts.length) {
     return {
