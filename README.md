@@ -117,6 +117,16 @@ Set via the Cloudflare Pages dashboard or `wrangler pages secret put`:
 | `B2_APP_KEY` | Backblaze B2 Application Key (read-only) |
 | `B2_ENDPOINT` | `s3.eu-central-003.backblazeb2.com` |
 | `B2_BUCKET` | `okn-media-archive` |
+| `RESEND_API_KEY` | API key for digest review/final email delivery |
+| `WEEKLY_DIGEST_FROM` | Verified sender, e.g. `OKN Digest <digest@updates.cybersystema.com>` |
+| `WEEKLY_DIGEST_REVIEW_RECIPIENTS` | Your private review inbox or inboxes |
+| `WEEKLY_DIGEST_RECIPIENTS` | Final recipient list for the approved digest |
+| `WEEKLY_DIGEST_SITE_URL` | Source site, default `https://orthodoxkorea.org` |
+| `WEEKLY_DIGEST_LOOKBACK_DAYS` | Lookback window, default `15` |
+| `WEEKLY_DIGEST_CLAUDE_MODEL` | Optional Anthropic model override |
+| `WEEKLY_DIGEST_CLAUDE_MAX_TOKENS` | Optional Anthropic token cap |
+| `WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES` | Optional summary length cap |
+| `DIGEST_CRON_SECRET` | Shared secret for the optional Cloudflare cron draft trigger |
 
 ### GitHub Actions — secrets
 
@@ -124,9 +134,6 @@ Set via the Cloudflare Pages dashboard or `wrangler pages secret put`:
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | Pages deploy permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Your account ID |
-| `RESEND_API_KEY` | API key for weekly email delivery (Resend) |
-| `WEEKLY_DIGEST_FROM` | Verified sender, e.g. `OKN Digest <digest@updates.cybersystema.com>` |
-| `WEEKLY_DIGEST_RECIPIENTS` | Comma-separated target emails for weekly digest |
 | `B2_KEY_ID` | B2 key with **read+write** (used by bucket-map to list everything) |
 | `B2_APP_KEY` | B2 key (read+write variant) |
 | `B2_ENDPOINT` | `s3.eu-central-003.backblazeb2.com` |
@@ -182,41 +189,42 @@ interpolation.
 
 ## Weekly Post Digest
 
-`weekly-digest.yml` sends a weekly email with only the Greek posts published in the last 7 days on `https://orthodoxkorea.org`.
+The digest workflow now lives inside the private OKN admin panel. There is no GitHub Actions digest workflow anymore.
 
-- If Greek posts exist, each email item includes title + link + date + AI summary in Greek.
-- If no Greek posts exist, the email says there were no new Greek posts this week.
-- Summaries are generated locally by an ML model (sentence-transformers), not an external AI API.
-- Default model is `intfloat/multilingual-e5-large-instruct` (strong multilingual quality for GitHub Actions CPU runs).
+### Admin workflow
 
-### Trigger
+- Generate a 15-day draft from the admin console.
+- The backend fetches recent Orthodox Korea posts, filters Greek entries, summarizes them with Anthropic, and stores the draft in KV.
+- Review and correct summaries inside the admin UI.
+- Send a private review email to yourself.
+- Send the final email only when the draft is approved.
 
-- Automatic: every Monday at `00:15 UTC` (`09:15 KST`)
-- Manual: GitHub Actions → **Weekly Orthodox Korea Digest** → **Run workflow**
+### Optional Cloudflare-native cron draft trigger
 
-### Required secrets
+An optional separate Cloudflare Worker can create the draft on a schedule without sending email and without switching the Pages project into advanced mode.
 
-- `RESEND_API_KEY`
-- `WEEKLY_DIGEST_FROM` (e.g. `OKN Updates <okn@updates.cybersystema.com>`)
-- `WEEKLY_DIGEST_RECIPIENT` (single email) or
-- `WEEKLY_DIGEST_RECIPIENTS` (list separated by comma, semicolon, or newline)
+Files:
+- `functions/api/internal/digest-draft.js` — secret-protected Pages endpoint that only creates the draft.
+- `workers/digest-cron.mjs` — scheduled Worker that calls the Pages endpoint.
+- `wrangler.digest-cron.jsonc` — Worker config with the 1st and 16th at `00:15 UTC` cron.
 
-### Local dry run (no email sent)
+Required Worker secrets/vars:
+- `DIGEST_CRON_SECRET` — must match the Pages runtime secret of the same name.
+- `DIGEST_CRON_TARGET_URL` — optional full URL to the Pages endpoint.
+- `DIGEST_CRON_API_BASE_URL` — optional fallback base URL for the Pages Functions host (for example `https://oknstudio.pages.dev`).
+  If `DIGEST_CRON_TARGET_URL` is omitted, the Worker derives it from `DIGEST_CRON_API_BASE_URL` plus `/api/internal/digest-draft`.
+
+Deploy the scheduled Worker separately from the Pages project:
 
 ```bash
-WEEKLY_DIGEST_DRY_RUN=true \
-WEEKLY_DIGEST_FROM="OKN Digest <digest@updates.cybersystema.com>" \
-WEEKLY_DIGEST_RECIPIENTS="you@example.com" \
-node tools/weekly-digest.mjs
+npx wrangler deploy -c wrangler.digest-cron.jsonc
 ```
 
-### Optional tuning
+The cron path is idempotent for a given digest window: if a draft for the current window already exists, it returns the existing draft instead of overwriting editorial changes.
 
-- `WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES` → summary length (`1..5`, default `3`)
-- `WEEKLY_DIGEST_SUMMARY_MODEL` → local Hugging Face model id (default `intfloat/multilingual-e5-large-instruct`)
+### Local script
 
-Script: `tools/weekly-digest.mjs`
-Workflow: `.github/workflows/weekly-digest.yml`
+`tools/weekly-digest.mjs` still exists for local/manual use, but it is no longer the production automation path.
 
 ## Design
 

@@ -1,0 +1,17 @@
+{
+  "name": "oknstudio-digest-cron",
+  "main": "./workers/digest-cron.mjs",
+  "compatibility_date": "2026-04-23",
+  "triggers": {
+    "crons": ["15 0 1,16 * *"]
+  },
+  // Non-secret vars. Set DIGEST_CRON_SECRET via: wrangler secret put DIGEST_CRON_SECRET
+  "vars": {
+    // Full URL to the Pages internal endpoint, e.g. "https://oknstudio.pages.dev/api/internal/digest-draft"
+    // If this is empty, DIGEST_CRON_API_BASE_URL is used plus /api/internal/digest-draft.
+    "DIGEST_CRON_TARGET_URL": "",
+    // Base URL for your Pages Functions host (not the WordPress content site).
+    "DIGEST_CRON_API_BASE_URL": "https://oknstudio.pages.dev",
+    "WEEKLY_DIGEST_SITE_URL": "https://orthodoxkorea.org"
+  }
+}

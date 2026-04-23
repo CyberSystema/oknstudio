@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
+import { writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const DEFAULT_SITE_URL = 'https://orthodoxkorea.org';
-const DEFAULT_LOOKBACK_DAYS = 7;
+const DEFAULT_LOOKBACK_DAYS = 15;
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
 function env(name, fallback = '') {
@@ -290,6 +291,61 @@ function cleanSummaryText(summary) {
   return text.length > 1200 ? `${text.slice(0, 1197)}...` : text;
 }
 
+function parseSummaryOverrides(raw) {
+  if (!raw) return [];
+  let parsed;
+  try {
+    parsed = JSON.parse(String(raw));
+  } catch {
+    throw new Error('WEEKLY_DIGEST_SUMMARY_OVERRIDES_JSON must be valid JSON.');
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('WEEKLY_DIGEST_SUMMARY_OVERRIDES_JSON must be a JSON array.');
+  }
+
+  return parsed
+    .map((row) => ({
+      link: String(row?.link || '').trim(),
+      title: String(row?.title || '').trim(),
+      summary: cleanSummaryText(row?.summary || ''),
+    }))
+    .filter((row) => row.summary && (row.link || row.title));
+}
+
+function applySummaryOverrides(posts, overrides) {
+  if (!overrides.length) return posts;
+
+  const byLink = new Map();
+  const byTitle = new Map();
+
+  for (const item of overrides) {
+    if (item.link) byLink.set(item.link, item.summary);
+    if (item.title) byTitle.set(item.title.toLowerCase(), item.summary);
+  }
+
+  return posts.map((post) => {
+    const override = byLink.get(post.link) || byTitle.get(String(post.title || '').toLowerCase());
+    if (!override) return post;
+    return { ...post, summary: override };
+  });
+}
+
+function maybeExportSummaries(path, posts) {
+  const outPath = String(path || '').trim();
+  if (!outPath) return;
+
+  const payload = posts.map((p) => ({
+    title: p.title,
+    link: p.link,
+    date: p.date,
+    summary: p.summary,
+    imageUrl: p.imageUrl || '',
+  }));
+
+  writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+}
+
 let cachedAnthropicModels = null;
 
 async function listAnthropicModels(apiKey) {
@@ -481,9 +537,9 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
 
   if (!posts.length) {
     return {
-      subject: `Εβδομαδιαίο δελτίο Orthodox Korea (${rangeText})`,
+      subject: `Δεκαπενθήμερο δελτίο Orthodox Korea (${rangeText})`,
       text: [
-        'Εβδομαδιαίο Δελτίο Orthodox Korea',
+        'Δεκαπενθήμερο Δελτίο Orthodox Korea',
         '',
         `Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο ${siteUrl} την τελευταία εβδομάδα (${rangeText}).`,
         '',
@@ -492,7 +548,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
         `Ιστότοπος: ${siteUrl}`,
       ].join('\n'),
       html: [
-        '<p>Εβδομαδιαίο Δελτίο Orthodox Korea</p>',
+        '<p>Δεκαπενθήμερο Δελτίο Orthodox Korea</p>',
         `<p>Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο <a href="${siteUrl}">${siteUrl}</a> την τελευταία εβδομάδα (${rangeText}).</p>`,
         `<p style="margin:12px 0 0 0;padding:12px 14px;border-radius:10px;background:#fff6e5;border:1px solid #f5d08a;color:#7a5100;font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.45;"><strong>Προσοχή:</strong> ${escapeHtml(aiDisclaimerText)}</p>`,
         `<p><a href="${siteUrl}">Επίσκεψη στο Orthodox Korea</a></p>`,
@@ -542,9 +598,9 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   }).join('');
 
   return {
-    subject: `Εβδομαδιαίο δελτίο Orthodox Korea: ${posts.length} νέα ελληνική ανάρτηση${posts.length === 1 ? '' : 'ς'}`,
+    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length} νέα ελληνική ανάρτηση${posts.length === 1 ? '' : 'ς'}`,
     text: [
-      'Εβδομαδιαίο Δελτίο Orthodox Korea',
+      'Δεκαπενθήμερο Δελτίο Orthodox Korea',
       '',
       `Νέες ελληνικές αναρτήσεις από το ${siteUrl} για το διάστημα ${rangeText}:`,
       '',
@@ -560,7 +616,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
       '<head>',
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width,initial-scale=1">',
-      '<title>Εβδομαδιαίο Δελτίο Orthodox Korea</title>',
+      '<title>Δεκαπενθήμερο Δελτίο Orthodox Korea</title>',
       '</head>',
       '<body style="margin:0;padding:0;background:#f5f7fb;">',
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f5f7fb;">',
@@ -568,8 +624,8 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;max-width:720px;">',
       '<tr>',
       '<td style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#334155 100%);border-radius:18px;padding:26px 24px;color:#ffffff;">',
-      '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:12px;letter-spacing:1.2px;opacity:.82;">ORTHODOX KOREA · WEEKLY BRIEF</div>',
-      '<h1 style="margin:8px 0 10px 0;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:1.15;font-weight:700;">Εβδομαδιαίο Δελτίο Orthodox Korea</h1>',
+      '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:12px;letter-spacing:1.2px;opacity:.82;">ORTHODOX KOREA · 15-DAY BRIEF</div>',
+      '<h1 style="margin:8px 0 10px 0;font-family:Georgia,Times New Roman,serif;font-size:34px;line-height:1.15;font-weight:700;">Δεκαπενθήμερο Δελτίο Orthodox Korea</h1>',
       `<p style="margin:0;font-family:Segoe UI,Arial,sans-serif;font-size:16px;line-height:1.5;opacity:.92;">Νέες ελληνικές αναρτήσεις για το διάστημα ${escapeHtml(rangeText)}.</p>`,
       '</td>',
       '</tr>',
@@ -649,6 +705,9 @@ async function main() {
     ? Math.min(5, Math.max(1, Math.floor(maxSummarySentencesRaw)))
     : 3;
   const summaryModel = env('WEEKLY_DIGEST_SUMMARY_MODEL', 'intfloat/multilingual-e5-large-instruct');
+  const subjectPrefix = env('WEEKLY_DIGEST_SUBJECT_PREFIX', '');
+  const summaryOverridesRaw = env('WEEKLY_DIGEST_SUMMARY_OVERRIDES_JSON', '');
+  const exportSummariesPath = env('WEEKLY_DIGEST_EXPORT_SUMMARIES_PATH', '');
   const dryRun = toBoolean(env('WEEKLY_DIGEST_DRY_RUN', 'false'));
 
   if (!recipients.length) {
@@ -678,7 +737,14 @@ async function main() {
     dryRun,
     maxSentences: maxSummarySentences,
   });
-  const body = buildEmailBody({ siteUrl, fromMs, toMs, posts: summarizedGreekPosts });
+  const summaryOverrides = parseSummaryOverrides(summaryOverridesRaw);
+  const finalPosts = applySummaryOverrides(summarizedGreekPosts, summaryOverrides);
+  maybeExportSummaries(exportSummariesPath, finalPosts);
+
+  const body = buildEmailBody({ siteUrl, fromMs, toMs, posts: finalPosts });
+  if (subjectPrefix) {
+    body.subject = `${subjectPrefix} ${body.subject}`.trim();
+  }
 
   if (dryRun) {
     console.log('[DRY RUN] Weekly digest prepared');
@@ -686,6 +752,7 @@ async function main() {
     console.log(`Total posts found: ${posts.length}`);
     console.log(`Greek posts kept: ${greekPosts.length}`);
     console.log(`AI model: local ${summaryModel}`);
+    console.log(`Summary overrides applied: ${summaryOverrides.length}`);
     console.log(`Summary sentences per post: ${maxSummarySentences}`);
     console.log(`Recipients: ${recipients.join(', ')}`);
     console.log(`Subject: ${body.subject}`);
@@ -707,6 +774,7 @@ async function main() {
   console.log(`Total posts found: ${posts.length}`);
   console.log(`Greek posts emailed: ${summarizedGreekPosts.length}`);
   console.log(`AI model: local ${summaryModel}`);
+  console.log(`Summary overrides applied: ${summaryOverrides.length}`);
   console.log(`Summary sentences per post: ${maxSummarySentences}`);
   console.log(`Source: ${source}`);
   if (result?.id) {

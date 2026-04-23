@@ -130,6 +130,11 @@ export async function onRequest(context) {
     return finish(res, { category: 'request', event: 'public_surface_request' });
   }
 
+  if (url.pathname === '/api/internal/digest-draft' && request.method === 'POST') {
+    const res = await next();
+    return finish(res, { category: 'system', event: 'digest_cron_request' });
+  }
+
   // ── Logout (POST only — CSRF-safe by SameSite=Lax cookie) ──
   if (url.pathname === '/_logout' && request.method === 'POST') {
     const res = await handleLogout(request, env, context);
