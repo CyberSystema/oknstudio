@@ -84,6 +84,20 @@ export async function onRequestPost(context) {
       return json({ ok: true, draft });
     }
 
+    if (action === 'digest.removePost') {
+      const draft = await removePostFromDraft(ns, body);
+      return json({ ok: true, draft });
+    }
+
+    if (action === 'digest.delete') {
+      const cleanId = String(body.id || '').trim();
+      if (!cleanId) return json({ ok: false, error: 'Missing draft id.' }, 400);
+      const existing = await ns.get(`${DIGEST_PREFIX}${cleanId}`, { type: 'json' });
+      if (!existing) return json({ ok: false, error: 'Digest draft not found.' }, 404);
+      await ns.delete(`${DIGEST_PREFIX}${cleanId}`);
+      return json({ ok: true, deleted: true, id: cleanId });
+    }
+
     if (action === 'digest.sendReview') {
       const draft = await requireDraft(ns, body.id);
       const reviewRecipients = parseRecipients(String(env.WEEKLY_DIGEST_REVIEW_RECIPIENTS || ''));
@@ -135,14 +149,34 @@ async function updateDraft(ns, body) {
     };
   });
 
+  rebuildDraftContent(draft);
+  await saveDraft(ns, draft);
+  return draft;
+}
+
+async function removePostFromDraft(ns, body) {
+  const draft = await requireDraft(ns, body.id);
+  const link = String(body.link || '').trim();
+  if (!link) throw new Error('Missing post link.');
+
+  const currentPosts = Array.isArray(draft.posts) ? draft.posts : [];
+  const nextPosts = currentPosts.filter((post) => String(post?.link || '').trim() !== link);
+  if (nextPosts.length === currentPosts.length) throw new Error('Digest post not found.');
+
+  draft.posts = nextPosts;
+  draft.greekPosts = nextPosts.length;
+  rebuildDraftContent(draft);
+  await saveDraft(ns, draft);
+  return draft;
+}
+
+function rebuildDraftContent(draft) {
   draft.updatedAt = new Date().toISOString();
   draft.status = 'edited';
   const rebuilt = buildEmailBody({ siteUrl: draft.siteUrl, fromMs: draft.fromMs, toMs: draft.toMs, posts: draft.posts });
   draft.subject = rebuilt.subject;
   draft.text = rebuilt.text;
   draft.html = rebuilt.html;
-  await saveDraft(ns, draft);
-  return draft;
 }
 
 async function sendDigestEmail(env, draft, recipients, subjectPrefix) {

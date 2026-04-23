@@ -656,7 +656,7 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
       <div class="digest-toolbar-note">Private editorial workflow: generate the digest draft, review and correct summaries here, preview the final HTML email, then send either a review email to yourself or the final email to recipients.</div>
       <div class="digest-drafts table-wrap" style="margin-top:12px">
         <table class="table" id="digestDraftTable">
-          <thead><tr><th>Draft</th><th>Status</th><th>Posts</th><th>Updated</th><th>Open</th></tr></thead>
+          <thead><tr><th>Draft</th><th>Status</th><th>Posts</th><th>Updated</th><th>Open</th><th>Delete</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -1278,7 +1278,7 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
       currentDigestDraft = next || null;
       renderCurrentDigestDraft();
     } catch {
-      els.digestDraftTableBody.innerHTML = '<tr><td colspan="5" class="state-bad">Failed to load digest drafts.</td></tr>';
+      els.digestDraftTableBody.innerHTML = '<tr><td colspan="6" class="state-bad">Failed to load digest drafts.</td></tr>';
       currentDigestDraft = null;
       renderCurrentDigestDraft();
     }
@@ -1292,14 +1292,22 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
         '<td>' + escapeHtml(String(row.greekPosts || 0)) + '</td>' +
         '<td><span class="small">' + escapeHtml(fmtDate(row.updatedAt || row.createdAt)) + '</span></td>' +
         '<td><button data-digest-open="' + escapeHtml(row.id || '') + '">open</button></td>' +
+        '<td><button data-digest-delete="' + escapeHtml(row.id || '') + '" class="btn-danger">delete</button></td>' +
       '</tr>';
-    }).join('') || '<tr><td colspan="5" class="small">No digest drafts yet.</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="small">No digest drafts yet.</td></tr>';
 
     els.digestDraftTableBody.querySelectorAll('[data-digest-open]').forEach(function(node){
       node.addEventListener('click', function(){
         const id = node.getAttribute('data-digest-open');
         currentDigestDraft = digestDrafts.find(function(row){ return row.id === id; }) || null;
         renderCurrentDigestDraft();
+      });
+    });
+
+    els.digestDraftTableBody.querySelectorAll('[data-digest-delete]').forEach(function(node){
+      node.addEventListener('click', function(){
+        const id = node.getAttribute('data-digest-delete') || '';
+        deleteDigestDraft(id);
       });
     });
   }
@@ -1325,9 +1333,17 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
         '<div class="meta-line">ΑΝΑΡΤΗΣΗ ' + (idx + 1) + ' · ' + escapeHtml(fmtDate(post.date)) + '</div>' +
         '<h3>' + escapeHtml(post.title || '-') + '</h3>' +
         '<div class="meta-line"><a href="' + escapeHtml(post.link || '#') + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(post.link || '-') + '</a></div>' +
+        '<div class="digest-toolbar" style="margin:8px 0 10px 0"><button data-digest-delete-post="' + escapeHtml(post.link || '') + '" class="btn-danger">Delete from draft</button></div>' +
         '<div class="field"><label>Summary</label><textarea data-digest-link="' + escapeHtml(post.link || '') + '">' + escapeHtml(post.summary || '') + '</textarea></div>' +
       '</article>';
     }).join('') || '<div class="small">This draft has no Greek posts.</div>';
+
+    els.digestPosts.querySelectorAll('[data-digest-delete-post]').forEach(function(node){
+      node.addEventListener('click', function(){
+        const link = node.getAttribute('data-digest-delete-post') || '';
+        deleteDigestPostFromDraft(link);
+      });
+    });
 
     els.digestPreview.srcdoc = draft.html || '<!doctype html><html><body></body></html>';
   }
@@ -1383,6 +1399,37 @@ textarea:focus,input[type="text"]:focus,select:focus{border-color:rgba(120,245,1
       await loadDigestDrafts(currentDigestDraft.id);
     } catch {
       alert('Failed to save digest corrections.');
+    }
+  }
+
+  async function deleteDigestDraft(id){
+    const cleanId = String(id || '').trim();
+    if (!cleanId) return;
+    if (!confirm('Delete this draft permanently?')) return;
+    try {
+      await digestPost('digest.delete', { id: cleanId });
+      if (currentDigestDraft && currentDigestDraft.id === cleanId) currentDigestDraft = null;
+      pushJournal('Deleted digest draft ' + cleanId + '.');
+      emitAdminLog({ level:'warning', category:'admin', event:'digest_delete', message:'Deleted digest draft', data:{ id: cleanId } });
+      await loadDigestDrafts();
+    } catch {
+      alert('Failed to delete draft.');
+    }
+  }
+
+  async function deleteDigestPostFromDraft(link){
+    if (!currentDigestDraft) return;
+    const cleanLink = String(link || '').trim();
+    if (!cleanLink) return;
+    if (!confirm('Remove this post from the current digest draft?')) return;
+    try {
+      const data = await digestPost('digest.removePost', { id: currentDigestDraft.id, link: cleanLink });
+      currentDigestDraft = data.draft || currentDigestDraft;
+      pushJournal('Removed one post from digest draft ' + currentDigestDraft.id + '.');
+      emitAdminLog({ level:'info', category:'admin', event:'digest_remove_post', message:'Removed post from digest draft', data:{ id: currentDigestDraft.id, link: cleanLink } });
+      await loadDigestDrafts(currentDigestDraft.id);
+    } catch {
+      alert('Failed to remove post from draft.');
     }
   }
 
