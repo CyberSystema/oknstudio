@@ -598,7 +598,7 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   }).join('');
 
   return {
-    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length} νέα ελληνική ανάρτηση${posts.length === 1 ? '' : 'ς'}`,
+    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length} νέες αναρτήσεις`,
     text: [
       'Δεκαπενθήμερο Δελτίο Orthodox Korea',
       '',
