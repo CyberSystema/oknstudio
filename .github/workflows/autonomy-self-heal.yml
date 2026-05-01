@@ -60,7 +60,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Create self-heal PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: bot/autonomy-self-heal
           delete-branch: true
