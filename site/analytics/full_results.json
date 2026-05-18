@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-11T01:49:11.209776",
+  "generated_at": "2026-05-18T01:56:40.362556",
   "meta": {
     "total_posts": 182,
     "platforms": [
@@ -72,7 +72,7 @@
   ],
   "analysis": {
     "meta": {
-      "generated_at": "2026-05-11T01:48:51.924070",
+      "generated_at": "2026-05-18T01:56:20.602293",
       "total_posts": 182,
       "platforms": [
         "instagram",
@@ -2126,7 +2126,7 @@
   "forecast": {
     "horizon_days": 0,
     "method_used": "prophet",
-    "generated_at": "2026-05-11T01:48:52.708384",
+    "generated_at": "2026-05-18T01:56:21.241880",
     "reach": {
       "method": "prophet",
       "historical_weeks": 48,
@@ -2160,7 +2160,7 @@
     "instagram_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-05-11T01:48:53.145054",
+      "generated_at": "2026-05-18T01:56:21.659638",
       "reach": {
         "method": "prophet",
         "historical_weeks": 45,
@@ -2196,7 +2196,7 @@
     "tiktok_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-05-11T01:48:53.506240",
+      "generated_at": "2026-05-18T01:56:22.021683",
       "reach": {
         "method": "prophet",
         "historical_weeks": 9,
