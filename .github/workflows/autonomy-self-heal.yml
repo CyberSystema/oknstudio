@@ -30,7 +30,11 @@ jobs:
       - name: ☦️ Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          # Pin to the default branch. This job runs under a privileged
+          # workflow_run context (contents: write); checking out an arbitrary
+          # triggering branch would let non-default-branch code run with those
+          # permissions. Self-heal only ever repairs main and opens a PR.
+          ref: main
 
       - name: 📦 Setup Node
         uses: actions/setup-node@v4
@@ -38,7 +42,7 @@ jobs:
           node-version: 22
 
       - name: 📥 Install
-        run: npm install
+        run: npm ci
 
       - name: 🔎 Preview self-heal
         run: node tools/autonomy-self-heal.mjs --json > self-heal-preview.json

@@ -41,7 +41,7 @@ jobs:
           node-version: 22
 
       - name: 📥 Install
-        run: npm install
+        run: npm ci
 
       - name: ✅ Verify repo
         run: npm run verify

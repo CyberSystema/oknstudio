@@ -66,7 +66,7 @@ export async function onRequestPost(context) {
     const body = await request.json();
 
     if (body.action === 'auth') {
-      return await handleAuth(body, env, headers);
+      return await handleAuth(body, env, headers, ip);
     } else if (body.action === 'upload_batch') {
       return await handleBatchUpload(body, env, headers, ip);
     } else if (body.action === 'upload') {
@@ -122,7 +122,7 @@ function respond(data, status, headers) {
 // AUTH
 // ══════════════════════════════════════
 
-async function handleAuth(body, env, headers) {
+async function handleAuth(body, env, headers, ip) {
   const password = body.password;
   if (!password || typeof password !== 'string') {
     return respond({ ok: false, error: 'Password required' }, 400, headers);
@@ -135,6 +135,8 @@ async function handleAuth(body, env, headers) {
 
   const hash = await sha256(password);
   if (!(await timeSafeEqual(hash, storedHash))) {
+    // Count failed sign-ins toward the rate-limit window to throttle brute force.
+    await recordRateLimit(ip, env);
     return respond({ ok: false, error: 'Wrong password' }, 401, headers);
   }
 

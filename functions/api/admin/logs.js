@@ -5,6 +5,9 @@
  * POST /api/admin/logs   -> append custom admin/user/ops log event
  */
 
+import { descendingTimeToken } from '../../_lib/timekey.js';
+import { logIntegrityTag } from '../../_lib/logintegrity.js';
+
 const DEFAULT_LIMIT = 80;
 const MAX_LIMIT = 200;
 const LIST_BATCH = 200;
@@ -141,7 +144,9 @@ export async function onRequestPost(context) {
   };
 
   try {
-    const key = `log:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    // Keyed integrity tag (matches the middleware writer) + inverted-time key.
+    record.chainHash = await logIntegrityTag(env.TOKEN_SECRET, record);
+    const key = `log:${descendingTimeToken()}:${Math.random().toString(36).slice(2, 8)}`;
     const retentionDays = Number(env.LOG_RETENTION_DAYS || 180);
     const ttl = Math.max(1, Number.isFinite(retentionDays) ? retentionDays : 180) * 24 * 60 * 60;
     await ns.put(key, JSON.stringify(record), { expirationTtl: ttl });

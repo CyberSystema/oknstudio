@@ -7,8 +7,12 @@
  * audit integrity, and brute-force intelligence.
  */
 
+import { logIntegrityTag } from '../../_lib/logintegrity.js';
+
 const PREFIX = 'cc:';
 const MAX_LIST = 1000;
+// Cap how many recent log records the integrity check re-verifies per request.
+const INTEGRITY_SAMPLE = 250;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -40,7 +44,7 @@ export async function onRequestGet(context) {
 
   const serviceMap = buildServiceMap(request.url, logs);
   const slo = buildSlo(logs);
-  const integrity = buildIntegrity(logs);
+  const integrity = await buildIntegrity(env, logs);
   const bruteForce = buildBruteforce(logs);
   const sessions = buildSessionIntelligence(logs);
 
@@ -234,25 +238,37 @@ function buildSlo(logs) {
   };
 }
 
-function buildIntegrity(logs) {
-  const rows = logs.slice().sort((a, b) => (a.t > b.t ? 1 : -1));
-  let prev = 'seed';
+// Verifies the keyed integrity tag (chainHash) on a bounded sample of the most
+// recent log records. A mismatch means a stored value was altered after signing.
+// Records written before the integrity tag shipped have no chainHash and are
+// counted as `untagged` rather than treated as broken.
+async function buildIntegrity(env, logs) {
+  const secret = String(env.TOKEN_SECRET || '').trim();
+  const rows = logs.slice().sort((a, b) => (a.t < b.t ? 1 : -1)).slice(0, INTEGRITY_SAMPLE);
+
+  if (!secret) {
+    return { available: false, ok: true, checked: 0, untagged: rows.length, sample: rows.length, brokenAt: null, head: '-', reason: 'TOKEN_SECRET not configured.' };
+  }
+
+  let checked = 0;
+  let untagged = 0;
   let brokenAt = null;
 
   for (const row of rows) {
-    const payload = `${row.t}|${row.level}|${row.category}|${row.event}|${row.path}|${row.status}|${row.message}`;
-    const hash = quickHash(prev + '|' + payload);
-    if (!hash) continue;
-    prev = hash;
-    if (!row.chainHash) continue;
-    if (row.chainHash !== hash && !brokenAt) brokenAt = row.t;
+    if (!row.chainHash) { untagged += 1; continue; }
+    checked += 1;
+    const expected = await logIntegrityTag(secret, row);
+    if (expected !== row.chainHash && !brokenAt) brokenAt = row.t || row.id || 'unknown';
   }
 
   return {
-    checked: rows.length,
+    available: true,
     ok: !brokenAt,
+    checked,
+    untagged,
+    sample: rows.length,
     brokenAt,
-    head: prev,
+    head: rows[0]?.chainHash || '-',
   };
 }
 
@@ -292,16 +308,6 @@ function topMap(map, n) {
     .map(([key, value]) => ({ key, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, n);
-}
-
-function quickHash(value) {
-  let h = 2166136261;
-  const str = String(value || '');
-  for (let i = 0; i < str.length; i += 1) {
-    h ^= str.charCodeAt(i);
-    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
-  }
-  return (h >>> 0).toString(16).padStart(8, '0');
 }
 
 async function appendSyntheticRecord(ns, record) {

@@ -50,9 +50,8 @@ jobs:
           node-version: 22
 
       - name: 📥 Install
-        # Lockfile is gitignored so we use `npm install`, not `npm ci`,
-        # matching the convention set by .github/workflows/deploy.yml.
-        run: npm install
+        # Reproducible install from the committed package-lock.json.
+        run: npm ci
 
       - name: 🔍 Type check
         run: npm run check

@@ -73,7 +73,7 @@ jobs:
           ref: main
 
       - name: 📦 Install dependencies
-        run: npm install --production
+        run: npm ci --omit=dev
 
       - name: 📁 Copy assets
         run: |
