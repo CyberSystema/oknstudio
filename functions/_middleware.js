@@ -10,6 +10,9 @@
  *   TOKEN_SECRET        — Random secret for HMAC session signing
  */
 
+import { descendingTimeToken } from './_lib/timekey.js';
+import { logIntegrityTag } from './_lib/logintegrity.js';
+
 const SITE_COOKIE = 'okns_auth';
 const ADMIN_COOKIE = 'okns_admin';
 const MAX_BODY = 10 * 1024;
@@ -24,6 +27,19 @@ const SECURITY_CACHE_MS = 60 * 1000;
 const attempts = new Map();
 let forceLogoutCache = { value: 0, expiresAt: 0 };
 const blockedIpCache = new Map();
+// Hard cap on per-isolate Map growth across diverse client IPs. Maps preserve
+// insertion order, so evicting from the front drops the oldest entries first.
+const CACHE_MAX_ENTRIES = 5000;
+
+function capCacheSize(map, max = CACHE_MAX_ENTRIES) {
+  if (map.size <= max) return;
+  const overflow = map.size - max;
+  let removed = 0;
+  for (const key of map.keys()) {
+    map.delete(key);
+    if (++removed >= overflow) break;
+  }
+}
 
 // ══════════════════════════════════════
 // SECURITY HEADERS
@@ -584,6 +600,7 @@ async function recordAttempt(ip, env) {
   const rec = attempts.get(ip);
   if (!rec || now - rec.start > RATE_WINDOW) {
     attempts.set(ip, { start: now, count: 1 });
+    capCacheSize(attempts);
   } else {
     rec.count++;
   }
@@ -618,7 +635,8 @@ async function recordAuthEvent(env, event) {
   }
   if (env && env.AUDIT_LOG_KV) {
     try {
-      const key = `auth:${Date.now().toString(36)}:${record.ip}`;
+      // Inverted-time key so list() returns newest auth events first.
+      const key = `auth:${descendingTimeToken()}:${record.ip}`;
       await env.AUDIT_LOG_KV.put(key, JSON.stringify(record), {
         expirationTtl: 60 * 60 * 24 * 180, // 180 days
       });
@@ -698,7 +716,10 @@ async function recordLogEvent(env, event) {
   if (!ns) return;
   if (!shouldPersistLogToKv(env, record)) return;
   try {
-    const key = `log:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    // Keyed integrity tag so the Control Center can detect tampered log values.
+    record.chainHash = await logIntegrityTag(env.TOKEN_SECRET, record);
+    // Inverted-time key so list() returns the newest log entries first.
+    const key = `log:${descendingTimeToken()}:${Math.random().toString(36).slice(2, 8)}`;
     const retentionDays = Number(env.LOG_RETENTION_DAYS || LOG_RETENTION_DAYS);
     const ttl = Math.max(1, Number.isFinite(retentionDays) ? retentionDays : LOG_RETENTION_DAYS) * 24 * 60 * 60;
     await ns.put(key, JSON.stringify(record), { expirationTtl: ttl });
@@ -754,6 +775,7 @@ async function isBlockedIp(env, ip) {
     const rec = await ns.get(`cc:security:block_ip:${ip}`, { type: 'json' });
     const blocked = !!rec;
     blockedIpCache.set(ip, { blocked, expiresAt: now + SECURITY_CACHE_MS });
+    capCacheSize(blockedIpCache);
     return blocked;
   } catch {
     return false;
