@@ -1,4 +1,10 @@
-import { createDigestDraftIfMissing, json } from '../../_lib/digest.js';
+import {
+  createDigestDraftIfMissing,
+  getDigestNamespace,
+  getReviewRecipients,
+  json,
+  sendReviewEmail,
+} from '../../_lib/digest.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -9,10 +15,31 @@ export async function onRequestPost(context) {
 
   try {
     const result = await createDigestDraftIfMissing(env);
-    return json({ ok: true, created: result.created, draft: result.draft });
+    const review = await deliverReview(env, result.draft);
+    return json({ ok: true, created: result.created, review, draft: result.draft });
   } catch (error) {
     const status = String(error?.message || '').includes('No digest/admin KV configured') ? 503 : 500;
     return json({ ok: false, error: error?.message || 'Failed to create digest draft.' }, status);
+  }
+}
+
+// Auto-sends the review email so the scheduled cron delivers it without manual
+// intervention. Idempotent per window: a draft that already has reviewSentAt is
+// left untouched, while a draft created on an earlier run that failed to send is
+// retried here. A send failure is reported but does not discard the saved draft.
+async function deliverReview(env, draft) {
+  if (draft?.reviewSentAt) {
+    return { sent: false, skipped: 'already-sent', sentAt: draft.reviewSentAt };
+  }
+  if (!getReviewRecipients(env).length) {
+    return { sent: false, skipped: 'no-recipients' };
+  }
+
+  try {
+    const result = await sendReviewEmail(getDigestNamespace(env), env, draft);
+    return { sent: true, messageId: result?.id || null };
+  } catch (error) {
+    return { sent: false, error: error?.message || 'Failed to send review email.' };
   }
 }
 

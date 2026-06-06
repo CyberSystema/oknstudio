@@ -6,6 +6,10 @@ import { spawnSync } from 'node:child_process';
 const DEFAULT_SITE_URL = 'https://orthodoxkorea.org';
 const DEFAULT_LOOKBACK_DAYS = 15;
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+const DEFAULT_FROM_NAME = 'OKN Updates';
+const DEFAULT_FROM_ADDRESS = 'okn@updates.cybersystema.com';
+// RFC 5322 "specials": a display name containing any of these must be quoted.
+const RFC5322_SPECIALS = /[()<>@,;:\\".[\]]/;
 
 function env(name, fallback = '') {
   const value = process.env[name];
@@ -34,6 +38,45 @@ function parseRecipients(input) {
   }
 
   return unique;
+}
+
+function sanitizeDisplayName(name) {
+  return String(name || '')
+    .replace(/^"+|"+$/g, '')
+    .replace(/[<>]/g, '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sanitizeAddress(address) {
+  return String(address || '').replace(/[<>\s]/g, '').trim();
+}
+
+function quoteDisplayName(name) {
+  if (!RFC5322_SPECIALS.test(name)) return name;
+  return `"${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+// Mirrors resolveFromAddress() in functions/_lib/digest.js so the manual script
+// produces the same professional "Name <address>" sender as the production path.
+function resolveFromAddress(rawFrom, rawName) {
+  const raw = String(rawFrom || '').trim();
+  const bracketed = raw.match(/^(.*?)<([^>]+)>\s*$/);
+  const parsed = sanitizeAddress(bracketed ? bracketed[2] : raw);
+
+  let address;
+  if (!raw) {
+    address = DEFAULT_FROM_ADDRESS; // unset → fall back to the known OKN sender
+  } else if (parsed.includes('@')) {
+    address = parsed;
+  } else {
+    throw new Error('WEEKLY_DIGEST_FROM does not contain a valid email address.');
+  }
+
+  const embeddedName = bracketed ? sanitizeDisplayName(bracketed[1]) : '';
+  const name = sanitizeDisplayName(rawName) || embeddedName || DEFAULT_FROM_NAME;
+  return name ? `${quoteDisplayName(name)} <${address}>` : address;
 }
 
 function toBoolean(value) {
@@ -697,7 +740,7 @@ async function main() {
   const recipientsList = env('WEEKLY_DIGEST_RECIPIENTS', '');
   const recipientSingle = env('WEEKLY_DIGEST_RECIPIENT', '');
   const recipients = parseRecipients([recipientsList, recipientSingle].filter(Boolean).join(','));
-  const sender = env('WEEKLY_DIGEST_FROM', '');
+  const sender = resolveFromAddress(env('WEEKLY_DIGEST_FROM', ''), env('WEEKLY_DIGEST_FROM_NAME', ''));
   const resendApiKey = env('RESEND_API_KEY', '');
   const anthropicApiKey = env('ANTHROPIC_API_KEY', '');
   const maxSummarySentencesRaw = Number(env('WEEKLY_DIGEST_SUMMARY_MAX_SENTENCES', '3'));
@@ -717,10 +760,6 @@ async function main() {
   const invalidRecipients = recipients.filter((email) => !isValidEmail(email));
   if (invalidRecipients.length) {
     throw new Error(`Invalid recipient email(s): ${invalidRecipients.join(', ')}`);
-  }
-
-  if (!sender) {
-    throw new Error('WEEKLY_DIGEST_FROM is required.');
   }
 
   if (!dryRun && !resendApiKey) {
@@ -754,6 +793,7 @@ async function main() {
     console.log(`AI model: local ${summaryModel}`);
     console.log(`Summary overrides applied: ${summaryOverrides.length}`);
     console.log(`Summary sentences per post: ${maxSummarySentences}`);
+    console.log(`From: ${sender}`);
     console.log(`Recipients: ${recipients.join(', ')}`);
     console.log(`Subject: ${body.subject}`);
     console.log('Text preview:');

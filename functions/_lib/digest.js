@@ -3,6 +3,12 @@ const DEFAULT_LOOKBACK_DAYS = 15;
 const MIN_LOOKBACK_DAYS = 1;
 const MAX_LOOKBACK_DAYS = 365;
 export const DIGEST_PREFIX = 'digest:';
+const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+const REVIEW_SUBJECT_PREFIX = '[READY FOR REVIEW]';
+const DEFAULT_FROM_NAME = 'OKN Updates';
+const DEFAULT_FROM_ADDRESS = 'okn@updates.cybersystema.com';
+// RFC 5322 "specials": a display name containing any of these must be quoted.
+const RFC5322_SPECIALS = /[()<>@,;:\\".[\]]/;
 
 export function json(payload, status = 200) {
   return Response.json(payload, {
@@ -88,6 +94,96 @@ export function parseRecipients(input) {
     .map((v) => v.trim())
     .filter(Boolean)
     .filter((value, index, arr) => arr.indexOf(value) === index);
+}
+
+export function getReviewRecipients(env) {
+  return parseRecipients(String(env.WEEKLY_DIGEST_REVIEW_RECIPIENTS || ''));
+}
+
+function sanitizeDisplayName(name) {
+  return String(name || '')
+    .replace(/^"+|"+$/g, '')
+    .replace(/[<>]/g, '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sanitizeAddress(address) {
+  return String(address || '').replace(/[<>\s]/g, '').trim();
+}
+
+function quoteDisplayName(name) {
+  if (!RFC5322_SPECIALS.test(name)) return name;
+  return `"${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+// Builds a professional sender from a plain display name and a plain address.
+// Operators configure WEEKLY_DIGEST_FROM as a bare address (no angle brackets)
+// plus an optional WEEKLY_DIGEST_FROM_NAME; the angle brackets exist only in the
+// raw header and are never shown to recipients. A legacy "Name <addr>" value is
+// accepted and re-normalized.
+export function resolveFromAddress(env) {
+  const raw = String(env.WEEKLY_DIGEST_FROM || '').trim();
+  const bracketed = raw.match(/^(.*?)<([^>]+)>\s*$/);
+  const parsed = sanitizeAddress(bracketed ? bracketed[2] : raw);
+
+  let address;
+  if (!raw) {
+    address = DEFAULT_FROM_ADDRESS; // unset → fall back to the known OKN sender
+  } else if (parsed.includes('@')) {
+    address = parsed;
+  } else {
+    throw new Error('WEEKLY_DIGEST_FROM does not contain a valid email address.');
+  }
+
+  const embeddedName = bracketed ? sanitizeDisplayName(bracketed[1]) : '';
+  const name = sanitizeDisplayName(env.WEEKLY_DIGEST_FROM_NAME) || embeddedName || DEFAULT_FROM_NAME;
+  return name ? `${quoteDisplayName(name)} <${address}>` : address;
+}
+
+export async function sendDigestEmail(env, draft, recipients, subjectPrefix) {
+  const from = resolveFromAddress(env);
+  const apiKey = String(env.RESEND_API_KEY || '').trim();
+  if (!apiKey) throw new Error('RESEND_API_KEY is not configured.');
+
+  return sendWithResend({
+    apiKey,
+    from,
+    to: recipients,
+    subject: `${String(subjectPrefix || '').trim()} ${draft.subject}`.trim(),
+    text: draft.text,
+    html: draft.html,
+  });
+}
+
+async function sendWithResend({ apiKey, from, to, subject, text, html }) {
+  const response = await fetch(RESEND_ENDPOINT, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from, to, subject, text, html }),
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    throw new Error(`Resend API failed (${response.status}): ${detail.slice(0, 500)}`);
+  }
+  return response.json();
+}
+
+// Sends the review email to WEEKLY_DIGEST_REVIEW_RECIPIENTS and records delivery
+// on the draft. Shared by the admin "send review" button and the scheduled cron.
+export async function sendReviewEmail(ns, env, draft) {
+  const reviewRecipients = getReviewRecipients(env);
+  if (!reviewRecipients.length) {
+    throw new Error('WEEKLY_DIGEST_REVIEW_RECIPIENTS is not configured.');
+  }
+  const result = await sendDigestEmail(env, draft, reviewRecipients, REVIEW_SUBJECT_PREFIX);
+  draft.reviewSentAt = new Date().toISOString();
+  draft.updatedAt = draft.reviewSentAt;
+  draft.status = 'review-sent';
+  draft.reviewMessageId = result?.id || '';
+  await saveDraft(ns, draft);
+  return result;
 }
 
 function digestId(fromMs, toMs) {

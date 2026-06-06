@@ -118,7 +118,8 @@ Set via the Cloudflare Pages dashboard or `wrangler pages secret put`:
 | `B2_ENDPOINT` | `s3.eu-central-003.backblazeb2.com` |
 | `B2_BUCKET` | `okn-media-archive` |
 | `RESEND_API_KEY` | API key for digest review/final email delivery |
-| `WEEKLY_DIGEST_FROM` | Verified sender, e.g. `OKN Digest <digest@updates.cybersystema.com>` |
+| `WEEKLY_DIGEST_FROM` | Verified sender address — a plain address, no angle brackets, default `okn@updates.cybersystema.com` |
+| `WEEKLY_DIGEST_FROM_NAME` | Display name shown in inboxes, default `OKN Updates`. Combined with the address into a proper `Name <address>` header automatically; recipients only see the name |
 | `WEEKLY_DIGEST_REVIEW_RECIPIENTS` | Your private review inbox or inboxes |
 | `WEEKLY_DIGEST_RECIPIENTS` | Final recipient list for the approved digest |
 | `WEEKLY_DIGEST_SITE_URL` | Source site, default `https://orthodoxkorea.org` |
@@ -201,10 +202,10 @@ The digest workflow now lives inside the private OKN admin panel. There is no Gi
 
 ### Optional Cloudflare-native cron draft trigger
 
-An optional separate Cloudflare Worker can create the draft on a schedule without sending email and without switching the Pages project into advanced mode.
+An optional separate Cloudflare Worker generates the draft on a schedule and emails it to the review recipients automatically — no manual step and no switching the Pages project into advanced mode. The review email uses the same `[READY FOR REVIEW]` template as the admin button; the **final** email still requires manual approval in the admin UI.
 
 Files:
-- `functions/api/internal/digest-draft.js` — secret-protected Pages endpoint that only creates the draft.
+- `functions/api/internal/digest-draft.js` — secret-protected Pages endpoint that creates the draft and sends the review email to `WEEKLY_DIGEST_REVIEW_RECIPIENTS`.
 - `workers/digest-cron.mjs` — scheduled Worker that calls the Pages endpoint.
 - `wrangler.digest-cron.jsonc` — Worker config with the 1st and 16th at `00:15 UTC` cron.
 
@@ -220,7 +221,7 @@ Deploy the scheduled Worker separately from the Pages project:
 npx wrangler deploy -c wrangler.digest-cron.jsonc
 ```
 
-The cron path is idempotent for a given digest window: if a draft for the current window already exists, it returns the existing draft instead of overwriting editorial changes.
+The cron path is idempotent for a given digest window: if a draft for the current window already exists, it returns the existing draft instead of overwriting editorial changes. The review email is sent at most once per window — a draft that already records `reviewSentAt` is not re-sent, and a draft created on an earlier run that failed to email is retried on the next call.
 
 ### Local script
 
