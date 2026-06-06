@@ -227,7 +227,7 @@ function buildDependencyMatrix(env) {
     dependency('GitHub', 'Repo write-back for analytics uploads and Actions automation', hasEnv(env, 'GITHUB_PAT') && hasEnv(env, 'GITHUB_REPO'), hasEnv(env, 'GITHUB_PAT') ? 'configured' : 'missing', 'Used for upload write-back and off-platform automation.'),
     dependency('Backblaze B2', 'Private media archive', hasEnv(env, 'B2_KEY_ID') && hasEnv(env, 'B2_APP_KEY') && hasEnv(env, 'B2_ENDPOINT') && hasEnv(env, 'B2_BUCKET'), hasEnv(env, 'B2_BUCKET') ? 'configured' : 'missing', 'Keeps the media library durable outside the Pages deployment.'),
     dependency('Anthropic', 'Digest draft summarization', hasEnv(env, 'ANTHROPIC_API_KEY'), hasEnv(env, 'ANTHROPIC_API_KEY') ? 'configured' : 'missing', 'Required for autonomous digest drafting.'),
-    dependency('Resend', 'Digest email delivery', hasEnv(env, 'RESEND_API_KEY') && hasEnv(env, 'WEEKLY_DIGEST_FROM'), hasEnv(env, 'RESEND_API_KEY') ? 'configured' : 'missing', 'Required for review and final digest email delivery.'),
+    dependency('Resend', 'Digest email delivery', hasEnv(env, 'RESEND_API_KEY') && hasEnv(env, 'WEEKLY_DIGEST_FROM'), hasEnv(env, 'RESEND_API_KEY') && hasEnv(env, 'WEEKLY_DIGEST_FROM') ? 'configured' : 'missing', 'Required for review and final digest email delivery.'),
   ];
 }
 

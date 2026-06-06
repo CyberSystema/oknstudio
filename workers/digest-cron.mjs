@@ -46,6 +46,19 @@ async function triggerDraftCreation(env, trigger) {
     throw new Error(`Digest cron target failed (${response.status}): ${text.slice(0, 500)}`);
   }
 
+  // The endpoint returns 200 even when the draft is created but the review email
+  // fails to send (the draft is preserved server-side for a retry). Surface that
+  // failure so scheduled runs show an error in Worker logs instead of a silent OK.
+  let parsed = null;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = null;
+  }
+  if (parsed?.review?.error) {
+    throw new Error(`Digest review email failed: ${String(parsed.review.error).slice(0, 500)}`);
+  }
+
   return new Response(text, {
     status: 200,
     headers: { 'content-type': response.headers.get('content-type') || 'application/json' },

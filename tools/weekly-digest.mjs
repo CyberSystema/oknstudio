@@ -576,7 +576,6 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   const fromText = formatDate(new Date(fromMs).toISOString());
   const toText = formatDate(new Date(toMs).toISOString());
   const rangeText = `${fromText} έως ${toText}`;
-  const aiDisclaimerText = 'Σημαντική σημείωση: Οι παρακάτω συνόψεις είναι προϊόν Τεχνητής Νοημοσύνης και μπορεί να περιέχουν ανακρίβειες ή ελλείψεις. Να διαβάζετε πάντα το πλήρες πρωτότυπο άρθρο πριν από οποιαδήποτε χρήση ή αναπαραγωγή.';
 
   if (!posts.length) {
     return {
@@ -584,16 +583,13 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
       text: [
         'Δεκαπενθήμερο Δελτίο Orthodox Korea',
         '',
-        `Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο ${siteUrl} την τελευταία εβδομάδα (${rangeText}).`,
-        '',
-        aiDisclaimerText,
+        `Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο ${siteUrl} την τελευταία περίοδο (${rangeText}).`,
         '',
         `Ιστότοπος: ${siteUrl}`,
       ].join('\n'),
       html: [
         '<p>Δεκαπενθήμερο Δελτίο Orthodox Korea</p>',
-        `<p>Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο <a href="${siteUrl}">${siteUrl}</a> την τελευταία εβδομάδα (${rangeText}).</p>`,
-        `<p style="margin:12px 0 0 0;padding:12px 14px;border-radius:10px;background:#fff6e5;border:1px solid #f5d08a;color:#7a5100;font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.45;"><strong>Προσοχή:</strong> ${escapeHtml(aiDisclaimerText)}</p>`,
+        `<p>Δεν δημοσιεύτηκαν νέες ελληνικές αναρτήσεις στο <a href="${siteUrl}">${siteUrl}</a> την τελευταία περίοδο (${rangeText}).</p>`,
         `<p><a href="${siteUrl}">Επίσκεψη στο Orthodox Korea</a></p>`,
       ].join(''),
     };
@@ -608,7 +604,8 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
 
   const htmlItems = posts.map((p, idx) => {
     const safeTitle = escapeHtml(p.title);
-    const safeSummary = escapeHtml(p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.');
+    const rawSummary = p.summary || 'Δεν υπάρχει διαθέσιμη σύνοψη.';
+    const safeSummary = rawSummary.split(/\r?\n/).map(escapeHtml).join('<br>');
     const safeDate = escapeHtml(formatDate(p.date));
     const safeLink = escapeHtml(p.link);
     const safeImage = escapeHtml(p.imageUrl || '');
@@ -641,15 +638,13 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
   }).join('');
 
   return {
-    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length} νέες αναρτήσεις`,
+    subject: `Δεκαπενθήμερο δελτίο Orthodox Korea: ${posts.length === 1 ? '1 νέα ανάρτηση' : `${posts.length} νέες αναρτήσεις`}`,
     text: [
       'Δεκαπενθήμερο Δελτίο Orthodox Korea',
       '',
       `Νέες ελληνικές αναρτήσεις από το ${siteUrl} για το διάστημα ${rangeText}:`,
       '',
       ...lines,
-      '',
-      aiDisclaimerText,
       '',
       `Ιστότοπος: ${siteUrl}`,
     ].join('\n'),
@@ -674,11 +669,6 @@ function buildEmailBody({ siteUrl, fromMs, toMs, posts }) {
       '</tr>',
       '<tr><td style="height:14px;"></td></tr>',
       htmlItems,
-      '<tr>',
-      '<td style="padding:0 0 16px 0;">',
-      `<div style="margin:0;padding:12px 14px;border-radius:12px;background:#fff6e5;border:1px solid #f5d08a;color:#7a5100;font-family:Segoe UI,Arial,sans-serif;font-size:14px;line-height:1.45;"><strong>Προσοχή:</strong> ${escapeHtml(aiDisclaimerText)}</div>`,
-      '</td>',
-      '</tr>',
       '<tr>',
       '<td style="padding:14px 6px 2px 6px;text-align:center;font-family:Segoe UI,Arial,sans-serif;color:#64748b;font-size:13px;line-height:1.5;">',
       `Πηγή: <a href="${escapeHtml(siteUrl)}" style="color:#334155;">${escapeHtml(siteUrl)}</a>`,
