@@ -14,9 +14,9 @@ import {
   parseRecipients,
   requireDraft,
   saveDraft,
+  sendDigestEmail,
+  sendReviewEmail,
 } from '../../_lib/digest.js';
-
-const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -99,16 +99,7 @@ export async function onRequestPost(context) {
 
     if (action === 'digest.sendReview') {
       const draft = await requireDraft(ns, body.id);
-      const reviewRecipients = parseRecipients(String(env.WEEKLY_DIGEST_REVIEW_RECIPIENTS || ''));
-      if (!reviewRecipients.length) {
-        return json({ ok: false, error: 'WEEKLY_DIGEST_REVIEW_RECIPIENTS is not configured.' }, 400);
-      }
-      const result = await sendDigestEmail(env, draft, reviewRecipients, '[READY FOR REVIEW]');
-      draft.reviewSentAt = new Date().toISOString();
-      draft.updatedAt = draft.reviewSentAt;
-      draft.status = 'review-sent';
-      draft.reviewMessageId = result?.id || '';
-      await saveDraft(ns, draft);
+      const result = await sendReviewEmail(ns, env, draft);
       return json({ ok: true, draft, messageId: result?.id || null });
     }
 
@@ -190,33 +181,4 @@ function rebuildDraftContent(draft) {
   draft.subject = rebuilt.subject;
   draft.text = rebuilt.text;
   draft.html = rebuilt.html;
-}
-
-async function sendDigestEmail(env, draft, recipients, subjectPrefix) {
-  const from = String(env.WEEKLY_DIGEST_FROM || '').trim();
-  const apiKey = String(env.RESEND_API_KEY || '').trim();
-  if (!from) throw new Error('WEEKLY_DIGEST_FROM is not configured.');
-  if (!apiKey) throw new Error('RESEND_API_KEY is not configured.');
-
-  return sendWithResend({
-    apiKey,
-    from,
-    to: recipients,
-    subject: `${String(subjectPrefix || '').trim()} ${draft.subject}`.trim(),
-    text: draft.text,
-    html: draft.html,
-  });
-}
-
-async function sendWithResend({ apiKey, from, to, subject, text, html }) {
-  const response = await fetch(RESEND_ENDPOINT, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to, subject, text, html }),
-  });
-  if (!response.ok) {
-    const detail = await response.text().catch(() => '');
-    throw new Error(`Resend API failed (${response.status}): ${detail.slice(0, 500)}`);
-  }
-  return response.json();
 }
