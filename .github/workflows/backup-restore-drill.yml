@@ -49,7 +49,7 @@ jobs:
           test -f restore-check/tools/autonomy-audit.mjs
 
       - name: 📤 Upload drill artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-restore-drill
           path: backup-artifacts/oknstudio-core.tar.gz

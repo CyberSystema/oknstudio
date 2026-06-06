@@ -49,7 +49,7 @@ jobs:
     timeout-minutes: 15
 
     env:
-      PYTHON_VERSION: '3.11'
+      PYTHON_VERSION: '3.13'
       HF_HOME: /home/runner/.cache/huggingface
       SENTENCE_TRANSFORMERS_HOME: /home/runner/.cache/huggingface/hub
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
