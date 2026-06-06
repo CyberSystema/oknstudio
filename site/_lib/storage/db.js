@@ -23,7 +23,7 @@ import {
   del,
   keys,
   clear
-} from 'https://esm.sh/idb-keyval@6.2.1?bundle';
+} from 'https://esm.sh/idb-keyval@6.2.5?bundle';
 
 const DB_NAME = 'okn-darkroom';
 

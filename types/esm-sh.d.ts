@@ -32,10 +32,10 @@ declare module 'https://esm.sh/exifr@7.1.3?bundle' {
   const exifr: any;
   export default exifr;
 }
-declare module 'https://esm.sh/client-zip@2.4.5?bundle' {
+declare module 'https://esm.sh/client-zip@2.5.0?bundle' {
   export const downloadZip: any;
 }
-declare module 'https://esm.sh/idb-keyval@6.2.1?bundle' {
+declare module 'https://esm.sh/idb-keyval@6.2.5?bundle' {
   export const createStore: any;
   export const get: any;
   export const set: any;
@@ -43,7 +43,7 @@ declare module 'https://esm.sh/idb-keyval@6.2.1?bundle' {
   export const keys: any;
   export const clear: any;
 }
-declare module 'https://esm.sh/libheif-js@1.17.1?bundle' {
+declare module 'https://esm.sh/libheif-js@1.19.8?bundle' {
   const libheif: any;
   export default libheif;
 }
