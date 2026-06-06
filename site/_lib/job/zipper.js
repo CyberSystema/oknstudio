@@ -6,7 +6,7 @@
  * and "tab crashes" for 500-photo batches.
  */
 
-import { downloadZip } from 'https://esm.sh/client-zip@2.4.5?bundle';
+import { downloadZip } from 'https://esm.sh/client-zip@2.5.0?bundle';
 
 /**
  * @typedef {Object} ZipEntry

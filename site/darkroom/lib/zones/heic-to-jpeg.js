@@ -37,7 +37,7 @@ let heifInitPromise = null;
 async function getHeif() {
   if (heifInitPromise) return heifInitPromise;
   heifInitPromise = (async () => {
-    const mod = await import('https://esm.sh/libheif-js@1.17.1?bundle');
+    const mod = await import('https://esm.sh/libheif-js@1.19.8?bundle');
     const init = /** @type {any} */ (mod).default ?? mod;
     // libheif-js exports a factory that returns a decoder module. Some
     // builds expose HeifDecoder directly; support both shapes.
