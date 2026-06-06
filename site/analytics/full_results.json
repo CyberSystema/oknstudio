@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-06T11:04:35.784628",
+  "generated_at": "2026-06-06T11:46:08.967578",
   "meta": {
     "total_posts": 213,
     "platforms": [
@@ -7,7 +7,12 @@
       "tiktok"
     ]
   },
-  "health": {},
+  "health": {
+    "status": "growing",
+    "emoji": "\ud83d\udcc8",
+    "signal_score": 0.67,
+    "message": "Momentum is positive \u2014 most of your metrics are trending up."
+  },
   "recommendations": [
     {
       "priority": "high",
@@ -21,18 +26,8 @@
     },
     {
       "priority": "high",
-      "category": "growth",
-      "message": "Instagram reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
-    },
-    {
-      "priority": "high",
-      "category": "growth",
-      "message": "TikTok reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
-    },
-    {
-      "priority": "high",
       "category": "content",
-      "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
+      "message": "Viral content on Instagram: Short Video, Carousel. Create more content in these formats."
     },
     {
       "priority": "high",
@@ -57,12 +52,17 @@
     {
       "priority": "low",
       "category": "platform",
-      "message": "Instagram is outperforming industry benchmark by 11.2%! Keep up the great work."
+      "message": "Instagram is outperforming industry benchmark by 15.0%! Keep up the great work."
     },
     {
       "priority": "low",
       "category": "platform",
-      "message": "TikTok is outperforming industry benchmark by 10.1%! Keep up the great work."
+      "message": "TikTok is outperforming industry benchmark by 11.7%! Keep up the great work."
+    },
+    {
+      "priority": "low",
+      "category": "growth",
+      "message": "Instagram reach is growing! Keep up the momentum."
     },
     {
       "priority": "low",
@@ -72,7 +72,7 @@
   ],
   "analysis": {
     "meta": {
-      "generated_at": "2026-06-06T11:04:13.102536",
+      "generated_at": "2026-06-06T11:45:46.058373",
       "total_posts": 213,
       "platforms": [
         "instagram",
@@ -89,13 +89,13 @@
         "posts_this_week": 6,
         "total_reach": 914331,
         "total_engagement": 154300,
-        "avg_engagement_rate": 0.1317,
+        "avg_engagement_rate": 0.1702,
         "median_engagement_rate": 0.1293,
         "benchmark_engagement": 0.02,
-        "vs_benchmark": 0.1117,
+        "vs_benchmark": 0.1502,
         "total_followers_gained": 8416,
-        "wow_reach_change": 0.0694,
-        "wow_engagement_change": -0.3757,
+        "wow_reach_change": -0.0262,
+        "wow_engagement_change": -0.0983,
         "top_post": {
           "title": "\uc11c\uc6b8 \uc131\ub2f9 \uacb0\ud63c\uc131\uc0ac | The Wedding of Myron (Juwon Kim) and Vasilia (Jaeeun Seo)\n2026\ub144 5\uc6d4 9\uc77c \ud1a0\uc694\uc77c, \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131",
           "engagement": 31482,
@@ -110,13 +110,13 @@
         "posts_this_week": 2,
         "total_reach": 1081246,
         "total_engagement": 152603,
-        "avg_engagement_rate": 0.1259,
+        "avg_engagement_rate": 0.1421,
         "median_engagement_rate": 0.1296,
         "benchmark_engagement": 0.025,
-        "vs_benchmark": 0.1009,
+        "vs_benchmark": 0.1171,
         "total_followers_gained": 0,
-        "wow_reach_change": 16.7486,
-        "wow_engagement_change": 20.1051,
+        "wow_reach_change": 18.6026,
+        "wow_engagement_change": 25.5242,
         "top_post": {
           "title": "\uc815\uad50 \uc8fc\uc77c\uc744 \ub9de\uc544, \ud55c\uad6d\uc815\uad50\ud68c \ub300\uad50\uad6c\ub294 \uc11c\uc6b8 \uc131 \ub2c8\ucf5c\ub77c\uc2a4 \ub300\uc131\ub2f9\uc5d0\uc11c \uc131\ud654\uc0c1 \ud589\ub82c\uc744 \ud558\uba70 \uc6b0\ub9ac \uc2e0\uc559\uc758 \uc2b9\ub9ac\ub97c \uacbd\ucd95\ud558\uc600\uc2b5\ub2c8\ub2e4. On the Sunday of Orthodoxy, the",
           "engagement": 31591,
@@ -1227,21 +1227,37 @@
         "avg_weekly_engagement": 21774,
         "avg_weekly_followers": 638,
         "avg_weekly_posts": 4.5,
-        "reach_trend": "declining",
-        "engagement_trend": "declining",
-        "follower_trend": "declining"
+        "reach_trend": "growing",
+        "engagement_trend": "growing",
+        "follower_trend": "stable"
       },
       "platform_growth": {
         "instagram": {
           "latest_week_reach": 24282,
-          "reach_trend": "declining",
-          "total_followers_gained": 8416
+          "reach_metric": "reach",
+          "reach_trend": "growing",
+          "trend_source": "account_daily:reach",
+          "total_followers_gained": 8416,
+          "reach_recent_avg_per_day": 11359.0,
+          "reach_prior_avg_per_day": 6169.6,
+          "reach_change_pct": 84.1
         },
         "tiktok": {
           "latest_week_reach": 15404,
-          "reach_trend": "declining",
-          "total_followers_gained": 0
+          "reach_metric": "views",
+          "reach_trend": "stable",
+          "trend_source": "account_daily:views",
+          "total_followers_gained": 0,
+          "reach_recent_avg_per_day": 9320.3,
+          "reach_prior_avg_per_day": 10120.0,
+          "reach_change_pct": -7.9
         }
+      },
+      "health": {
+        "status": "growing",
+        "emoji": "\ud83d\udcc8",
+        "signal_score": 0.67,
+        "message": "Momentum is positive \u2014 most of your metrics are trending up."
       }
     },
     "anomalies": {
@@ -1439,18 +1455,8 @@
       },
       {
         "priority": "high",
-        "category": "growth",
-        "message": "Instagram reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
-      },
-      {
-        "priority": "high",
-        "category": "growth",
-        "message": "TikTok reach is declining. Consider boosting posting frequency or trying new content formats on this platform."
-      },
-      {
-        "priority": "high",
         "category": "content",
-        "message": "Viral content on Instagram: Carousel, Short Video. Create more content in these formats."
+        "message": "Viral content on Instagram: Short Video, Carousel. Create more content in these formats."
       },
       {
         "priority": "high",
@@ -1475,12 +1481,17 @@
       {
         "priority": "low",
         "category": "platform",
-        "message": "Instagram is outperforming industry benchmark by 11.2%! Keep up the great work."
+        "message": "Instagram is outperforming industry benchmark by 15.0%! Keep up the great work."
       },
       {
         "priority": "low",
         "category": "platform",
-        "message": "TikTok is outperforming industry benchmark by 10.1%! Keep up the great work."
+        "message": "TikTok is outperforming industry benchmark by 11.7%! Keep up the great work."
+      },
+      {
+        "priority": "low",
+        "category": "growth",
+        "message": "Instagram reach is growing! Keep up the momentum."
       },
       {
         "priority": "low",
@@ -2218,12 +2229,13 @@
   "forecast": {
     "horizon_days": 0,
     "method_used": "prophet",
-    "generated_at": "2026-06-06T11:04:13.792549",
+    "generated_at": "2026-06-06T11:45:46.763728",
     "reach": {
       "method": "prophet",
       "historical_weeks": 55,
       "current_weekly_avg": 132767,
       "trend_direction": "up",
+      "weekly_change_rate": 0.0168,
       "forecast": [],
       "summary": "Insufficient data for forecast."
     },
@@ -2232,6 +2244,7 @@
       "historical_weeks": 55,
       "current_weekly_avg": 21774,
       "trend_direction": "up",
+      "weekly_change_rate": 0.0164,
       "forecast": [],
       "summary": "Insufficient data for forecast."
     },
@@ -2240,24 +2253,26 @@
       "historical_weeks": 55,
       "current_weekly_avg": 638,
       "trend_direction": "up",
+      "weekly_change_rate": 0.0197,
       "forecast": [],
       "summary": "Insufficient data for forecast."
     },
     "health": {
-      "status": "strong_growth",
-      "emoji": "\ud83d\ude80",
-      "message": "OKN's social presence is growing well across key metrics.",
-      "signal_score": 1.0
+      "status": "growing",
+      "emoji": "\ud83d\udcc8",
+      "signal_score": 0.67,
+      "message": "Momentum is positive \u2014 most of your metrics are trending up."
     },
     "instagram_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-06-06T11:04:14.255296",
+      "generated_at": "2026-06-06T11:45:47.235855",
       "reach": {
         "method": "prophet",
         "historical_weeks": 52,
         "current_weekly_avg": 77679,
         "trend_direction": "up",
+        "weekly_change_rate": 0.0179,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
@@ -2266,6 +2281,7 @@
         "historical_weeks": 52,
         "current_weekly_avg": 13358,
         "trend_direction": "up",
+        "weekly_change_rate": 0.0179,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
@@ -2274,6 +2290,7 @@
         "historical_weeks": 52,
         "current_weekly_avg": 638,
         "trend_direction": "up",
+        "weekly_change_rate": 0.0208,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
@@ -2288,12 +2305,13 @@
     "tiktok_forecast": {
       "horizon_days": 0,
       "method_used": "prophet",
-      "generated_at": "2026-06-06T11:04:14.772756",
+      "generated_at": "2026-06-06T11:45:47.745700",
       "reach": {
         "method": "prophet",
         "historical_weeks": 11,
         "current_weekly_avg": 109493,
         "trend_direction": "up",
+        "weekly_change_rate": 0.0316,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
@@ -2302,6 +2320,7 @@
         "historical_weeks": 11,
         "current_weekly_avg": 15751,
         "trend_direction": "up",
+        "weekly_change_rate": 0.0427,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
@@ -2310,6 +2329,7 @@
         "historical_weeks": 11,
         "current_weekly_avg": 0,
         "trend_direction": "flat",
+        "weekly_change_rate": 0.0,
         "forecast": [],
         "summary": "Insufficient data for forecast."
       },
