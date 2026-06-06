@@ -100,10 +100,20 @@ def _tip(text):
     return f'<span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-bubble">{text}</span></span>'
 
 
+def _fmt_wow(wow):
+    """Format a week-over-week fraction. Large surges read better as a
+    multiplier ('19.6×') than as an unwieldy percentage ('+1860%')."""
+    if wow is None:
+        return "N/A"
+    if wow >= 1.0:          # a genuine multi-fold jump (e.g. a viral week)
+        return f"{1 + wow:.1f}×"
+    return f"{wow:+.0%}"
+
+
 # Tooltip texts for every section — friendly, short, no jargon
 TIPS = {
     # Summary
-    "summary": "A quick overview of your social media this week. Read this first to get the big picture!",
+    "summary": "A quick overview of your social media based on all the data uploaded so far. Read this first to get the big picture!",
     "key_numbers": "The most important numbers from all your platforms at a glance.",
     "whats_working": "Content and strategies that are performing well right now. Keep doing these!",
     "needs_attention": "Areas where performance is dropping or could be better. Worth a look.",
@@ -116,7 +126,7 @@ TIPS = {
     "top_scored": "Posts ranked by an overall quality score combining reach, engagement quality, and follower growth.",
     # KPIs
     "avg_engagement": "The percentage of people who saw your content and interacted with it. Higher is better!",
-    "reach_vs_last": "How your reach this week compares to last week. Positive = growing, negative = shrinking.",
+    "reach_vs_last": "Compares the most recent week of data to the week before it. Positive = up, negative = down. It follows whatever data has been uploaded, so it adapts to irregular updates rather than assuming a fixed weekly schedule.",
     "new_followers": "People who started following you from your content during this period.",
     # ML sections
     "deep_insights": "Advanced patterns found by our AI in your data. These reveal things that aren't obvious from the basic numbers.",
@@ -371,7 +381,7 @@ class ReportGenerator:
         if not ov: return
         fig,axes=plt.subplots(1,3,figsize=(14,4))
         pnames=[PLATFORMS.get(p,{}).get("name",p) for p in ov]; colors=[PLATFORMS.get(p,{}).get("color","#666") for p in ov]
-        for ax,metric,title in [(axes[0],"total_reach","Total Reach"),(axes[1],"total_engagement","Total Engagement"),(axes[2],"total_posts","Total Posts")]:
+        for ax,metric,title in [(axes[0],"total_reach","Total Reach / Views"),(axes[1],"total_engagement","Total Engagement"),(axes[2],"total_posts","Total Posts")]:
             vals=[ov[p][metric] for p in ov]; ax.bar(pnames,vals,color=colors,alpha=0.85); ax.set_title(title)
             for i,v in enumerate(vals): ax.text(i,v,f"{v:,}",ha="center",va="bottom",fontsize=9)
         plt.suptitle("Cross-Platform Comparison",fontsize=14,fontweight="bold"); plt.tight_layout()
@@ -854,10 +864,13 @@ a:hover{{color:var(--signal-bright);text-decoration:underline}}
         for plat, ov_data in overview.items():
             pname = PLATFORMS.get(plat, {}).get("name", plat)
             wow = ov_data.get("wow_reach_change")
-            if wow is not None and wow > 0.1:
-                numbers.append(f"📈 {pname} reach grew <strong>{wow:.0%}</strong> compared to last week")
+            reach_word = "views" if plat == "tiktok" else "reach"
+            if wow is not None and wow >= 1.0:
+                numbers.append(f"🚀 {pname} {reach_word} was <strong>{1 + wow:.1f}×</strong> last week's — a big surge")
+            elif wow is not None and wow > 0.1:
+                numbers.append(f"📈 {pname} {reach_word} grew <strong>{wow:.0%}</strong> compared to last week")
             elif wow is not None and wow < -0.1:
-                numbers.append(f"📉 {pname} reach dropped <strong>{abs(wow):.0%}</strong> compared to last week")
+                numbers.append(f"📉 {pname} {reach_word} dropped <strong>{abs(wow):.0%}</strong> compared to last week")
 
         numbers_html = "<ul>" + "".join(f"<li>{n}</li>" for n in numbers) + "</ul>"
 
@@ -982,7 +995,7 @@ a:hover{{color:var(--signal-bright);text-decoration:underline}}
 
         # ── ASSEMBLE ──
         return f"""<div class="summary">
-<h2>📋 Weekly Summary {_tip(TIPS["summary"])}</h2>
+<h2>📋 Summary {_tip(TIPS["summary"])}</h2>
 <div class="summary-sub">Here's what you need to know — no data science required</div>
 {pulse_html}
 <div class="summary-grid">
@@ -1004,7 +1017,7 @@ a:hover{{color:var(--signal-bright);text-decoration:underline}}
         viral = [v for v in self.analysis.get("anomalies",{}).get("viral",[]) if v["platform"]==plat]
 
         # KPIs
-        wow=ov.get("wow_reach_change"); ws=f"{wow:+.1%}" if wow is not None else "N/A"
+        wow=ov.get("wow_reach_change"); ws=_fmt_wow(wow)
         kpis = f"""<div class="kpis">
         <div class="kpi"><span class="v">{ov.get('total_posts',0)}</span><span class="l">Posts</span></div>
         <div class="kpi"><span class="v">{ov.get('total_reach',0):,}</span><span class="l">Total Reach</span></div>
@@ -1066,7 +1079,12 @@ a:hover{{color:var(--signal-bright);text-decoration:underline}}
 
         # Neural Network
         nn=ml.get("engagement_prediction",{})
-        if nn.get("status")=="trained":
+        if nn.get("status")=="trained" and not nn.get("reliable", True):
+            # Model doesn't generalise yet (R² ≤ 0). Show an honest note instead
+            # of a misleading "outperformed/underperformed expectations" table.
+            parts.append(f'''<div class="sub-s"><h3>🧠 Engagement Predictor {_tip(TIPS["predictor"])}</h3>
+<p>{_safe(nn.get("message", "Engagement isn't yet predictable from post features — more data will help."))}</p></div>''')
+        elif nn.get("status")=="trained":
             r2=nn["r2_score"]
             accuracy_text = _friendly_r2(r2)
             over_rows = ""
@@ -1335,7 +1353,7 @@ a:hover{{color:var(--signal-bright);text-decoration:underline}}
         return f"""<div class="section cross"><h2>🔄 Cross-Platform Comparison {_tip(TIPS["cross_platform"])}</h2>
 <p style="color:var(--text-faint);font-size:13px;margin-bottom:16px">⚠️ <strong style="color:var(--text-dim)">Note:</strong> Instagram rate = interactions ÷ reach. TikTok rate = interactions ÷ views. Different denominators — not directly comparable.</p>
 {self._ci("cross")}
-<table><tr><th>Platform</th><th>Posts</th><th>Reach</th><th>Engagement</th><th>Avg Rate</th><th>Benchmark</th><th>vs Bench</th></tr>{rows}</table></div>"""
+<table><tr><th>Platform</th><th>Posts</th><th>Reach / Views</th><th>Engagement</th><th>Avg Rate</th><th>Benchmark</th><th>vs Bench</th></tr>{rows}</table></div>"""
 
     def _summary(self):
         return {"generated_at":datetime.now().isoformat(),"meta":self.analysis.get("meta",{}),"health":self.forecast.get("health",{}),"recommendations":self.analysis.get("recommendations",[])}

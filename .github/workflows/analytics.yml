@@ -18,8 +18,6 @@ on:
       - 'analytics-pipeline/scripts/**'
       - 'analytics-pipeline/models/**'
 
-  schedule:
-    - cron: '0 0 * * 1'  # Monday 09:00 KST = 00:00 UTC
 
   workflow_dispatch:
     inputs:

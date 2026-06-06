@@ -538,16 +538,24 @@ def merge_with_history(new_data: pd.DataFrame) -> pd.DataFrame:
         combined = new_data.copy()
         combined["_ingested_at"] = pd.Timestamp.now(tz="UTC")
 
-    # Deduplicate — keep the LATEST ingested version of each post (freshest metrics)
+    # Deduplicate. Data is uploaded manually and irregularly, sometimes the same
+    # export more than once and not always newest-first. Lifetime reach / views /
+    # engagement only ever GROW for a given post, so when a post appears in
+    # several uploads we keep the snapshot with the LARGEST cumulative metrics
+    # (the most complete one) rather than merely the most recently ingested. This
+    # makes re-ingestion safe: accidentally re-uploading an older export can no
+    # longer clobber fresh numbers with stale ones. Ties fall back to latest.
     before = len(combined)
-    combined = combined.sort_values("_ingested_at", ascending=True)
+    sort_cols = [c for c in ["reach", "engagement_total", "_ingested_at"]
+                 if c in combined.columns]
+    combined = combined.sort_values(sort_cols, ascending=True, na_position="first")
     combined = combined.drop_duplicates(
         subset=["post_id", "platform"],
         keep="last",
     )
     dupes = before - len(combined)
     if dupes > 0:
-        logger.info(f"   Merged: {dupes} older records updated with fresh metrics")
+        logger.info(f"   Merged: {dupes} duplicate snapshots collapsed to the most complete metrics")
 
     # Drop the internal column before returning
     combined = combined.drop(columns=["_ingested_at"], errors="ignore")

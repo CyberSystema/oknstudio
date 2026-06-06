@@ -215,6 +215,7 @@ class GrowthForecaster:
             "historical_weeks": len(weekly),
             "current_weekly_avg": round(float(moving_avg)),
             "trend_direction": "up" if trend > 0 else "down" if trend < 0 else "flat",
+            "weekly_change_rate": round(float(trend / (moving_avg or 1)), 4),
             "forecast": forecasted,
             "summary": self._forecast_summary(metric_name, moving_avg, forecasted),
         }

@@ -241,9 +241,32 @@ class MLEngine:
             r2 = float(r2_score(y, y_pred))
             mae = float(mean_absolute_error(y, y_pred))
 
+            # Is the model actually predictive? Prefer the cross-validated score
+            # (generalisation); fall back to in-sample R². A score below ~0 means
+            # the model does worse than just guessing the average, so its
+            # "over/under-performed expectations" lists are noise, not signal —
+            # we suppress them rather than mislead the reader.
+            quality = cv_r2 if cv_r2 is not None else r2
+            reliable = quality is not None and quality >= 0.0
+
             # Predicted vs actual for each post
             self.df["predicted_engagement_rate"] = y_pred
             self.df["engagement_residual"] = y - y_pred
+
+            if not reliable:
+                return {
+                    "status": "trained",
+                    "model": "MLP Neural Network (32→16→8)",
+                    "r2_score": round(r2, 4),
+                    "cv_r2_score": round(cv_r2, 4) if cv_r2 is not None else None,
+                    "mae": round(mae, 4),
+                    "reliable": False,
+                    "interpretation": self._interpret_r2(quality if quality is not None else r2),
+                    "message": ("Not enough signal yet to reliably predict engagement "
+                                "from post features — more data will improve this."),
+                    "overperformers": [],
+                    "underperformers": [],
+                }
 
             # Find overperformers (actual >> predicted) and underperformers
             overperformers = self.df.nlargest(3, "engagement_residual")
@@ -255,6 +278,7 @@ class MLEngine:
                 "r2_score": round(r2, 4),
                 "cv_r2_score": round(cv_r2, 4) if cv_r2 is not None else None,
                 "mae": round(mae, 4),
+                "reliable": True,
                 "interpretation": self._interpret_r2(cv_r2 if cv_r2 is not None else r2),
                 "overperformers": [
                     {

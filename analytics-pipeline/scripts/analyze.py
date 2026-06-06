@@ -48,10 +48,12 @@ def _safe_weighted_avg(values, weights):
 class OKNAnalyzer:
     """Core analytics engine for OKN social media data."""
 
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame, account_data: Optional[Dict] = None):
         self.df = df.copy()
+        self.account_data = account_data or {}
         self.results: Dict[str, Any] = {}
         self._prepare_data()
+        self._prepare_account_daily()
 
     def _prepare_data(self):
         """Pre-process data for analysis."""
@@ -103,6 +105,138 @@ class OKNAnalyzer:
         # Recency weights — last 90 days get full weight, older data gets less
         self.df["weight"] = compute_recency_weights(self.df["published_at"], reference_date=now)
 
+    # ──────────────────────────────────────────
+    # ACCOUNT-LEVEL DAILY SERIES (reach / views / interactions)
+    # ──────────────────────────────────────────
+    # Post-level reach summed by week is dominated by single viral posts (one
+    # 200k-reach post swamps an entire normal week), so any trend fitted to it
+    # is noise. The account-level daily export is a smooth, complete series and
+    # is the correct basis for reach/views/engagement *trends* and week-over-week
+    # comparisons. These helpers expose it to the trend logic below.
+
+    def _prepare_account_daily(self):
+        """Index per-platform account daily frames for trend / WoW computation."""
+        self.platform_daily: Dict[str, pd.DataFrame] = {}
+        acct = self.account_data if isinstance(self.account_data, dict) else {}
+        plats = acct.get("platforms", {}) or {}
+        for plat, pdata in plats.items():
+            daily = pdata.get("daily") if isinstance(pdata, dict) else None
+            if daily is not None and not daily.empty:
+                self.platform_daily[plat] = self._normalize_daily_index(daily)
+        # Backward-compat: a top-level "daily" frame is Instagram's.
+        if not self.platform_daily:
+            daily = acct.get("daily")
+            if daily is not None and not daily.empty:
+                self.platform_daily["instagram"] = self._normalize_daily_index(daily)
+
+    @staticmethod
+    def _normalize_daily_index(daily: pd.DataFrame) -> pd.DataFrame:
+        """Return the daily frame with a sorted, tz-naive DatetimeIndex."""
+        d = daily.copy()
+        idx = pd.to_datetime(d.index, errors="coerce")
+        try:
+            if getattr(idx, "tz", None) is not None:
+                idx = idx.tz_localize(None)
+        except (TypeError, AttributeError):
+            pass
+        d.index = idx
+        d = d[~d.index.isna()]
+        return d.sort_index()
+
+    @staticmethod
+    def _reach_series(daily: pd.DataFrame):
+        """Pick the right 'reach' column for a platform's daily frame.
+
+        Instagram exposes true reach; TikTok only exposes video views, so views
+        is its reach proxy. Returns (series, label) or (None, None).
+        """
+        if "reach" in daily.columns and float(daily["reach"].sum()) > 0:
+            return daily["reach"], "reach"
+        if "views" in daily.columns and float(daily["views"].sum()) > 0:
+            return daily["views"], "views"
+        return None, None
+
+    @staticmethod
+    def _active_span(series: pd.Series) -> pd.Series:
+        """Trim a daily series to its first→last non-zero day (drop padding)."""
+        s = series.dropna()
+        nz = s[s != 0]
+        if nz.empty:
+            return nz
+        return s.loc[nz.index.min():nz.index.max()]
+
+    @classmethod
+    def _classify_trend(cls, recent, prior, threshold: float = 0.10) -> str:
+        """Growing / declining / stable from a recent-vs-prior comparison."""
+        if prior is None or recent is None:
+            return "insufficient_data"
+        if prior <= 0:
+            return "growing" if recent > 0 else "insufficient_data"
+        pct = (recent - prior) / prior
+        if pct > threshold:
+            return "growing"
+        if pct < -threshold:
+            return "declining"
+        return "stable"
+
+    @staticmethod
+    def _window_mean(series: pd.Series, end, days: int):
+        """Average over the *data-days* in the (end-`days`, end] window.
+
+        Data arrives via irregular manual uploads, so a calendar window can be
+        partly empty (a skipped period, an export that ends mid-week). We treat
+        a 0 as 'no data that day' for reach/views/interactions (an active account
+        is virtually never truly 0) and average only the days that reported, so a
+        partial or gappy window isn't read as a crash. Returns (mean, n_days).
+        """
+        win = series[(series.index > end - pd.Timedelta(days=days)) &
+                     (series.index <= end)]
+        win = win[(win != 0) & win.notna()]
+        if win.empty:
+            return None, 0
+        return float(win.mean()), int(len(win))
+
+    @classmethod
+    def _window_trend(cls, series: pd.Series, days: int = 28, threshold: float = 0.10,
+                      min_days: int = 7):
+        """Robust trend: avg-per-data-day over the last `days` vs the prior `days`.
+
+        Returns (trend, recent_mean, prior_mean). Refuses to call a trend (returns
+        'insufficient_data') unless BOTH windows have at least `min_days` of real
+        data — so sparse / irregular uploads don't manufacture a fake trend.
+        """
+        if series is None:
+            return "insufficient_data", None, None
+        s = cls._active_span(series)
+        if s.empty:
+            return "insufficient_data", None, None
+        end = s.index.max()
+        rm, rn = cls._window_mean(s, end, days)
+        pm, pn = cls._window_mean(s, end - pd.Timedelta(days=days), days)
+        if rm is None or pm is None or rn < min_days or pn < min_days:
+            return "insufficient_data", rm, pm
+        return cls._classify_trend(rm, pm, threshold), rm, pm
+
+    @classmethod
+    def _wow_from_daily(cls, series: pd.Series, days: int = 7, min_days: int = 3):
+        """Week-over-week from a daily series, gap-tolerant.
+
+        Compares average daily value over the most recent ~`days` of data to the
+        ~`days` before. Using a per-data-day average (not a raw sum) means an
+        export that ends mid-week, or a missed day, doesn't look like a collapse.
+        """
+        if series is None:
+            return None
+        s = cls._active_span(series)
+        if s.empty:
+            return None
+        end = s.index.max()
+        rm, rn = cls._window_mean(s, end, days)
+        pm, pn = cls._window_mean(s, end - pd.Timedelta(days=days), days)
+        if rm is None or pm is None or rn < min_days or pn < min_days or pm <= 0:
+            return None
+        return round(float((rm - pm) / pm), 4)
+
     def run_all(self) -> Dict[str, Any]:
         """Run all analysis modules and return results."""
         logger.info("\U0001f52c Running full analysis pipeline...")
@@ -143,13 +277,29 @@ class OKNAnalyzer:
             pw = self.df_this_week[self.df_this_week["platform"] == platform]
             plw = self.df_last_week[self.df_last_week["platform"] == platform]
 
-            wow_reach = self._wow_change(pw["reach"].sum(), plw["reach"].sum())
-            wow_engagement = self._wow_change(
-                pw["engagement_total"].sum(), plw["engagement_total"].sum()
-            )
+            # Week-over-week from the smooth daily account series (last 7d vs
+            # prior 7d). Summing post-level reach by publish-week is dominated by
+            # single viral posts and produced nonsense like "+1675% vs last week".
+            daily = self.platform_daily.get(platform)
+            wow_reach = wow_engagement = None
+            if daily is not None:
+                rseries, _ = self._reach_series(daily)
+                wow_reach = self._wow_from_daily(rseries)
+                iseries = daily["interactions"] if "interactions" in daily.columns else None
+                wow_engagement = self._wow_from_daily(iseries)
+            if wow_reach is None:
+                wow_reach = self._wow_change(pw["reach"].sum(), plw["reach"].sum())
+            if wow_engagement is None:
+                wow_engagement = self._wow_change(
+                    pw["engagement_total"].sum(), plw["engagement_total"].sum()
+                )
 
             benchmark = ANALYSIS["engagement_benchmarks"].get(platform, 0.03)
-            weighted_rate = _safe_weighted_avg(pdf["engagement_rate"].values, pdf["weight"].values)
+            # Engagement rate as a recency-weighted AGGREGATE (Σ interactions ÷
+            # Σ reach), which is what the industry benchmarks measure. A plain
+            # mean of per-post ratios over-weights tiny-reach posts and is not
+            # comparable to the benchmark.
+            weighted_rate = self._weighted_aggregate_rate(pdf)
 
             overview[platform] = {
                 "total_posts": len(pdf),
@@ -379,35 +529,155 @@ class OKNAnalyzer:
             weekly[growth_col] = weekly[col_name].pct_change().replace([np.inf, -np.inf], np.nan).fillna(0).round(4)
 
         recent = weekly.tail(4)
-        trajectory = {
-            "avg_weekly_reach": int(recent["total_reach"].mean()) if not recent.empty else 0,
-            "avg_weekly_engagement": int(recent["total_engagement"].mean()) if not recent.empty else 0,
-            "avg_weekly_followers": int(recent["total_followers"].mean()) if not recent.empty else 0,
-            "avg_weekly_posts": round(float(recent["post_count"].mean()), 1) if not recent.empty else 0,
-            "reach_trend": self._trend_direction(recent["total_reach"]),
-            "engagement_trend": self._trend_direction(recent["total_engagement"]),
-            "follower_trend": self._trend_direction(recent["total_followers"]),
-        }
 
+        # ── Per-platform reach trend from the smooth daily account series ──
+        # (falls back to the noisy post-weekly slope only when no account data).
         platform_growth = {}
-        for platform in valid["platform"].unique():
+        platforms = set(valid["platform"].unique()) | set(self.platform_daily.keys())
+        for platform in platforms:
             pdata = valid[valid["platform"] == platform]
             pw = pdata.groupby("year_week").agg(
                 reach=("reach", "sum"),
                 engagement=("engagement_total", "sum"),
                 followers=("followers_gained", "sum"),
             )
-            if len(pw) >= 2:
-                platform_growth[platform] = {
-                    "latest_week_reach": int(pw["reach"].iloc[-1]),
-                    "reach_trend": self._trend_direction(pw["reach"].tail(4)),
-                    "total_followers_gained": int(pw["followers"].sum()),
-                }
+            daily = self.platform_daily.get(platform)
+            recent_avg = prior_avg = None
+            reach_label = "reach"
+            if daily is not None:
+                rseries, reach_label = self._reach_series(daily)
+                trend, recent_avg, prior_avg = self._window_trend(rseries) if rseries is not None \
+                    else ("insufficient_data", None, None)
+                trend_source = f"account_daily:{reach_label}"
+            elif len(pw) >= 2:
+                trend = self._trend_direction(pw["reach"].tail(4))
+                trend_source = "post_weekly"
+            else:
+                trend = "insufficient_data"
+                trend_source = "none"
+
+            if pw.empty and daily is None:
+                continue
+
+            entry = {
+                "latest_week_reach": int(pw["reach"].iloc[-1]) if not pw.empty else 0,
+                "reach_metric": reach_label,
+                "reach_trend": trend,
+                "trend_source": trend_source,
+                "total_followers_gained": int(pw["followers"].sum()) if not pw.empty else 0,
+            }
+            if recent_avg is not None and prior_avg is not None:
+                entry["reach_recent_avg_per_day"] = round(recent_avg, 1)
+                entry["reach_prior_avg_per_day"] = round(prior_avg, 1)
+                entry["reach_change_pct"] = round((recent_avg / prior_avg - 1) * 100, 1) \
+                    if prior_avg > 0 else None
+            platform_growth[platform] = entry
+
+        # ── Overall trajectory trends from the daily account series ──
+        # Engagement / followers aggregate cleanly across platforms; reach is a
+        # mix of IG reach + TikTok views (documented), used only for direction.
+        overall_reach_trend = self._combine_trends(
+            [g["reach_trend"] for g in platform_growth.values()]
+        )
+        engagement_trend = self._combined_daily_trend("interactions")
+        follower_trend = self._combined_daily_trend("follows")
+
+        trajectory = {
+            "avg_weekly_reach": int(recent["total_reach"].mean()) if not recent.empty else 0,
+            "avg_weekly_engagement": int(recent["total_engagement"].mean()) if not recent.empty else 0,
+            "avg_weekly_followers": int(recent["total_followers"].mean()) if not recent.empty else 0,
+            "avg_weekly_posts": round(float(recent["post_count"].mean()), 1) if not recent.empty else 0,
+            "reach_trend": overall_reach_trend,
+            "engagement_trend": engagement_trend,
+            "follower_trend": follower_trend,
+        }
+
+        health = self._growth_health(platform_growth, engagement_trend)
 
         return {
             "weekly_data": weekly.to_dict("index"),
             "trajectory": trajectory,
             "platform_growth": platform_growth,
+            "health": health,
+        }
+
+    def _combined_daily_trend(self, column: str, days: int = 28) -> str:
+        """Trend of a metric summed across all platforms' daily series."""
+        cols = []
+        for daily in self.platform_daily.values():
+            if column in daily.columns:
+                cols.append(daily[column])
+        if not cols:
+            return "insufficient_data"
+        combined = pd.concat(cols, axis=1).fillna(0).sum(axis=1)
+        trend, _, _ = self._window_trend(combined, days=days)
+        return trend
+
+    @staticmethod
+    def _combine_trends(trends: list) -> str:
+        """Reduce per-platform trends to one direction (worst-case honest)."""
+        present = [t for t in trends if t in ("growing", "declining", "stable")]
+        if not present:
+            return "insufficient_data"
+        has_grow = "growing" in present
+        has_decl = "declining" in present
+        if has_grow and has_decl:
+            return "mixed"
+        if has_grow:
+            return "growing"
+        if has_decl:
+            return "declining"
+        return "stable"
+
+    @staticmethod
+    def _growth_health(platform_growth: Dict, engagement_trend: str) -> Dict:
+        """One coherent growth verdict shared by the header, summary and recs.
+
+        Built from the SAME recent-window reach trends shown elsewhere, so the
+        report can no longer say 'strong growth' up top and 'declining' below.
+        """
+        score_map = {"growing": 1, "stable": 0, "declining": -1}
+        signals = [score_map[g["reach_trend"]] for g in platform_growth.values()
+                   if g.get("reach_trend") in score_map]
+        if engagement_trend in score_map:
+            signals.append(score_map[engagement_trend])
+
+        if not signals:
+            return {
+                "status": "collecting_data", "emoji": "📊", "signal_score": 0.0,
+                "message": "Still collecting enough account history to assess growth.",
+            }
+
+        avg = float(np.mean(signals))
+        any_declining = any(s < 0 for s in signals)
+        any_growing = any(s > 0 for s in signals)
+        all_growing = all(s > 0 for s in signals)
+
+        if all_growing:
+            status, emoji = "strong_growth", "🚀"
+            message = "Reach and engagement are trending up across your platforms."
+        elif avg >= 0.5 and not any_declining:
+            status, emoji = "growing", "📈"
+            message = "Momentum is positive — most of your metrics are trending up."
+        elif avg > 0 and any_declining:
+            status, emoji = "mixed", "📊"
+            message = "Mixed signals — some platforms are growing while others are slipping."
+        elif avg > 0:
+            status, emoji = "growing", "📈"
+            message = "Overall momentum is positive — keep the current strategy going."
+        elif avg == 0 and (any_growing or any_declining):
+            status, emoji = "mixed", "📊"
+            message = "Mixed signals — gains on some platforms offset declines on others."
+        elif avg == 0:
+            status, emoji = "stable", "📊"
+            message = "Growth is steady. Look for opportunities to accelerate."
+        else:
+            status, emoji = "needs_attention", "⚠️"
+            message = "Reach is slipping on one or more platforms. Review recent content."
+
+        return {
+            "status": status, "emoji": emoji, "signal_score": round(avg, 2),
+            "message": message,
         }
 
     # ──────────────────────────────────────────
@@ -672,6 +942,17 @@ class OKNAnalyzer:
     # ──────────────────────────────────────────
     # UTILITY METHODS
     # ──────────────────────────────────────────
+
+    @staticmethod
+    def _weighted_aggregate_rate(pdf: pd.DataFrame) -> float:
+        """Recency-weighted aggregate engagement rate: Σ(w·interactions) ÷ Σ(w·reach)."""
+        w = pdf["weight"].values.astype(float)
+        eng = pdf["engagement_total"].values.astype(float)
+        reach = pdf["reach"].values.astype(float)
+        mask = np.isfinite(w) & np.isfinite(eng) & np.isfinite(reach)
+        num = float(np.sum(w[mask] * eng[mask]))
+        den = float(np.sum(w[mask] * reach[mask]))
+        return num / den if den > 1e-10 else 0.0
 
     @staticmethod
     def _wow_change(current: float, previous: float) -> Optional[float]:

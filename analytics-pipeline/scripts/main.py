@@ -170,7 +170,7 @@ def run_pipeline(ingest_only=False, report_only=False):
     from config import compute_recency_weights
     df["weight"] = compute_recency_weights(df["published_at"])
 
-    analyzer = OKNAnalyzer(df)
+    analyzer = OKNAnalyzer(df, account_data=account_data)
     analysis = analyzer.run_all()
 
     # ── STEP 3: MODELS ──
@@ -234,6 +234,18 @@ def run_pipeline(ingest_only=False, report_only=False):
             logger.warning(f"      {platform} ML failed: {e}")
             ml_results[platform] = {"status": "failed", "error": str(e)}
 
+    # Single source of truth for the growth verdict: the analyzer computes one
+    # coherent "health" from the same recent-window reach trends used by the
+    # recommendations. The report header reads forecast["health"], so point it
+    # at that coherent verdict instead of the full-history slope (which trivially
+    # reads "up" because the account ramped from zero in early 2025).
+    if isinstance(analysis, dict):
+        coherent_health = analysis.get("growth", {}).get("health")
+        if coherent_health:
+            if not isinstance(forecast_results, dict):
+                forecast_results = {}
+            forecast_results["health"] = coherent_health
+
     # ── STEP 4: REPORT ──
     logger.info("\n📝 STEP 4: Report Generation")
     logger.info("-" * 40)
@@ -258,7 +270,7 @@ def run_pipeline(ingest_only=False, report_only=False):
     try:
         platforms = sorted(df['platform'].dropna().unique().tolist())
         recommendations = analysis.get("recommendations", []) if isinstance(analysis, dict) else []
-        health = analysis.get("health", {}) if isinstance(analysis, dict) else {}
+        health = analysis.get("growth", {}).get("health", {}) if isinstance(analysis, dict) else {}
 
         full_results = {
             "generated_at": datetime.now().isoformat(),

@@ -387,10 +387,26 @@ def save_account_history(daily: pd.DataFrame, demographics: Dict, platform: str 
         with open(demo_path, "w", encoding="utf-8") as f:
             json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
-        # Append to history (track audience changes over time)
+        # Append to history (track audience changes over time) — but only when
+        # the demographics actually changed. Re-running the pipeline on the same
+        # export shouldn't grow the file with identical snapshots.
         demo_history_path = HISTORY_DIR / f"demographics_history_{platform}.jsonl"
-        with open(demo_history_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(snapshot, ensure_ascii=False) + "\n")
+
+        def _payload(snap):
+            return {k: v for k, v in snap.items() if k != "snapshot_date"}
+
+        last_payload = None
+        if demo_history_path.exists():
+            try:
+                lines = [ln for ln in demo_history_path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+                if lines:
+                    last_payload = _payload(json.loads(lines[-1]))
+            except (ValueError, OSError):
+                last_payload = None
+
+        if _payload(snapshot) != last_payload:
+            with open(demo_history_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(snapshot, ensure_ascii=False) + "\n")
 
         # Backward compatibility
         demo_compat = HISTORY_DIR / "demographics.json"
