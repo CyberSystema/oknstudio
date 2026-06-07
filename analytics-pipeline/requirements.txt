@@ -18,7 +18,7 @@ seaborn>=0.13.2
 jinja2>=3.1.0
 
 # Data handling
-pyarrow>=14.0.0        # Parquet support for history storage
+pyarrow>=24.0.0        # Parquet support for history storage
 openpyxl>=3.1.0       # Excel file support
 python-dateutil>=2.8.0
 
